@@ -18,11 +18,6 @@ function toast(message) {
 }
 
 socket.on("toast", toast);
-socket.on("room:kicked", () => {
-  clearSession();
-  toast("Tu as été retiré du salon.");
-  renderHome();
-});
 socket.on("room:state", state => {
   session.state = state;
   render();
@@ -70,23 +65,6 @@ function escapeHtml(value = "") {
   }[c]));
 }
 
-const CATEGORY_ICONS = {
-  "Prénom": "👤", "Animal": "🐾", "Lieu": "📍", "Métier": "💼",
-  "Nourriture": "🍽️", "Marque": "🏷️", "Film": "🎬", "Jeu vidéo": "🎮",
-  "Personnage fictif": "🦸", "Fruit / Légume": "🍏", "Objet": "🧊",
-  "Boisson": "🥤", "Application / Réseau social": "📱", "Sport": "🏆"
-};
-
-function categoryIcon(category) {
-  return CATEGORY_ICONS[category] || "✨";
-}
-
-function avatarMarkup(player, index = 0, extra = "") {
-  const initial = player.isBot ? "🤖" : escapeHtml(player.name.charAt(0).toUpperCase());
-  return `<div class="avatar avatar-${index % 6} ${player.isBot ? "avatar-bot" : ""} ${extra}">${initial}</div>`;
-}
-
-
 function setScreen(html) {
   app.innerHTML = html;
   window.scrollTo({ top: 0, behavior: "instant" });
@@ -95,32 +73,11 @@ function setScreen(html) {
 function renderHome() {
   if (session.state) return render();
   setScreen(`
-    <main class="screen home-screen">
-      <div class="home-orb orb-a"></div>
-      <div class="home-orb orb-b"></div>
-      <div class="floating-letter letter-a">A</div>
-      <div class="floating-letter letter-b">B</div>
-      <div class="floating-letter letter-c">C</div>
-
-      <section class="home-hero">
-        <div class="crown">👑</div>
-        <div class="home-logo"><span>Petit</span><span>Bac</span></div>
-        <p class="home-tagline">Le jeu de mots qui rassemble tout le monde !</p>
-        <div class="hero-card-art" aria-hidden="true">
-          <div class="paper-card">A</div>
-          <div class="pencil">✏️</div>
-        </div>
-      </section>
-
+    <main class="screen center-screen">
+      <div class="home-logo">Petit Bac</div>
       <div class="home-actions">
-        <button class="btn btn-primary btn-icon" id="createBtn"><span>＋</span>Créer une partie</button>
-        <button class="btn btn-outline btn-icon" id="joinBtn"><span>👥</span>Rejoindre une partie</button>
-      </div>
-
-      <div class="home-benefits">
-        <div><span>👥</span><strong>Entre amis</strong></div>
-        <div><span>🧩</span><strong>14 catégories</strong></div>
-        <div><span>✨</span><strong>Fun & rapide</strong></div>
+        <button class="btn btn-primary" id="createBtn">Créer une partie</button>
+        <button class="btn btn-outline" id="joinBtn">Rejoindre une partie</button>
       </div>
     </main>
   `);
@@ -130,20 +87,18 @@ function renderHome() {
 
 function renderNameForm(mode) {
   setScreen(`
-    <main class="screen form-screen premium-form">
-      <button class="back" id="backBtn">←</button>
-      <div class="form-heading">
-        <span class="screen-icon">🎮</span>
+    <main class="screen form-screen">
+      <button class="back" id="backBtn">← Retour</button>
+      <div>
         <h1>Créer une partie</h1>
-        <p class="subtitle">Choisis ton prénom et lance ton salon.</p>
+        <p class="subtitle">Choisis ton prénom pour commencer.</p>
       </div>
-      <form id="nameForm" class="stack form-card">
+      <form id="nameForm" class="stack">
         <div>
           <label class="label" for="name">Ton prénom</label>
-          <div class="input-wrap"><span>👤</span><input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ex. Joris" autofocus /></div>
+          <input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ex. Joris" autofocus />
         </div>
-        <div class="info-strip"><span>⚡</span><div><strong>Partie express</strong><small>1 manche · 6 catégories · 60 secondes</small></div></div>
-        <button class="btn btn-primary" type="submit">Continuer →</button>
+        <button class="btn btn-primary" type="submit">Continuer</button>
       </form>
     </main>
   `);
@@ -162,23 +117,22 @@ function renderNameForm(mode) {
 
 function renderJoinForm() {
   setScreen(`
-    <main class="screen form-screen premium-form">
-      <button class="back" id="backBtn">←</button>
-      <div class="form-heading">
-        <span class="screen-icon">🤝</span>
+    <main class="screen form-screen">
+      <button class="back" id="backBtn">← Retour</button>
+      <div>
         <h1>Rejoindre une partie</h1>
-        <p class="subtitle">Entre le code du salon et ton prénom.</p>
+        <p class="subtitle">Entre le code reçu et ton prénom.</p>
       </div>
-      <form id="joinForm" class="stack form-card">
+      <form id="joinForm" class="stack">
         <div>
           <label class="label" for="code">Code de la partie</label>
-          <div class="input-wrap code-wrap"><span>🎮</span><input class="input" id="code" maxlength="5" autocapitalize="characters" placeholder="AB12C" /></div>
+          <input class="input" id="code" maxlength="5" autocapitalize="characters" placeholder="C9KL3" />
         </div>
         <div>
           <label class="label" for="name">Ton prénom</label>
-          <div class="input-wrap"><span>👤</span><input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ex. Sarah" /></div>
+          <input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ex. Sarah" />
         </div>
-        <button class="btn btn-primary" type="submit">Rejoindre →</button>
+        <button class="btn btn-primary" type="submit">Rejoindre</button>
       </form>
     </main>
   `);
@@ -222,10 +176,10 @@ function renderLobby() {
   const hasBot = state.players.some(p => p.isBot);
 
   const players = state.players.map((p, index) => {
-    const canKick = user?.isHost && p.id !== session.playerId;
+    const initials = p.isBot ? "🤖" : escapeHtml(p.name.charAt(0).toUpperCase());
     return `
       <div class="lobby-player ${p.isBot ? "bot-player" : ""}">
-        ${avatarMarkup(p, index)}
+        <div class="avatar">${initials}</div>
         <div class="player-info">
           <div class="player-name">
             ${escapeHtml(p.name)}
@@ -233,43 +187,40 @@ function renderLobby() {
           </div>
           <div class="player-state">${p.isBot ? "Bot de test" : (p.connected ? "Connecté" : "Déconnecté")}</div>
         </div>
-        ${p.isHost ? `<span class="host-crown" aria-label="Hôte" title="Hôte">♛</span>` : ""}
-        ${canKick ? `<button class="kick-player-btn" data-player-id="${p.id}" aria-label="Expulser ${escapeHtml(p.name)}" title="Expulser">×</button>` : ""}
+        ${p.isHost ? `<span class="host-pill">Hôte</span>` : ""}
       </div>
     `;
   }).join("");
 
   setScreen(`
     <main class="screen lobby-screen">
-      <header class="lobby-topbar">
-        <button class="lobby-close" id="leaveLobbyBtn" aria-label="Quitter le salon">×</button>
-
-        <div class="lobby-logo" aria-label="Petit Bac">
-          <img src="/petit-bac-logo.png" alt="Petit Bac" />
-        </div>
-
-        <div class="room-meta">
-          <div class="room-badge">🔒 <span>Salon privé</span></div>
-          <div class="room-code-chip"><span>🔑</span><strong>${escapeHtml(state.code)}</strong></div>
-        </div>
+      <header class="lobby-header">
+        <div class="mini-brand">P'tit Bac</div>
+        <div class="room-badge">Salon privé</div>
       </header>
+
+      <section class="room-hero">
+        <p class="eyebrow">Code de la partie</p>
+        <button class="code lobby-code" id="copyCode">${escapeHtml(state.code)}</button>
+        <p class="share-hint">Appuie sur le code pour le copier</p>
+      </section>
 
       <section class="lobby-stats">
         <div class="stat-card">
-          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c.5-4.3 3.1-6.5 7.5-6.5s7 2.2 7.5 6.5H4.5Z"/></svg></span>
-          <div><strong>${state.players.length}</strong><span>joueur${state.players.length > 1 ? "s" : ""}</span></div>
+          <strong>${state.players.length}</strong>
+          <span>joueur${state.players.length > 1 ? "s" : ""}</span>
         </div>
         <div class="stat-card">
-          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M7 4h10l-2.2 3L17 10H7Z"/></svg></span>
-          <div><strong>1</strong><span>manche</span></div>
+          <strong>1</strong>
+          <span>manche</span>
         </div>
         <div class="stat-card">
-          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7"/><path d="M12 13V9M9 2h6M12 2v4M17.5 6.5l1.5-1.5"/></svg></span>
-          <div><strong>60s</strong><span>chrono</span></div>
+          <strong>60s</strong>
+          <span>chrono</span>
         </div>
       </section>
 
-      <section class="lobby-section participants-section">
+      <section class="lobby-section">
         <div class="section-head">
           <div>
             <p class="eyebrow">Participants</p>
@@ -287,11 +238,33 @@ function renderLobby() {
         ` : ""}
       </section>
 
+      <section class="lobby-section categories-preview">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Cette partie</p>
+            <h2>6 catégories</h2>
+          </div>
+        </div>
+        <div class="category-grid">
+          ${state.categories.map((c, i) => `
+            <div class="category-preview">
+              <span class="category-number">${i + 1}</span>
+              <span>${escapeHtml(c)}</span>
+            </div>
+          `).join("")}
+        </div>
+      </section>
+
       <div class="lobby-footer">
         ${user?.isHost ? `
           <button class="btn btn-primary" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>
-            ▶ Lancer la partie
+            Lancer la manche
           </button>
+          <p class="footer-note">
+            ${state.players.length < 2
+              ? "Ajoute un bot test ou invite un ami pour commencer."
+              : "Tout est prêt. La manche durera 60 secondes."}
+          </p>
         ` : `
           <div class="waiting-host">
             <div class="spinner small-spinner"></div>
@@ -302,34 +275,17 @@ function renderLobby() {
           </div>
         `}
       </div>
-
-      <section class="lobby-section categories-section">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Cette partie</p>
-            <h2>6 catégories</h2>
-          </div>
-        </div>
-        <div class="category-grid">
-          ${state.categories.map(c => `
-            <div class="category-preview">
-              <span class="category-icon">${categoryIcon(c)}</span>
-              <span>${escapeHtml(c)}</span>
-            </div>
-          `).join("")}
-        </div>
-      </section>
     </main>
   `);
 
-  const leaveBtn = document.getElementById("leaveLobbyBtn");
-  if (leaveBtn) {
-    leaveBtn.onclick = () => {
-      socket.emit("room:leave", { code: state.code, playerId: session.playerId });
-      clearSession();
-      renderHome();
-    };
-  }
+  document.getElementById("copyCode").onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(state.code);
+      toast("Code copié !");
+    } catch {
+      toast(`Code : ${state.code}`);
+    }
+  };
 
   if (user?.isHost) {
     const botBtn = document.getElementById("addBotBtn");
@@ -340,22 +296,9 @@ function renderLobby() {
       };
     }
 
-    document.querySelectorAll(".kick-player-btn").forEach(btn => {
-      btn.onclick = () => {
-        socket.emit("room:kick", {
-          code: state.code,
-          playerId: session.playerId,
-          targetPlayerId: btn.dataset.playerId
-        });
-      };
-    });
-
-    const startBtn = document.getElementById("startBtn");
-    if (startBtn) {
-      startBtn.onclick = () => {
-        socket.emit("game:start", { code: state.code, playerId: session.playerId });
-      };
-    }
+    document.getElementById("startBtn").onclick = () => {
+      socket.emit("game:start", { code: state.code, playerId: session.playerId });
+    };
   }
 }
 
@@ -372,7 +315,7 @@ function renderRound() {
     const value = session.localAnswers[key] || "";
     return `
       <div class="answer-card">
-        <label><span class="answer-icon">${categoryIcon(category)}</span>${escapeHtml(category)}</label>
+        <label>${escapeHtml(category)}</label>
         <input
           class="answer-input"
           data-category="${escapeHtml(category)}"
@@ -390,20 +333,18 @@ function renderRound() {
     <main class="screen">
       <div class="game-top">
         <span class="round-chip">Manche ${state.roundIndex + 1}/1</span>
-        <span class="game-sound">🔊</span>
+        <span class="timer" id="timer">60</span>
       </div>
 
       <div class="letter-card">
-        <div class="timer-ring"><span class="timer" id="timer">60</span></div>
         <div class="letter-label">Lettre</div>
         <div class="letter">${escapeHtml(letter)}</div>
-        <p class="game-instruction">Trouve un mot pour chaque catégorie !</p>
       </div>
 
       <div class="answer-list">${fields}</div>
 
       <div class="sticky-action">
-        <button class="btn btn-primary" id="submitRound">✓ Valider mes réponses</button>
+        <button class="btn btn-primary" id="submitRound">J’ai terminé</button>
       </div>
     </main>
   `);
@@ -455,8 +396,8 @@ function renderRoundWaiting() {
       </div>
       <div class="wait-card">
         <div class="spinner"></div>
-        <div class="wait-icon">⌛</div><h2>En attente des autres joueurs…</h2>
-        <p class="subtitle" style="margin-bottom:0">Tes réponses sont enregistrées. Encore un peu de patience !</p>
+        <h2>Réponses envoyées</h2>
+        <p class="subtitle" style="margin-bottom:0">On attend les autres joueurs.</p>
       </div>
       <h3 class="section-title">Joueurs</h3>
       <div class="players">
@@ -503,7 +444,7 @@ function renderValidation() {
   setScreen(`
     <main class="screen center-screen">
       <div class="review-card">
-        <div class="review-icon">✓?</div><div class="review-kicker">À valider · ${remaining} restante${remaining > 1 ? "s" : ""}</div>
+        <div class="review-kicker">À valider · ${remaining} restante${remaining > 1 ? "s" : ""}</div>
         <div class="review-answer">${escapeHtml(pending.answer)}</div>
         <div class="review-meta">${escapeHtml(pending.category)} · ${escapeHtml(pending.playerName)}</div>
         <p>Cette réponse est-elle valide pour la lettre <strong>${escapeHtml(state.currentLetter)}</strong> ?</p>
@@ -579,44 +520,31 @@ function renderFinished() {
   const winners = ranked.filter(p => p.score === topScore);
   const winnerText = winners.length === 1 ? winners[0].name : winners.map(w => w.name).join(" & ");
 
-  const podium = ranked.slice(0, 3).map((p, index) => `
-    <div class="podium-card podium-${index + 1}">
-      <div class="podium-crown">${index === 0 ? "👑" : index === 1 ? "🥈" : "🥉"}</div>
-      ${avatarMarkup(p, index, "podium-avatar")}
-      <strong>${escapeHtml(p.name)}</strong>
-      <span>${index + 1}</span>
-      <b>${p.score} pt${p.score !== 1 ? "s" : ""}</b>
-    </div>
-  `).join("");
-
-  const rows = ranked.slice(3).map((p, index) => `
-    <div class="final-row">
-      <span class="final-rank">${index + 4}</span>
-      ${avatarMarkup(p, index + 3, "final-avatar")}
-      <strong>${escapeHtml(p.name)}</strong>
-      <b>${p.score} pts</b>
+  const rows = ranked.map((p, index) => `
+    <div class="score-row">
+      <div class="rank">#${index + 1}</div>
+      <div class="score-name">${escapeHtml(p.name)}</div>
+      <div class="score-total">${p.score}/6</div>
     </div>
   `).join("");
 
   setScreen(`
-    <main class="screen finished-screen">
-      <div class="confetti confetti-1">✦</div><div class="confetti confetti-2">◆</div><div class="confetti confetti-3">●</div>
-      <header class="final-header">
-        <div class="winner-emoji">👑</div>
-        <h1>Partie terminée !</h1>
-        <p>Bravo à tous !</p>
-      </header>
-
-      <section class="podium">${podium}</section>
-      ${rows ? `<section class="final-list">${rows}</section>` : ""}
-
-      <div class="final-actions">
-        ${user?.isHost
-          ? `<button class="btn btn-light" id="restartBtn">↻ Refaire une partie</button>`
-          : `<div class="final-wait">L’hôte peut relancer la partie.</div>`
-        }
-        <button class="btn btn-primary" id="leaveBtn">⌂ Retour à l’accueil</button>
+    <main class="screen">
+      <div class="winner-card">
+        <div class="winner-emoji">🏆</div>
+        <p class="review-kicker">${winners.length > 1 ? "Égalité !" : "Gagnant"}</p>
+        <div class="winner-name">${escapeHtml(winnerText)}</div>
+        <div class="winner-score">${topScore} point${topScore !== 1 ? "s" : ""}</div>
       </div>
+
+      <h2 class="section-title">Classement final</h2>
+      <div class="scoreboard">${rows}</div>
+
+      ${user?.isHost
+        ? `<button class="btn btn-primary" id="restartBtn">Rejouer</button>`
+        : `<div class="wait-card"><h3>L’hôte peut relancer une nouvelle manche.</h3></div>`
+      }
+      <button class="btn btn-ghost" id="leaveBtn">← Quitter la partie</button>
     </main>
   `);
 

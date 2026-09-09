@@ -383,46 +383,6 @@ io.on("connection", socket => {
   });
 
 
-  socket.on("room:leave", payload => {
-    const { room, player } = requireMember(socket, payload);
-    if (!room || !player || room.phase !== "lobby") return;
-
-    room.players = room.players.filter(p => p.id !== player.id);
-    try { socket.leave(room.code); } catch {}
-
-    if (room.players.length === 0) {
-      rooms.delete(room.code);
-      return;
-    }
-
-    if (player.isHost) {
-      const nextHost = room.players.find(p => !p.isBot) || room.players[0];
-      if (nextHost) nextHost.isHost = true;
-    }
-    emitRoom(room);
-  });
-
-  socket.on("room:kick", ({ code, playerId, targetPlayerId }) => {
-    const { room, player } = requireMember(socket, { code, playerId });
-    if (!room || !player?.isHost || room.phase !== "lobby") return;
-    if (!targetPlayerId || targetPlayerId === player.id) return;
-
-    const target = room.players.find(p => p.id === targetPlayerId);
-    if (!target) return;
-
-    room.players = room.players.filter(p => p.id !== targetPlayerId);
-
-    if (target.socketId) {
-      const targetSocket = io.sockets.sockets.get(target.socketId);
-      if (targetSocket) {
-        targetSocket.emit("room:kicked", { code: room.code });
-        try { targetSocket.leave(room.code); } catch {}
-      }
-    }
-
-    emitRoom(room);
-  });
-
   socket.on("room:addBot", payload => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "lobby") return;
