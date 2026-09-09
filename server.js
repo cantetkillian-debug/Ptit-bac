@@ -383,15 +383,42 @@ io.on("connection", socket => {
   });
 
 
+  socket.on("room:leave", payload => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player) return;
+
+    const leavingWasHost = player.isHost;
+    room.players = room.players.filter(p => p.id !== player.id);
+    socket.leave(room.code);
+
+    if (room.players.length === 0) {
+      rooms.delete(room.code);
+      return;
+    }
+
+    if (leavingWasHost) {
+      const nextHost = room.players.find(p => !p.isBot) || room.players[0];
+      room.players.forEach(p => { p.isHost = p.id === nextHost.id; });
+    }
+    emitRoom(room);
+  });
+
   socket.on("room:kick", ({ code, playerId, targetPlayerId }) => {
-    const room = rooms.get(normalizeCode(code));
-    if (!room) return;
-    const requester = room.players.find(p => p.id === playerId);
-    if (!requester?.isHost) return;
-    const target = room.players.find(p => p.id === targetPlayerId);
-    if (!target || target.isHost) return;
-    room.players = room.players.filter(p => p.id !== targetPlayerId);
-    if (!target.isBot) io.to(target.socketId).emit("room:kicked");
+    const { room, player } = requireMember(socket, { code, playerId });
+    if (!room || !player?.isHost || room.phase !== "lobby") return;
+
+    const target = getPlayer(room, targetPlayerId);
+    if (!target || target.isHost || target.id === player.id) return;
+
+    if (target.socketId) {
+      const targetSocket = io.sockets.sockets.get(target.socketId);
+      if (targetSocket) {
+        targetSocket.emit("room:kicked");
+        targetSocket.leave(room.code);
+      }
+    }
+
+    room.players = room.players.filter(p => p.id !== target.id);
     emitRoom(room);
   });
 

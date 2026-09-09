@@ -19,12 +19,10 @@ function toast(message) {
 
 socket.on("toast", toast);
 socket.on("room:kicked", () => {
-  session.code = null; session.playerId = null; session.state = null;
-  localStorage.removeItem("petitBacSession");
   toast("Tu as été retiré du salon.");
+  clearSession();
   renderHome();
 });
-
 socket.on("room:state", state => {
   session.state = state;
   render();
@@ -218,102 +216,104 @@ function render() {
   }
 }
 
+function statIcon(type) {
+  const icons = {
+    player: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0H4.5Z" fill="currentColor"/></svg>`,
+    round: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7 4h10l-2.3 4L17 12H7V4Z" fill="currentColor"/></svg>`,
+    timer: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 13V8.5M9 3h6M16.8 6.2l1.5-1.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`
+  };
+  return icons[type] || "";
+}
+
 function renderLobby() {
+  clearInterval(session.timerHandle);
   const state = session.state;
   const user = me();
   const hasBot = state.players.some(p => p.isBot);
 
-  const statIcon = (type) => {
-    if (type === "player") return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4" fill="currentColor"/><path d="M4.5 21c.5-5 3.3-7.5 7.5-7.5s7 2.5 7.5 7.5H4.5z" fill="currentColor"/></svg>`;
-    if (type === "round") return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M7 4h10l-2.2 4L17 12H7V4z" fill="currentColor"/></svg>`;
-    return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M12 13V8.5M9 2h6M16.8 5.2l1.7-1.7" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>`;
-  };
-
-  const hostCrown = `<span class="host-crown" title="Hôte" aria-label="Hôte">♛</span>`;
-
   const players = state.players.map((p, index) => {
-    const canKick = user?.isHost && !p.isHost;
+    const canKick = user?.isHost && !p.isHost && p.id !== session.playerId;
     return `
-      <div class="lobby-player ${p.isBot ? "bot-player" : ""}">
+      <div class="ref-player ${p.isBot ? "ref-player-bot" : ""}">
         ${avatarMarkup(p, index)}
-        <div class="player-info">
-          <div class="player-name">
+        <div class="ref-player-info">
+          <div class="ref-player-name">
             ${escapeHtml(p.name)}
             ${p.id === session.playerId ? `<span class="you-pill">Toi</span>` : ""}
           </div>
-          <div class="player-state">${p.isBot ? "Bot de test" : (p.connected ? "Connecté" : "Déconnecté")}</div>
+          <div class="ref-player-state">${p.isBot ? "Bot de test" : (p.connected ? "Connecté" : "Déconnecté")}</div>
         </div>
-        ${p.isHost ? hostCrown : (canKick ? `<button class="kick-player-btn" data-player-id="${escapeHtml(p.id)}" aria-label="Retirer ${escapeHtml(p.name)}">×</button>` : "")}
+        ${p.isHost ? `<span class="ref-host-crown" title="Hôte" aria-label="Hôte">👑</span>` : ""}
+        ${canKick ? `<button class="ref-kick" data-kick-id="${p.id}" aria-label="Expulser ${escapeHtml(p.name)}">×</button>` : ""}
       </div>
     `;
   }).join("");
 
   setScreen(`
-    <main class="screen lobby-screen lobby-reference">
-      <header class="lobby-topbar">
-        <button class="lobby-exit" id="leaveLobby" aria-label="Quitter le salon">×</button>
-        <div class="lobby-logo-wrap"><img src="petit-bac-logo.jpg" class="lobby-logo-img" alt="Petit Bac"></div>
-        <div class="lobby-room-meta">
-          <div class="private-pill">🔒 <span>Salon privé</span></div>
-          <button class="room-code-pill" id="copyCode">🔑 <strong>${escapeHtml(state.code)}</strong></button>
+    <main class="screen ref-lobby-screen">
+      <div class="ref-deco ref-deco-a"></div>
+      <div class="ref-deco ref-deco-b"></div>
+      <div class="ref-deco ref-deco-c"></div>
+
+      <header class="ref-lobby-header">
+        <button class="ref-close" id="leaveLobbyBtn" aria-label="Quitter le salon">×</button>
+        <img class="ref-lobby-logo" src="petit-bac-logo.jpg" alt="Petit Bac">
+        <div class="ref-room-meta">
+          <div class="ref-room-pill">🔒 <span>Salon privé</span></div>
+          <button class="ref-room-pill ref-code-pill" id="copyCode">🔑 <strong>${escapeHtml(state.code)}</strong></button>
         </div>
       </header>
 
-      <section class="lobby-stats reference-stats">
-        <div class="stat-card reference-stat">
-          <span class="stat-icon">${statIcon("player")}</span>
+      <section class="ref-stats" aria-label="Informations de la partie">
+        <div class="ref-stat-card">
+          <span class="ref-stat-icon">${statIcon("player")}</span>
           <div><strong>${state.players.length}</strong><span>joueur${state.players.length > 1 ? "s" : ""}</span></div>
         </div>
-        <div class="stat-card reference-stat">
-          <span class="stat-icon">${statIcon("round")}</span>
+        <div class="ref-stat-card">
+          <span class="ref-stat-icon">${statIcon("round")}</span>
           <div><strong>1</strong><span>manche</span></div>
         </div>
-        <div class="stat-card reference-stat">
-          <span class="stat-icon">${statIcon("time")}</span>
+        <div class="ref-stat-card">
+          <span class="ref-stat-icon">${statIcon("timer")}</span>
           <div><strong>60s</strong><span>chrono</span></div>
         </div>
       </section>
 
-      <section class="lobby-section participants-section">
-        <div class="section-head">
+      <section class="ref-participants">
+        <div class="ref-section-head">
           <div>
-            <p class="eyebrow">Participants</p>
+            <p class="ref-eyebrow">Participants</p>
             <h2>Dans le salon</h2>
           </div>
-          <span class="count-badge">${state.players.length}/12</span>
+          <span class="ref-count">${state.players.length}/12</span>
         </div>
-        <div class="lobby-players">${players}</div>
+
+        <div class="ref-player-list">${players}</div>
 
         ${user?.isHost ? `
-          <button class="add-bot-btn" id="addBotBtn" ${hasBot ? "disabled" : ""}>
+          <button class="ref-add-bot" id="addBotBtn" ${hasBot ? "disabled" : ""}>
             <span>🤖</span>
-            <span>${hasBot ? "Bot test ajouté" : "Ajouter un bot test"}</span>
+            <strong>${hasBot ? "Bot test ajouté" : "Ajouter un bot test"}</strong>
           </button>
         ` : ""}
 
-        <div class="lobby-footer">
-          ${user?.isHost ? `
-            <button class="btn btn-primary" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>▶ Lancer la partie</button>
-          ` : `
-            <div class="waiting-host">
-              <div class="spinner small-spinner"></div>
-              <div><strong>En attente de l'hôte</strong><span>La manche va bientôt commencer.</span></div>
-            </div>
-          `}
-        </div>
+        ${user?.isHost ? `
+          <button class="ref-start-btn" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>▶&nbsp; Lancer la partie</button>
+        ` : `
+          <div class="waiting-host ref-waiting-host">
+            <div class="spinner small-spinner"></div>
+            <div><strong>En attente de l'hôte</strong><span>La manche va bientôt commencer.</span></div>
+          </div>
+        `}
       </section>
 
-      <section class="lobby-section categories-preview">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Cette partie</p>
-            <h2>6 catégories</h2>
-          </div>
-        </div>
-        <div class="category-grid">
+      <section class="ref-categories">
+        <p class="ref-eyebrow">Cette partie</p>
+        <h2>6 catégories</h2>
+        <div class="ref-category-grid">
           ${state.categories.map(c => `
-            <div class="category-preview">
-              <span class="category-icon">${categoryIcon(c)}</span>
+            <div class="ref-category-card">
+              <span class="ref-category-icon">${categoryIcon(c)}</span>
               <span>${escapeHtml(c)}</span>
             </div>
           `).join("")}
@@ -322,14 +322,6 @@ function renderLobby() {
     </main>
   `);
 
-  document.getElementById("leaveLobby").onclick = () => {
-    session.code = null;
-    session.playerId = null;
-    session.state = null;
-    localStorage.removeItem("petitBacSession");
-    renderHome();
-  };
-
   document.getElementById("copyCode").onclick = async () => {
     try {
       await navigator.clipboard.writeText(state.code);
@@ -337,6 +329,12 @@ function renderLobby() {
     } catch {
       toast(`Code : ${state.code}`);
     }
+  };
+
+  document.getElementById("leaveLobbyBtn").onclick = () => {
+    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+    clearSession();
+    renderHome();
   };
 
   if (user?.isHost) {
@@ -349,13 +347,15 @@ function renderLobby() {
     }
 
     const startBtn = document.getElementById("startBtn");
-    if (startBtn) startBtn.onclick = () => socket.emit("game:start", { code: state.code, playerId: session.playerId });
+    if (startBtn) {
+      startBtn.onclick = () => socket.emit("game:start", { code: state.code, playerId: session.playerId });
+    }
 
-    document.querySelectorAll(".kick-player-btn").forEach(btn => {
+    document.querySelectorAll("[data-kick-id]").forEach(btn => {
       btn.onclick = () => socket.emit("room:kick", {
         code: state.code,
         playerId: session.playerId,
-        targetPlayerId: btn.dataset.playerId
+        targetPlayerId: btn.dataset.kickId
       });
     });
   }
