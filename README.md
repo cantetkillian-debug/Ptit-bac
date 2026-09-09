@@ -6,14 +6,14 @@ Site multijoueur mobile inspiré de la maquette fournie.
 
 - 5 manches.
 - 60 secondes par manche.
-- 6 catégories tirées aléatoirement parmi 14 au début.
+- 6 catégories tirées aléatoirement parmi 12 au début.
 - Les 6 catégories restent identiques pendant les 5 manches.
 - Une nouvelle lettre est tirée à chaque manche.
 - 1 point seulement si la réponse est **valide ET unique**.
 - Doublon, mauvaise lettre, réponse vide ou réponse invalide = 0.
 - Score maximum : 30 points.
 
-### Les 14 catégories
+### Les 12 catégories
 
 1. Prénom
 2. Animal
@@ -26,9 +26,7 @@ Site multijoueur mobile inspiré de la maquette fournie.
 9. Personnage fictif
 10. Fruit / Légume
 11. Objet
-12. Boisson
-13. Application / Réseau social
-14. Sport
+12. Sport
 
 ## Pourquoi l'hôte valide certaines réponses ?
 

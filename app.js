@@ -73,8 +73,7 @@ function escapeHtml(value = "") {
 const CATEGORY_ICONS = {
   "Prénom": "👤", "Animal": "🐾", "Lieu": "📍", "Métier": "💼",
   "Nourriture": "🍽️", "Marque": "🏷️", "Film": "🎬", "Jeu vidéo": "🎮",
-  "Personnage fictif": "🦸", "Fruit / Légume": "🍏", "Objet": "🧊",
-  "Boisson": "🥤", "Application / Réseau social": "📱", "Sport": "🏆"
+  "Personnage fictif": "🦸", "Fruit / Légume": "🍏", "Objet": "🧊", "Sport": "🏆"
 };
 
 function categoryIcon(category) {
@@ -119,7 +118,7 @@ function renderHome() {
 
       <div class="home-benefits">
         <div><span>👥</span><strong>Entre amis</strong></div>
-        <div><span>🧩</span><strong>14 catégories</strong></div>
+        <div><span>🧩</span><strong>12 catégories</strong></div>
         <div><span>✨</span><strong>Fun & rapide</strong></div>
       </div>
     </main>

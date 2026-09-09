@@ -25,8 +25,6 @@ const CATEGORIES = [
   "Personnage fictif",
   "Fruit / Légume",
   "Objet",
-  "Boisson",
-  "Application / Réseau social",
   "Sport"
 ];
 
