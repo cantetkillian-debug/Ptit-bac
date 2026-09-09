@@ -173,39 +173,107 @@ function render() {
 function renderLobby() {
   const state = session.state;
   const user = me();
-  const players = state.players.map(p => `
-    <div class="player-row">
-      <span class="dot ${p.connected ? "on" : ""}"></span>
-      <span>${escapeHtml(p.name)}</span>
-      ${p.isHost ? `<span class="host-pill">Hôte</span>` : ""}
-    </div>
-  `).join("");
+  const hasBot = state.players.some(p => p.isBot);
+
+  const players = state.players.map((p, index) => {
+    const initials = p.isBot ? "🤖" : escapeHtml(p.name.charAt(0).toUpperCase());
+    return `
+      <div class="lobby-player ${p.isBot ? "bot-player" : ""}">
+        <div class="avatar">${initials}</div>
+        <div class="player-info">
+          <div class="player-name">
+            ${escapeHtml(p.name)}
+            ${p.id === session.playerId ? `<span class="you-pill">Toi</span>` : ""}
+          </div>
+          <div class="player-state">${p.isBot ? "Bot de test" : (p.connected ? "Connecté" : "Déconnecté")}</div>
+        </div>
+        ${p.isHost ? `<span class="host-pill">Hôte</span>` : ""}
+      </div>
+    `;
+  }).join("");
 
   setScreen(`
-    <main class="screen">
-      <div class="brand">P'tit Bac</div>
-      <h2 class="lobby-title">Code à partager</h2>
-      <button class="code" id="copyCode">${escapeHtml(state.code)}</button>
-      <p class="hint">Clique sur le code pour le copier et l’envoyer à tes amis</p>
+    <main class="screen lobby-screen">
+      <header class="lobby-header">
+        <div class="mini-brand">P'tit Bac</div>
+        <div class="room-badge">Salon privé</div>
+      </header>
 
-      <h2 class="section-title">Joueurs :</h2>
-      <div class="players">${players}</div>
+      <section class="room-hero">
+        <p class="eyebrow">Code de la partie</p>
+        <button class="code lobby-code" id="copyCode">${escapeHtml(state.code)}</button>
+        <p class="share-hint">Appuie sur le code pour le copier</p>
+      </section>
 
-      ${user?.isHost ? `
-        <button class="btn btn-primary" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>
-          Lancer la partie
-        </button>
-        ${state.players.length < 2 ? `<p class="hint">Il faut au moins 2 joueurs.</p>` : ""}
-      ` : `
-        <div class="wait-card">
-          <div class="spinner"></div>
-          <h3>En attente de l’hôte</h3>
-          <p class="subtitle" style="margin-bottom:0">La partie commencera dès qu’il la lance.</p>
+      <section class="lobby-stats">
+        <div class="stat-card">
+          <strong>${state.players.length}</strong>
+          <span>joueur${state.players.length > 1 ? "s" : ""}</span>
         </div>
-      `}
+        <div class="stat-card">
+          <strong>1</strong>
+          <span>manche</span>
+        </div>
+        <div class="stat-card">
+          <strong>60s</strong>
+          <span>chrono</span>
+        </div>
+      </section>
 
-      <div class="rules-mini">
-        5 manches · 60 secondes · 6 catégories fixes · 1 point si la réponse est valide et unique
+      <section class="lobby-section">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Participants</p>
+            <h2>Dans le salon</h2>
+          </div>
+          <span class="count-badge">${state.players.length}/12</span>
+        </div>
+        <div class="lobby-players">${players}</div>
+
+        ${user?.isHost ? `
+          <button class="add-bot-btn" id="addBotBtn" ${hasBot ? "disabled" : ""}>
+            <span>🤖</span>
+            <span>${hasBot ? "Bot test ajouté" : "Ajouter un bot test"}</span>
+          </button>
+        ` : ""}
+      </section>
+
+      <section class="lobby-section categories-preview">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Cette partie</p>
+            <h2>6 catégories</h2>
+          </div>
+        </div>
+        <div class="category-grid">
+          ${state.categories.map((c, i) => `
+            <div class="category-preview">
+              <span class="category-number">${i + 1}</span>
+              <span>${escapeHtml(c)}</span>
+            </div>
+          `).join("")}
+        </div>
+      </section>
+
+      <div class="lobby-footer">
+        ${user?.isHost ? `
+          <button class="btn btn-primary" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>
+            Lancer la manche
+          </button>
+          <p class="footer-note">
+            ${state.players.length < 2
+              ? "Ajoute un bot test ou invite un ami pour commencer."
+              : "Tout est prêt. La manche durera 60 secondes."}
+          </p>
+        ` : `
+          <div class="waiting-host">
+            <div class="spinner small-spinner"></div>
+            <div>
+              <strong>En attente de l'hôte</strong>
+              <span>La manche va bientôt commencer.</span>
+            </div>
+          </div>
+        `}
       </div>
     </main>
   `);
@@ -220,6 +288,14 @@ function renderLobby() {
   };
 
   if (user?.isHost) {
+    const botBtn = document.getElementById("addBotBtn");
+    if (botBtn && !hasBot) {
+      botBtn.onclick = () => {
+        botBtn.disabled = true;
+        socket.emit("room:addBot", { code: state.code, playerId: session.playerId });
+      };
+    }
+
     document.getElementById("startBtn").onclick = () => {
       socket.emit("game:start", { code: state.code, playerId: session.playerId });
     };
@@ -256,7 +332,7 @@ function renderRound() {
   setScreen(`
     <main class="screen">
       <div class="game-top">
-        <span class="round-chip">Manche ${state.roundIndex + 1}/5</span>
+        <span class="round-chip">Manche ${state.roundIndex + 1}/1</span>
         <span class="timer" id="timer">60</span>
       </div>
 
@@ -311,7 +387,7 @@ function renderRoundWaiting() {
   setScreen(`
     <main class="screen">
       <div class="game-top">
-        <span class="round-chip">Manche ${state.roundIndex + 1}/5</span>
+        <span class="round-chip">Manche ${state.roundIndex + 1}/1</span>
         <span class="timer" id="timer">—</span>
       </div>
       <div class="letter-card">
@@ -448,7 +524,7 @@ function renderFinished() {
     <div class="score-row">
       <div class="rank">#${index + 1}</div>
       <div class="score-name">${escapeHtml(p.name)}</div>
-      <div class="score-total">${p.score}/30</div>
+      <div class="score-total">${p.score}/6</div>
     </div>
   `).join("");
 
@@ -466,7 +542,7 @@ function renderFinished() {
 
       ${user?.isHost
         ? `<button class="btn btn-primary" id="restartBtn">Rejouer</button>`
-        : `<div class="wait-card"><h3>L’hôte peut relancer une partie.</h3></div>`
+        : `<div class="wait-card"><h3>L’hôte peut relancer une nouvelle manche.</h3></div>`
       }
       <button class="btn btn-ghost" id="leaveBtn">← Quitter la partie</button>
     </main>

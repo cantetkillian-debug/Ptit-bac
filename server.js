@@ -80,6 +80,7 @@ function publicPlayer(p) {
     connected: p.connected,
     score: p.score,
     isHost: p.isHost,
+    isBot: !!p.isBot,
     submitted: p.submitted
   };
 }
@@ -210,7 +211,7 @@ function finalizeRound(room) {
   });
 
   room.lastRoundScores = scores;
-  room.phase = round >= 4 ? "finished" : "scoreboard";
+  room.phase = "finished";
   room.roundEndsAt = null;
   room.validation = null;
   emitRoom(room);
@@ -248,6 +249,7 @@ function startRound(room) {
     if (!p.answers[room.roundIndex]) p.answers[room.roundIndex] = {};
   });
   emitRoom(room);
+  playBots(room);
 
   const thisRound = room.roundIndex;
   setTimeout(() => {
@@ -256,6 +258,51 @@ function startRound(room) {
       endRound(current);
     }
   }, 60_300);
+}
+
+
+function makeBotAnswer(category, letter) {
+  const examples = {
+    "Prénom": { A:"Alice", B:"Bruno", C:"Camille", D:"David", E:"Emma", F:"Félix", G:"Gabriel", H:"Hugo", J:"Jade", L:"Lucas", M:"Manon", N:"Nina", P:"Paul", R:"Rose", S:"Sarah", T:"Tom", V:"Victor" },
+    "Animal": { A:"Aigle", B:"Baleine", C:"Chat", D:"Dauphin", E:"Éléphant", F:"Faucon", G:"Girafe", H:"Hérisson", J:"Jaguar", L:"Lion", M:"Mouton", N:"Narval", P:"Panda", R:"Renard", S:"Singe", T:"Tigre", V:"Vache" },
+    "Lieu": { A:"Annecy", B:"Bordeaux", C:"Cannes", D:"Dijon", E:"Évry", F:"Florence", G:"Grenoble", H:"Honfleur", J:"Japon", L:"Lyon", M:"Marseille", N:"Nantes", P:"Paris", R:"Rome", S:"Strasbourg", T:"Toulouse", V:"Venise" },
+    "Métier": { A:"Architecte", B:"Boulanger", C:"Coiffeur", D:"Dentiste", E:"Électricien", F:"Fleuriste", G:"Garagiste", H:"Horloger", J:"Journaliste", L:"Libraire", M:"Médecin", N:"Notaire", P:"Pompier", R:"Réalisateur", S:"Serveur", T:"Traducteur", V:"Vétérinaire" },
+    "Nourriture": { A:"Abricot", B:"Burger", C:"Croissant", D:"Donut", E:"Endive", F:"Fraise", G:"Gaufre", H:"Haricot", J:"Jambon", L:"Lasagnes", M:"Melon", N:"Nouilles", P:"Pizza", R:"Riz", S:"Sushi", T:"Tacos", V:"Vanille" },
+    "Marque": { A:"Adidas", B:"Bic", C:"Canon", D:"Dior", E:"Epson", F:"Ford", G:"Google", H:"Honda", J:"Jeep", L:"Lego", M:"Microsoft", N:"Nike", P:"Peugeot", R:"Renault", S:"Samsung", T:"Tesla", V:"Vans" },
+    "Film": { A:"Avatar", B:"Barbie", C:"Cars", D:"Dune", E:"Encanto", F:"Frozen", G:"Gladiator", H:"Hercule", J:"Joker", L:"Lucy", M:"Matrix", N:"Nope", P:"Parasite", R:"Rocky", S:"Shrek", T:"Titanic", V:"Venom" },
+    "Jeu vidéo": { A:"Among Us", B:"Brawl Stars", C:"Celeste", D:"Doom", E:"Elden Ring", F:"Fortnite", G:"Gran Turismo", H:"Halo", J:"Journey", L:"Limbo", M:"Minecraft", N:"Nintendogs", P:"Pokémon", R:"Roblox", S:"Subnautica", T:"Terraria", V:"Valorant" },
+    "Personnage fictif": { A:"Aladdin", B:"Batman", C:"Cendrillon", D:"Dobby", E:"Elsa", F:"Flash", G:"Goku", H:"Hulk", J:"Joker", L:"Luffy", M:"Mario", N:"Naruto", P:"Pikachu", R:"Robin", S:"Shrek", T:"Thor", V:"Vegeta" },
+    "Fruit / Légume": { A:"Avocat", B:"Banane", C:"Carotte", D:"Datte", E:"Épinard", F:"Fraise", G:"Goyave", H:"Haricot", J:"Jujube", L:"Litchi", M:"Mangue", N:"Navet", P:"Poire", R:"Radis", S:"Salade", T:"Tomate", V:"Vitelotte" },
+    "Objet": { A:"Assiette", B:"Bouteille", C:"Chaise", D:"Dé", E:"Échelle", F:"Fourchette", G:"Gomme", H:"Horloge", J:"Jumelles", L:"Lampe", M:"Marteau", N:"Nappe", P:"Parapluie", R:"Radio", S:"Stylo", T:"Table", V:"Vase" },
+    "Boisson": { A:"Aquarius", B:"Badoit", C:"Café", D:"Dr Pepper", E:"Eau", F:"Fanta", G:"Gini", H:"Horchata", J:"Jus", L:"Limonade", M:"Milkshake", N:"Nectar", P:"Perrier", R:"Red Bull", S:"Sprite", T:"Thé", V:"Volvic" },
+    "Application / Réseau social": { A:"Airbnb", B:"BeReal", C:"Canva", D:"Discord", E:"Etsy", F:"Facebook", G:"Google Maps", H:"Hinge", J:"Just Eat", L:"LinkedIn", M:"Messenger", N:"Netflix", P:"Pinterest", R:"Reddit", S:"Snapchat", T:"TikTok", V:"Vinted" },
+    "Sport": { A:"Athlétisme", B:"Basket", C:"Cyclisme", D:"Darts", E:"Escalade", F:"Football", G:"Golf", H:"Hockey", J:"Judo", L:"Lutte", M:"Moto-cross", N:"Natation", P:"Pétanque", R:"Rugby", S:"Surf", T:"Tennis", V:"Volley" }
+  };
+  return examples[category]?.[letter] || `${letter}test`;
+}
+
+function playBots(room) {
+  const bots = room.players.filter(p => p.isBot);
+  if (!bots.length) return;
+
+  const roundIndex = room.roundIndex;
+  const letter = room.letters[roundIndex];
+
+  bots.forEach((bot, index) => {
+    setTimeout(() => {
+      const current = rooms.get(room.code);
+      if (!current || current.phase !== "round" || current.roundIndex !== roundIndex) return;
+
+      if (!bot.answers[roundIndex]) bot.answers[roundIndex] = {};
+      current.categories.forEach(category => {
+        bot.answers[roundIndex][category] = makeBotAnswer(category, letter);
+      });
+      bot.submitted = true;
+      emitRoom(current);
+
+      if (current.players.every(p => p.submitted)) endRound(current);
+    }, 1800 + index * 500);
+  });
 }
 
 io.on("connection", socket => {
@@ -271,6 +318,7 @@ io.on("connection", socket => {
       socketId: socket.id,
       score: 0,
       isHost: true,
+      isBot: false,
       submitted: false,
       answers: {}
     };
@@ -280,7 +328,7 @@ io.on("connection", socket => {
       phase: "lobby",
       players: [player],
       categories: sample(CATEGORIES, 6),
-      letters: sample(LETTERS, 5),
+      letters: sample(LETTERS, 1),
       roundIndex: -1,
       roundEndsAt: null,
       validation: null,
@@ -313,6 +361,7 @@ io.on("connection", socket => {
       socketId: socket.id,
       score: 0,
       isHost: false,
+      isBot: false,
       submitted: false,
       answers: {}
     };
@@ -330,6 +379,31 @@ io.on("connection", socket => {
 
     setPlayerSocket(room, player, socket);
     cb({ ok: true, state: publicRoom(room) });
+    emitRoom(room);
+  });
+
+
+  socket.on("room:addBot", payload => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player?.isHost || room.phase !== "lobby") return;
+
+    if (room.players.some(p => p.isBot)) {
+      return socket.emit("toast", "Le bot test est déjà dans le salon.");
+    }
+
+    const bot = {
+      id: id(),
+      name: "Bot Test",
+      connected: true,
+      socketId: null,
+      score: 0,
+      isHost: false,
+      isBot: true,
+      submitted: false,
+      answers: {}
+    };
+
+    room.players.push(bot);
     emitRoom(room);
   });
 
@@ -391,7 +465,7 @@ io.on("connection", socket => {
 
     room.phase = "lobby";
     room.categories = sample(CATEGORIES, 6);
-    room.letters = sample(LETTERS, 5);
+    room.letters = sample(LETTERS, 1);
     room.roundIndex = -1;
     room.roundEndsAt = null;
     room.validation = null;

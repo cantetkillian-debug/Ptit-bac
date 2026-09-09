@@ -119,3 +119,14 @@ petit-bac-iphone/
 ```
 
 Sur GitHub mobile, importe les fichiers décompressés eux-mêmes, pas le ZIP.
+
+
+## Version 2
+
+Modifications :
+- Lobby / salon entièrement retravaillé pour mobile.
+- Aperçu des 6 catégories dans le salon.
+- Bouton hôte « Ajouter un bot test ».
+- Le bot remplit automatiquement ses réponses et valide sa manche.
+- Le jeu comporte désormais 1 seule manche de 60 secondes.
+- Score maximum : 6 points.
