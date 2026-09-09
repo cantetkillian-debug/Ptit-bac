@@ -129,28 +129,63 @@ function renderHome() {
 
 function renderNameForm(mode) {
   setScreen(`
-    <main class="screen form-screen premium-form">
-      <button class="back" id="backBtn">←</button>
-      <div class="form-heading">
-        <span class="screen-icon">🎮</span>
+    <main class="screen form-screen premium-form create-game-screen">
+      <button class="back" id="backBtn" aria-label="Retour">←</button>
+
+      <div class="form-heading create-heading">
+        <img class="create-game-logo" src="./petit-bac-logo.png" alt="P’tit Bac" />
         <h1>Créer une partie</h1>
         <p class="subtitle">Choisis ton prénom et lance ton salon.</p>
       </div>
-      <form id="nameForm" class="stack form-card">
+
+      <form id="nameForm" class="stack form-card create-game-card">
         <div>
           <label class="label" for="name">Ton prénom</label>
-          <div class="input-wrap"><span>👤</span><input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ex. Joris" autofocus /></div>
+          <div class="input-wrap"><span class="field-icon">♟</span><input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ton prénom" autofocus /></div>
         </div>
-        <div class="info-strip"><span>⚡</span><div><strong>Partie express</strong><small>1 manche · 6 catégories · 60 secondes</small></div></div>
-        <button class="btn btn-primary" type="submit">Continuer →</button>
+
+        <fieldset class="choice-fieldset">
+          <legend class="label">Nombre de manches</legend>
+          <div class="choice-grid rounds-grid" id="roundChoices">
+            <button type="button" class="choice-btn selected" data-value="1">1</button>
+            <button type="button" class="choice-btn" data-value="3">3</button>
+            <button type="button" class="choice-btn" data-value="5">5</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="choice-fieldset">
+          <legend class="label">Temps par manche</legend>
+          <div class="choice-grid time-grid" id="timeChoices">
+            <button type="button" class="choice-btn time-choice selected" data-value="30"><span class="choice-icon lightning">⚡</span><span>30 secondes</span></button>
+            <button type="button" class="choice-btn time-choice" data-value="60"><span class="choice-icon clock">◴</span><span>60 secondes</span></button>
+          </div>
+        </fieldset>
+
+        <button class="btn btn-primary create-continue" type="submit">Continuer →</button>
       </form>
     </main>
   `);
+
+  let rounds = 1;
+  let duration = 30;
+  const bindChoiceGroup = (id, setter) => {
+    const group = document.getElementById(id);
+    group.querySelectorAll('.choice-btn').forEach(btn => {
+      btn.onclick = () => {
+        group.querySelectorAll('.choice-btn').forEach(item => item.classList.remove('selected'));
+        btn.classList.add('selected');
+        setter(Number(btn.dataset.value));
+      };
+    });
+  };
+  bindChoiceGroup('roundChoices', value => rounds = value);
+  bindChoiceGroup('timeChoices', value => duration = value);
+
   document.getElementById("backBtn").onclick = renderHome;
   document.getElementById("nameForm").onsubmit = e => {
     e.preventDefault();
     const name = document.getElementById("name").value.trim();
-    socket.emit("room:create", { name }, res => {
+    socket.emit("room:create", { name, rounds, duration }, res => {
       if (!res?.ok) return toast(res?.error || "Impossible de créer la partie.");
       saveSession(res.code, res.playerId);
       session.state = res.state;
@@ -256,7 +291,7 @@ function renderLobby() {
 
       <header class="ref-lobby-header">
         <button class="ref-close" id="leaveLobbyBtn" aria-label="Quitter le salon">×</button>
-        <img class="ref-lobby-logo" src="petit-bac-logo.jpg" alt="Petit Bac">
+        <img class="ref-lobby-logo" src="petit-bac-logo.png" alt="Petit Bac">
         <div class="ref-room-meta">
           <div class="ref-room-pill">🔒 <span>Salon privé</span></div>
           <button class="ref-room-pill ref-code-pill" id="copyCode">🔑 <strong>${escapeHtml(state.code)}</strong></button>
