@@ -18,6 +18,13 @@ function toast(message) {
 }
 
 socket.on("toast", toast);
+socket.on("room:kicked", () => {
+  session.code = null; session.playerId = null; session.state = null;
+  localStorage.removeItem("petitBacSession");
+  toast("Tu as été retiré du salon.");
+  renderHome();
+});
+
 socket.on("room:state", state => {
   session.state = state;
   render();
@@ -216,7 +223,16 @@ function renderLobby() {
   const user = me();
   const hasBot = state.players.some(p => p.isBot);
 
+  const statIcon = (type) => {
+    if (type === "player") return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4" fill="currentColor"/><path d="M4.5 21c.5-5 3.3-7.5 7.5-7.5s7 2.5 7.5 7.5H4.5z" fill="currentColor"/></svg>`;
+    if (type === "round") return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M7 4h10l-2.2 4L17 12H7V4z" fill="currentColor"/></svg>`;
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M12 13V8.5M9 2h6M16.8 5.2l1.7-1.7" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>`;
+  };
+
+  const hostCrown = `<span class="host-crown" title="Hôte" aria-label="Hôte">♛</span>`;
+
   const players = state.players.map((p, index) => {
+    const canKick = user?.isHost && !p.isHost;
     return `
       <div class="lobby-player ${p.isBot ? "bot-player" : ""}">
         ${avatarMarkup(p, index)}
@@ -227,40 +243,38 @@ function renderLobby() {
           </div>
           <div class="player-state">${p.isBot ? "Bot de test" : (p.connected ? "Connecté" : "Déconnecté")}</div>
         </div>
-        ${p.isHost ? `<span class="host-pill">Hôte</span>` : ""}
+        ${p.isHost ? hostCrown : (canKick ? `<button class="kick-player-btn" data-player-id="${escapeHtml(p.id)}" aria-label="Retirer ${escapeHtml(p.name)}">×</button>` : "")}
       </div>
     `;
   }).join("");
 
   setScreen(`
-    <main class="screen lobby-screen">
-      <header class="lobby-header">
-        <div class="mini-brand"><span>✦</span> Petit Bac</div>
-        <div class="room-badge">🔒 Salon privé</div>
+    <main class="screen lobby-screen lobby-reference">
+      <header class="lobby-topbar">
+        <button class="lobby-exit" id="leaveLobby" aria-label="Quitter le salon">×</button>
+        <div class="lobby-logo-wrap"><img src="petit-bac-logo.jpg" class="lobby-logo-img" alt="Petit Bac"></div>
+        <div class="lobby-room-meta">
+          <div class="private-pill">🔒 <span>Salon privé</span></div>
+          <button class="room-code-pill" id="copyCode">🔑 <strong>${escapeHtml(state.code)}</strong></button>
+        </div>
       </header>
 
-      <section class="room-hero">
-        <div class="room-controller">🎮</div><p class="eyebrow">Code de la partie</p>
-        <button class="code lobby-code" id="copyCode">${escapeHtml(state.code)}</button>
-        <p class="share-hint">Appuie sur le code pour le copier</p>
-      </section>
-
-      <section class="lobby-stats">
-        <div class="stat-card">
-          <strong>${state.players.length}</strong>
-          <span>joueur${state.players.length > 1 ? "s" : ""}</span>
+      <section class="lobby-stats reference-stats">
+        <div class="stat-card reference-stat">
+          <span class="stat-icon">${statIcon("player")}</span>
+          <div><strong>${state.players.length}</strong><span>joueur${state.players.length > 1 ? "s" : ""}</span></div>
         </div>
-        <div class="stat-card">
-          <strong>1</strong>
-          <span>manche</span>
+        <div class="stat-card reference-stat">
+          <span class="stat-icon">${statIcon("round")}</span>
+          <div><strong>1</strong><span>manche</span></div>
         </div>
-        <div class="stat-card">
-          <strong>60s</strong>
-          <span>chrono</span>
+        <div class="stat-card reference-stat">
+          <span class="stat-icon">${statIcon("time")}</span>
+          <div><strong>60s</strong><span>chrono</span></div>
         </div>
       </section>
 
-      <section class="lobby-section">
+      <section class="lobby-section participants-section">
         <div class="section-head">
           <div>
             <p class="eyebrow">Participants</p>
@@ -276,6 +290,17 @@ function renderLobby() {
             <span>${hasBot ? "Bot test ajouté" : "Ajouter un bot test"}</span>
           </button>
         ` : ""}
+
+        <div class="lobby-footer">
+          ${user?.isHost ? `
+            <button class="btn btn-primary" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>▶ Lancer la partie</button>
+          ` : `
+            <div class="waiting-host">
+              <div class="spinner small-spinner"></div>
+              <div><strong>En attente de l'hôte</strong><span>La manche va bientôt commencer.</span></div>
+            </div>
+          `}
+        </div>
       </section>
 
       <section class="lobby-section categories-preview">
@@ -286,7 +311,7 @@ function renderLobby() {
           </div>
         </div>
         <div class="category-grid">
-          ${state.categories.map((c, i) => `
+          ${state.categories.map(c => `
             <div class="category-preview">
               <span class="category-icon">${categoryIcon(c)}</span>
               <span>${escapeHtml(c)}</span>
@@ -294,29 +319,16 @@ function renderLobby() {
           `).join("")}
         </div>
       </section>
-
-      <div class="lobby-footer">
-        ${user?.isHost ? `
-          <button class="btn btn-primary" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>
-            ▶ Lancer la partie
-          </button>
-          <p class="footer-note">
-            ${state.players.length < 2
-              ? "Ajoute un bot test ou invite un ami pour commencer."
-              : "Tout est prêt. La manche durera 60 secondes."}
-          </p>
-        ` : `
-          <div class="waiting-host">
-            <div class="spinner small-spinner"></div>
-            <div>
-              <strong>En attente de l'hôte</strong>
-              <span>La manche va bientôt commencer.</span>
-            </div>
-          </div>
-        `}
-      </div>
     </main>
   `);
+
+  document.getElementById("leaveLobby").onclick = () => {
+    session.code = null;
+    session.playerId = null;
+    session.state = null;
+    localStorage.removeItem("petitBacSession");
+    renderHome();
+  };
 
   document.getElementById("copyCode").onclick = async () => {
     try {
@@ -336,9 +348,16 @@ function renderLobby() {
       };
     }
 
-    document.getElementById("startBtn").onclick = () => {
-      socket.emit("game:start", { code: state.code, playerId: session.playerId });
-    };
+    const startBtn = document.getElementById("startBtn");
+    if (startBtn) startBtn.onclick = () => socket.emit("game:start", { code: state.code, playerId: session.playerId });
+
+    document.querySelectorAll(".kick-player-btn").forEach(btn => {
+      btn.onclick = () => socket.emit("room:kick", {
+        code: state.code,
+        playerId: session.playerId,
+        targetPlayerId: btn.dataset.playerId
+      });
+    });
   }
 }
 

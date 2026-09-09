@@ -383,6 +383,18 @@ io.on("connection", socket => {
   });
 
 
+  socket.on("room:kick", ({ code, playerId, targetPlayerId }) => {
+    const room = rooms.get(normalizeCode(code));
+    if (!room) return;
+    const requester = room.players.find(p => p.id === playerId);
+    if (!requester?.isHost) return;
+    const target = room.players.find(p => p.id === targetPlayerId);
+    if (!target || target.isHost) return;
+    room.players = room.players.filter(p => p.id !== targetPlayerId);
+    if (!target.isBot) io.to(target.socketId).emit("room:kicked");
+    emitRoom(room);
+  });
+
   socket.on("room:addBot", payload => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "lobby") return;
