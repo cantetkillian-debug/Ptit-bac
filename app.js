@@ -245,11 +245,7 @@ function renderLobby() {
         <button class="lobby-close" id="leaveLobbyBtn" aria-label="Quitter le salon">×</button>
 
         <div class="lobby-logo" aria-label="Petit Bac">
-          <span class="logo-crown">♛</span>
-          <span class="logo-line logo-line-one">Petit</span>
-          <span class="logo-line logo-line-two">Bac</span>
-          <span class="logo-spark logo-spark-left">✦</span>
-          <span class="logo-spark logo-spark-right">✦</span>
+          <img src="/petit-bac-logo.png" alt="Petit Bac" />
         </div>
 
         <div class="room-meta">
@@ -260,15 +256,15 @@ function renderLobby() {
 
       <section class="lobby-stats">
         <div class="stat-card">
-          <span class="stat-icon">👤</span>
+          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c.5-4.3 3.1-6.5 7.5-6.5s7 2.2 7.5 6.5H4.5Z"/></svg></span>
           <div><strong>${state.players.length}</strong><span>joueur${state.players.length > 1 ? "s" : ""}</span></div>
         </div>
         <div class="stat-card">
-          <span class="stat-icon">⚑</span>
+          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M7 4h10l-2.2 3L17 10H7Z"/></svg></span>
           <div><strong>1</strong><span>manche</span></div>
         </div>
         <div class="stat-card">
-          <span class="stat-icon">⏱</span>
+          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7"/><path d="M12 13V9M9 2h6M12 2v4M17.5 6.5l1.5-1.5"/></svg></span>
           <div><strong>60s</strong><span>chrono</span></div>
         </div>
       </section>
