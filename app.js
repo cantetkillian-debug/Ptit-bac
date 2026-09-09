@@ -18,6 +18,11 @@ function toast(message) {
 }
 
 socket.on("toast", toast);
+socket.on("room:kicked", () => {
+  clearSession();
+  toast("Tu as été retiré du salon.");
+  renderHome();
+});
 socket.on("room:state", state => {
   session.state = state;
   render();
@@ -217,6 +222,7 @@ function renderLobby() {
   const hasBot = state.players.some(p => p.isBot);
 
   const players = state.players.map((p, index) => {
+    const canKick = user?.isHost && p.id !== session.playerId;
     return `
       <div class="lobby-player ${p.isBot ? "bot-player" : ""}">
         ${avatarMarkup(p, index)}
@@ -227,40 +233,47 @@ function renderLobby() {
           </div>
           <div class="player-state">${p.isBot ? "Bot de test" : (p.connected ? "Connecté" : "Déconnecté")}</div>
         </div>
-        ${p.isHost ? `<span class="host-pill">Hôte</span>` : ""}
+        ${p.isHost ? `<span class="host-crown" aria-label="Hôte" title="Hôte">♛</span>` : ""}
+        ${canKick ? `<button class="kick-player-btn" data-player-id="${p.id}" aria-label="Expulser ${escapeHtml(p.name)}" title="Expulser">×</button>` : ""}
       </div>
     `;
   }).join("");
 
   setScreen(`
     <main class="screen lobby-screen">
-      <header class="lobby-header">
-        <div class="mini-brand"><span>✦</span> Petit Bac</div>
-        <div class="room-badge">🔒 Salon privé</div>
-      </header>
+      <header class="lobby-topbar">
+        <button class="lobby-close" id="leaveLobbyBtn" aria-label="Quitter le salon">×</button>
 
-      <section class="room-hero">
-        <div class="room-controller">🎮</div><p class="eyebrow">Code de la partie</p>
-        <button class="code lobby-code" id="copyCode">${escapeHtml(state.code)}</button>
-        <p class="share-hint">Appuie sur le code pour le copier</p>
-      </section>
+        <div class="lobby-logo" aria-label="Petit Bac">
+          <span class="logo-crown">♛</span>
+          <span class="logo-line logo-line-one">Petit</span>
+          <span class="logo-line logo-line-two">Bac</span>
+          <span class="logo-spark logo-spark-left">✦</span>
+          <span class="logo-spark logo-spark-right">✦</span>
+        </div>
+
+        <div class="room-meta">
+          <div class="room-badge">🔒 <span>Salon privé</span></div>
+          <div class="room-code-chip"><span>🔑</span><strong>${escapeHtml(state.code)}</strong></div>
+        </div>
+      </header>
 
       <section class="lobby-stats">
         <div class="stat-card">
-          <strong>${state.players.length}</strong>
-          <span>joueur${state.players.length > 1 ? "s" : ""}</span>
+          <span class="stat-icon">👤</span>
+          <div><strong>${state.players.length}</strong><span>joueur${state.players.length > 1 ? "s" : ""}</span></div>
         </div>
         <div class="stat-card">
-          <strong>1</strong>
-          <span>manche</span>
+          <span class="stat-icon">⚑</span>
+          <div><strong>1</strong><span>manche</span></div>
         </div>
         <div class="stat-card">
-          <strong>60s</strong>
-          <span>chrono</span>
+          <span class="stat-icon">⏱</span>
+          <div><strong>60s</strong><span>chrono</span></div>
         </div>
       </section>
 
-      <section class="lobby-section">
+      <section class="lobby-section participants-section">
         <div class="section-head">
           <div>
             <p class="eyebrow">Participants</p>
@@ -278,33 +291,11 @@ function renderLobby() {
         ` : ""}
       </section>
 
-      <section class="lobby-section categories-preview">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Cette partie</p>
-            <h2>6 catégories</h2>
-          </div>
-        </div>
-        <div class="category-grid">
-          ${state.categories.map((c, i) => `
-            <div class="category-preview">
-              <span class="category-icon">${categoryIcon(c)}</span>
-              <span>${escapeHtml(c)}</span>
-            </div>
-          `).join("")}
-        </div>
-      </section>
-
       <div class="lobby-footer">
         ${user?.isHost ? `
           <button class="btn btn-primary" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>
             ▶ Lancer la partie
           </button>
-          <p class="footer-note">
-            ${state.players.length < 2
-              ? "Ajoute un bot test ou invite un ami pour commencer."
-              : "Tout est prêt. La manche durera 60 secondes."}
-          </p>
         ` : `
           <div class="waiting-host">
             <div class="spinner small-spinner"></div>
@@ -315,17 +306,34 @@ function renderLobby() {
           </div>
         `}
       </div>
+
+      <section class="lobby-section categories-section">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Cette partie</p>
+            <h2>6 catégories</h2>
+          </div>
+        </div>
+        <div class="category-grid">
+          ${state.categories.map(c => `
+            <div class="category-preview">
+              <span class="category-icon">${categoryIcon(c)}</span>
+              <span>${escapeHtml(c)}</span>
+            </div>
+          `).join("")}
+        </div>
+      </section>
     </main>
   `);
 
-  document.getElementById("copyCode").onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(state.code);
-      toast("Code copié !");
-    } catch {
-      toast(`Code : ${state.code}`);
-    }
-  };
+  const leaveBtn = document.getElementById("leaveLobbyBtn");
+  if (leaveBtn) {
+    leaveBtn.onclick = () => {
+      socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+      clearSession();
+      renderHome();
+    };
+  }
 
   if (user?.isHost) {
     const botBtn = document.getElementById("addBotBtn");
@@ -336,9 +344,22 @@ function renderLobby() {
       };
     }
 
-    document.getElementById("startBtn").onclick = () => {
-      socket.emit("game:start", { code: state.code, playerId: session.playerId });
-    };
+    document.querySelectorAll(".kick-player-btn").forEach(btn => {
+      btn.onclick = () => {
+        socket.emit("room:kick", {
+          code: state.code,
+          playerId: session.playerId,
+          targetPlayerId: btn.dataset.playerId
+        });
+      };
+    });
+
+    const startBtn = document.getElementById("startBtn");
+    if (startBtn) {
+      startBtn.onclick = () => {
+        socket.emit("game:start", { code: state.code, playerId: session.playerId });
+      };
+    }
   }
 }
 
