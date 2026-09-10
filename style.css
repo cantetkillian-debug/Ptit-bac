@@ -1375,3 +1375,58 @@ body {
   .play-answer-label strong { font-size:.88rem; }
   .play-submit { min-height:62px; font-size:1.05rem; }
 }
+
+/* ===== V1.20 — correctifs écran de jeu mobile ===== */
+.play-screen {
+  /* réserve une vraie zone sous le bouton sur Safari/Chrome mobile */
+  padding-bottom: calc(78px + env(safe-area-inset-bottom));
+}
+.play-header {
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px 1fr 72px;
+  min-height: 82px;
+  align-items: start;
+}
+.play-logo {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 124px;
+  height: 78px;
+  margin: 0;
+  object-fit: contain;
+}
+.play-round-badge {
+  grid-column: 3;
+  justify-self: end;
+}
+.play-sticky-action {
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  margin-top: 18px;
+  padding-bottom: 6px;
+}
+
+@media (max-width:560px) {
+  .play-screen {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+  .play-header {
+    grid-template-columns: 58px 1fr 58px;
+    min-height: 74px;
+  }
+  .play-logo {
+    width: 105px;
+    height: 66px;
+  }
+  .play-round-badge {
+    /* le badge garde sa largeur naturelle sans déplacer le logo */
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  .play-sticky-action {
+    bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+}
