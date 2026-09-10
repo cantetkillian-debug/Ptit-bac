@@ -703,10 +703,11 @@ function renderLobby() {
             <button class="v141-setting-row" id="roomSettingsBtnDifficulty" ${!user?.isHost ? "disabled" : ""}>
               <span class="v141-setting-icon">▥</span><span><small>Difficulté</small><strong>${state.categoryDifficulty === "hard" ? "Difficile" : state.categoryDifficulty === "medium" ? "Moyen" : "Débutant"}</strong></span><b>›</b>
             </button>
+            <button class="v141-setting-row v143-category-setting" id="roomCategoriesCard" ${!user?.isHost ? "disabled" : ""}>
+              <span class="v141-setting-icon">🏷️</span><span><small>Catégories</small><strong>${state.categoryCount || state.categories?.length || 6} sélectionnées</strong></span><b>›</b>
+            </button>
           </section>
 
-          <button class="v141-panel v141-nav-card" id="roomCategoriesCard"><span>🏷️</span><span><strong>Catégories</strong><small>${state.categoryCount || state.categories?.length || 6} sélectionnées</small></span><b>›</b></button>
-          <button class="v141-panel v141-nav-card" id="roomRulesCard"><span>▣</span><span><strong>Règles</strong><small>Voir les règles</small></span><b>›</b></button>
           <div class="v141-panel v141-bot-note"><span>ⓘ</span><p>Les bots jouent comme de vrais joueurs : leurs réponses apparaissent progressivement pendant la manche.</p></div>
         </div>
       </section>
@@ -736,8 +737,6 @@ function renderLobby() {
   });
   const categoriesCard = document.getElementById("roomCategoriesCard");
   if (categoriesCard) categoriesCard.onclick = openSettings;
-  const rulesCard = document.getElementById("roomRulesCard");
-  if (rulesCard) rulesCard.onclick = renderHowTo;
 
   if (user?.isHost) {
     const botBtn = document.getElementById("addBotBtn");
