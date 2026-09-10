@@ -956,79 +956,84 @@ function renderLetterSelection() {
 
   const wheelLabels = LETTER_WHEEL.map((letter, index) => {
     const angle = index * segmentAngle;
-    return `<span class="letter-wheel-label" style="--letter-angle:${angle}deg">${letter}</span>`;
+    return `<span class="letter-wheel-label" style="--letter-angle:${angle}deg"><b class="letter-wheel-glyph">${letter}</b></span>`;
   }).join("");
 
   const wheelStops = LETTER_WHEEL.map((_, index) => {
     const start = index * segmentAngle;
     const end = (index + 1) * segmentAngle;
-    const color = index % 2 === 0 ? "#6746e9" : "#7655f1";
+    const color = index % 2 === 0 ? "#5830c8" : "#7147ed";
     return `${color} ${start}deg ${end}deg`;
   }).join(",");
 
   setScreen(`
-    <main class="screen letter-pick-screen">
+    <main class="screen letter-pick-screen letter-pick-v135">
       <div class="letter-pick-blob letter-pick-blob-a"></div>
       <div class="letter-pick-blob letter-pick-blob-b"></div>
       <div class="letter-pick-spark spark-a">✦</div>
       <div class="letter-pick-spark spark-b">✦</div>
 
-      <header class="letter-pick-header">
+      <header class="letter-pick-header v135-letter-header">
+        <button class="v135-letter-back" id="leaveLetterBtn" type="button" aria-label="Quitter la partie">‹</button>
         <img src="petit-bac-logo.png" class="letter-pick-logo" alt="P’tit Bac">
         ${walletBadge("letter-pick-wallet")}
       </header>
 
-      <section class="letter-pick-heading">
-        <p class="ref-eyebrow">Manche ${nextRound}/${state.rounds}</p>
-        <h1>Tirage de la lettre</h1>
-        <p>${isChooser ? "C’est à toi de lancer la roue !" : `${escapeHtml(chooser?.name || "Un joueur")} a été choisi pour lancer la roue.`}</p>
+      <section class="letter-pick-heading v135-letter-heading">
+        <p class="v135-round-pill">Manche ${nextRound}/${state.rounds}</p>
+        <h1>Tirage de la <span>lettre</span></h1>
+        <p>${isChooser ? (selectedLetter ? "La lettre est prête !" : "Appuie directement sur la roue !") : `${escapeHtml(chooser?.name || "Un joueur")} lance la roue.`}</p>
       </section>
 
-      <section class="letter-wheel-zone">
+      <section class="letter-wheel-zone ${isChooser && !selectedLetter ? "is-tappable" : ""}" id="letterWheelTapZone" role="${isChooser && !selectedLetter ? "button" : "presentation"}" ${isChooser && !selectedLetter ? 'tabindex="0" aria-label="Lancer la roue"' : ''}>
         <div class="letter-wheel-pointer"><span></span></div>
         <div class="letter-wheel-shell">
           <div class="letter-wheel" id="letterWheel" style="background:conic-gradient(${wheelStops})">
             ${wheelLabels}
-            <div class="letter-wheel-center">
-              <strong id="letterWheelResult">${selectedLetter ? escapeHtml(selectedLetter) : "?"}</strong>
-            </div>
+            <div class="letter-wheel-center"><span class="v135-wheel-crown">♛</span></div>
           </div>
         </div>
       </section>
 
-      ${!selectedLetter ? `
-        <div class="letter-pick-message">
-          <strong>${isChooser ? "Lance la roue !" : `En attente de ${escapeHtml(chooser?.name || "ce joueur")}…`}</strong>
-          <span>${isChooser ? "La lettre sera choisie au hasard." : "La roue va déterminer la lettre de cette manche."}</span>
+      ${selectedLetter ? `
+        <div class="letter-result-card v135-letter-result">
+          <div class="v135-result-letter">${escapeHtml(selectedLetter)}</div>
+          <div><span>Lettre sélectionnée</span><strong>${escapeHtml(selectedLetter)}</strong></div>
         </div>
       ` : `
-        <div class="letter-result-card">
-          <span>Lettre sélectionnée</span>
-          <strong>${escapeHtml(selectedLetter)}</strong>
+        <div class="v135-letter-status ${isChooser ? "ready" : "waiting"}">
+          <span>${isChooser ? "La roue est prête" : `En attente de ${escapeHtml(chooser?.name || "ce joueur")}`}</span>
         </div>
       `}
 
       ${isChooser ? `
-        <section class="letter-pick-actions">
-          ${!selectedLetter ? `
-            <button class="btn btn-primary letter-spin-btn" id="spinLetterBtn">🎯 Lancer la roue</button>
-          ` : `
+        <section class="letter-pick-actions v135-letter-actions">
+          ${selectedLetter ? `
             <button class="letter-reroll-btn" id="rerollLetterBtn" ${getCoins() < rerollCost ? "disabled" : ""}>
               <span>↻ Relancer</span>
               <span class="letter-reroll-cost">${gameCoin("game-coin-tiny")}<b>${rerollCost}</b></span>
             </button>
-            <button class="btn btn-primary letter-confirm-btn" id="confirmLetterBtn">▶ Jouer avec ${escapeHtml(selectedLetter)}</button>
+            <button class="btn btn-primary letter-confirm-btn v135-confirm-letter" id="confirmLetterBtn">
+              <span>Valider la lettre</span><strong>${escapeHtml(selectedLetter)}</strong><span class="v135-confirm-arrow">›</span>
+            </button>
             ${getCoins() < rerollCost ? `<p class="letter-cost-note">Il te faut ${rerollCost} pièces pour relancer.</p>` : ""}
-          `}
+          ` : ``}
         </section>
       ` : `
-        <div class="letter-pick-wait">
+        <div class="letter-pick-wait v135-letter-wait">
           <div class="spinner small-spinner"></div>
-          <div><strong>${selectedLetter ? `Lettre ${escapeHtml(selectedLetter)}` : "Tirage en cours"}</strong><span>${selectedLetter ? `En attente de ${escapeHtml(chooser?.name || "ce joueur")} pour confirmer.` : `En attente de ${escapeHtml(chooser?.name || "ce joueur")}.`}</span></div>
+          <div><strong>${selectedLetter ? `Lettre ${escapeHtml(selectedLetter)}` : "Tirage en cours"}</strong><span>${selectedLetter ? `En attente de ${escapeHtml(chooser?.name || "ce joueur")} pour confirmer.` : `La roue va bientôt tourner.`}</span></div>
         </div>
       `}
     </main>
   `);
+
+  document.getElementById("leaveLetterBtn")?.addEventListener("click", () => {
+    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+    session.state = null;
+    session.code = null;
+    renderHome();
+  });
 
   const wheel = document.getElementById("letterWheel");
   if (wheel && selectedLetter) {
@@ -1037,13 +1042,8 @@ function renderLetterSelection() {
     const turns = 5 + ((Number(state.letterSpinVersion || 0) % 3));
     const finalRotation = turns * 360 + targetAngle;
     wheel.style.setProperty("--wheel-final-rotation", `${finalRotation}deg`);
+    wheel.style.setProperty("--wheel-counter-rotation", `${-finalRotation}deg`);
     requestAnimationFrame(() => wheel.classList.add("is-spinning"));
-
-    const result = document.getElementById("letterWheelResult");
-    if (result) {
-      result.classList.add("result-pop");
-      setTimeout(() => result.classList.add("visible"), 2650);
-    }
 
     const rerollBtn = document.getElementById("rerollLetterBtn");
     const confirmBtn = document.getElementById("confirmLetterBtn");
@@ -1057,11 +1057,22 @@ function renderLetterSelection() {
 
   if (!isChooser) return;
 
-  const spinBtn = document.getElementById("spinLetterBtn");
-  if (spinBtn) {
-    spinBtn.onclick = () => {
-      spinBtn.disabled = true;
-      socket.emit("game:spinLetter", { code: state.code, playerId: session.playerId });
+  const triggerSpin = () => {
+    if (selectedLetter) return;
+    const zone = document.getElementById("letterWheelTapZone");
+    if (zone?.classList.contains("is-spinning-request")) return;
+    zone?.classList.add("is-spinning-request");
+    socket.emit("game:spinLetter", { code: state.code, playerId: session.playerId });
+  };
+
+  const tapZone = document.getElementById("letterWheelTapZone");
+  if (tapZone && !selectedLetter) {
+    tapZone.onclick = triggerSpin;
+    tapZone.onkeydown = (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        triggerSpin();
+      }
     };
   }
 
