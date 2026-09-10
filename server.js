@@ -81,20 +81,36 @@ function emitWallet(player) {
 
 loadWallets();
 
+const CATEGORY_LEVELS = {
+  beginner: [
+    "Prénom", "Animal", "Lieu", "Métier", "Nourriture", "Marque",
+    "Fruit / Légume", "Objet", "Sport", "Mot", "Vêtement", "Cadeau",
+    "Chose orange", "Chose verte", "Chose jaune", "Cuisine", "Maison",
+    "Salle de bain", "Animal marin", "Petit-déjeuner"
+  ],
+  medium: [
+    "Cinéma", "Jeu vidéo", "Personnage fictif", "Dessert", "Mobile",
+    "Application / Réseau social", "Artiste / Chanteur", "Chose dans une chambre",
+    "Chose au supermarché", "Vacances", "Restaurant", "Célébrité"
+  ],
+  hard: [
+    "Chose du frigo", "Mot de 4 lettres", "Chose qu’on achète sur Internet",
+    "Chose qui fait peur", "Chose chère", "Chose à l’école", "Plage",
+    "Mode / Beauté", "Couleur", "Ciel", "Mythes"
+  ]
+};
+
 const CATEGORIES = [
-  "Prénom",
-  "Animal",
-  "Lieu",
-  "Métier",
-  "Nourriture",
-  "Marque",
-  "Film",
-  "Jeu vidéo",
-  "Personnage fictif",
-  "Fruit / Légume",
-  "Objet",
-  "Sport"
+  ...CATEGORY_LEVELS.beginner,
+  ...CATEGORY_LEVELS.medium,
+  ...CATEGORY_LEVELS.hard
 ];
+
+const DIFFICULTY_WEIGHTS = {
+  beginner: { beginner: 1 },
+  medium: { beginner: 0.30, medium: 0.70 },
+  hard: { beginner: 0.20, medium: 0.30, hard: 0.50 }
+};
 
 // Lettres volontairement jouables en français pour une soirée.
 // Tu peux en ajouter/retirer ici.
@@ -117,6 +133,27 @@ function roomCode() {
 
 function sample(arr, n) {
   return [...arr].sort(() => Math.random() - 0.5).slice(0, n);
+}
+
+function allocateWeightedCounts(total, weights) {
+  const entries = Object.entries(weights);
+  const raw = entries.map(([level, weight]) => ({ level, exact: total * weight }));
+  const counts = Object.fromEntries(raw.map(x => [x.level, Math.floor(x.exact)]));
+  let remaining = total - Object.values(counts).reduce((a, b) => a + b, 0);
+  raw.sort((a, b) => (b.exact - Math.floor(b.exact)) - (a.exact - Math.floor(a.exact)));
+  for (let i = 0; i < remaining; i++) counts[raw[i % raw.length].level] += 1;
+  return counts;
+}
+
+function pickCategories(difficulty = "beginner", count = 6) {
+  const safeDifficulty = ["beginner", "medium", "hard"].includes(difficulty) ? difficulty : "beginner";
+  const safeCount = Math.max(1, Math.min(10, Number(count) || 6));
+  const counts = allocateWeightedCounts(safeCount, DIFFICULTY_WEIGHTS[safeDifficulty]);
+  const picked = [];
+  for (const [level, amount] of Object.entries(counts)) {
+    picked.push(...sample(CATEGORY_LEVELS[level], amount));
+  }
+  return sample(picked, picked.length);
 }
 
 function cleanName(name) {
@@ -159,6 +196,7 @@ function publicRoom(room, viewerPlayerId = null) {
     players: room.players.map(publicPlayer),
     categories: room.categories,
     categoryCount: room.categoryCount || room.categories.length,
+    categoryDifficulty: room.categoryDifficulty || "beginner",
     rounds: room.rounds,
     duration: room.duration,
     letters: room.letters,
@@ -488,11 +526,12 @@ io.on("connection", socket => {
     saveWallets();
     cb({ ok: true, token: result.token, balance: result.wallet.coins });
   });
-  socket.on("room:create", ({ name, rounds = 1, duration = 60, categoryCount = 6, avatar, walletToken }, cb = () => {}) => {
+  socket.on("room:create", ({ name, rounds = 1, duration = 60, categoryCount = 6, categoryDifficulty = "beginner", avatar, walletToken }, cb = () => {}) => {
     const safeName = cleanName(name);
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
     const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : 60;
     const safeCategoryCount = [6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : 6;
+    const safeCategoryDifficulty = ["beginner", "medium", "hard"].includes(categoryDifficulty) ? categoryDifficulty : "beginner";
     if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
     const walletResult = ensureWallet(walletToken || socket.data.walletToken);
     socket.data.walletToken = walletResult.token;
@@ -518,7 +557,8 @@ io.on("connection", socket => {
       phase: "lobby",
       players: [player],
       categoryCount: safeCategoryCount,
-      categories: sample(CATEGORIES, safeCategoryCount),
+      categoryDifficulty: safeCategoryDifficulty,
+      categories: pickCategories(safeCategoryDifficulty, safeCategoryCount),
       rounds: safeRounds,
       duration: safeDuration,
       letters: sample(LETTERS, safeRounds),
@@ -541,7 +581,7 @@ io.on("connection", socket => {
     emitRoom(room);
   });
 
-  socket.on("room:updateSettings", ({ code, playerId, rounds, duration, categoryCount }, cb = () => {}) => {
+  socket.on("room:updateSettings", ({ code, playerId, rounds, duration, categoryCount, categoryDifficulty }, cb = () => {}) => {
     const { room, player } = requireMember(socket, { code, playerId });
     if (!room || !player?.isHost) return cb({ ok: false, error: "Seul l’hôte peut modifier les paramètres." });
     if (room.phase !== "lobby") return cb({ ok: false, error: "Les paramètres ne peuvent être modifiés que dans le salon." });
@@ -549,11 +589,13 @@ io.on("connection", socket => {
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : room.rounds;
     const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : room.duration;
     const safeCategoryCount = [6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : (room.categoryCount || room.categories.length || 6);
+    const safeCategoryDifficulty = ["beginner", "medium", "hard"].includes(categoryDifficulty) ? categoryDifficulty : (room.categoryDifficulty || "beginner");
 
     room.rounds = safeRounds;
     room.duration = safeDuration;
     room.categoryCount = safeCategoryCount;
-    room.categories = sample(CATEGORIES, safeCategoryCount);
+    room.categoryDifficulty = safeCategoryDifficulty;
+    room.categories = pickCategories(safeCategoryDifficulty, safeCategoryCount);
     room.letters = sample(LETTERS, safeRounds);
 
     cb({ ok: true, state: publicRoom(room, player.id) });
@@ -750,7 +792,7 @@ io.on("connection", socket => {
     if (!room || !player?.isHost) return;
 
     room.phase = "lobby";
-    room.categories = sample(CATEGORIES, room.categoryCount || 6);
+    room.categories = pickCategories(room.categoryDifficulty || "beginner", room.categoryCount || 6);
     room.letters = sample(LETTERS, room.rounds);
     room.roundIndex = -1;
     room.roundEndsAt = null;

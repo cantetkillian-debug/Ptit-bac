@@ -125,9 +125,18 @@ function escapeHtml(value = "") {
 }
 
 const CATEGORY_ICONS = {
-  "Prénom": "👤", "Animal": "🐾", "Lieu": "📍", "Métier": "💼",
-  "Nourriture": "🍽️", "Marque": "🏷️", "Film": "🎬", "Jeu vidéo": "🎮",
-  "Personnage fictif": "🦸", "Fruit / Légume": "🍏", "Objet": "🧊", "Sport": "🏆"
+  "Prénom":"👤", "Animal":"🐾", "Lieu":"📍", "Métier":"💼", "Nourriture":"🍽️",
+  "Marque":"🏷️", "Fruit / Légume":"🍏", "Objet":"🧊", "Sport":"🏆", "Mot":"🔤",
+  "Vêtement":"👕", "Cadeau":"🎁", "Chose orange":"🟠", "Chose verte":"🟢",
+  "Chose jaune":"🟡", "Cuisine":"🍳", "Maison":"🏠", "Salle de bain":"🚿",
+  "Animal marin":"🐠", "Petit-déjeuner":"🥐", "Cinéma":"🎬", "Jeu vidéo":"🎮",
+  "Personnage fictif":"🦸", "Dessert":"🍰", "Mobile":"📱",
+  "Application / Réseau social":"📲", "Artiste / Chanteur":"🎤",
+  "Chose dans une chambre":"🛏️", "Chose au supermarché":"🛒", "Vacances":"🧳",
+  "Restaurant":"🍴", "Célébrité":"⭐", "Chose du frigo":"🧊",
+  "Mot de 4 lettres":"🔡", "Chose qu’on achète sur Internet":"🛍️",
+  "Chose qui fait peur":"😱", "Chose chère":"💰", "Chose à l’école":"🏫",
+  "Plage":"🏖️", "Mode / Beauté":"💄", "Couleur":"🎨", "Ciel":"☁️", "Mythes":"🏛️"
 };
 
 function categoryIcon(category) {
@@ -247,6 +256,7 @@ function renderHome() {
       name,
       rounds: 1,
       categoryCount: 6,
+      categoryDifficulty: "beginner",
       duration: 60,
       avatar: profile.icon,
       walletToken: session.walletToken
@@ -484,7 +494,7 @@ function renderCategoriesInfo() {
     <main class="screen utility-screen">
       <button class="utility-back" id="backHome">←</button>
       <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
-      <div class="utility-heading"><h1>12 catégories</h1><p>Six catégories sont tirées au hasard au début de chaque partie.</p></div>
+      <div class="utility-heading"><h1>43 catégories</h1><p>Les catégories sont classées en trois niveaux de difficulté et tirées selon les réglages du salon.</p></div>
       <section class="utility-card category-info-grid">
         ${categories.map(c => `<div><span>${categoryIcon(c)}</span><strong>${escapeHtml(c)}</strong></div>`).join('')}
       </section>
@@ -714,8 +724,8 @@ function renderLobby() {
 
       <section class="ref-stats" aria-label="Informations de la partie">
         <div class="ref-stat-card">
-          <span class="ref-stat-icon">${statIcon("player")}</span>
-          <div><strong>${state.players.length}</strong><span>joueur${state.players.length > 1 ? "s" : ""}</span></div>
+          <span class="ref-stat-icon">${categoryIcon(state.categories?.[0] || "")}</span>
+          <div><strong>${state.categoryCount || state.categories.length}</strong><span>catégories</span></div>
         </div>
         <div class="ref-stat-card">
           <span class="ref-stat-icon">${statIcon("round")}</span>
@@ -841,6 +851,14 @@ function renderRoomSettings() {
         </div>
       </fieldset>
 
+      <fieldset class="room-settings-group">
+        <legend>Difficulté des catégories</legend>
+        <div class="room-settings-options difficulty-options">
+          ${[["beginner","🟢 Débutant"],["medium","🟡 Moyen"],["hard","🔴 Difficile"]].map(([v,label]) => `<button type="button" data-setting="categoryDifficulty" data-value="${v}" class="room-setting-choice difficulty-choice ${(state.categoryDifficulty || "beginner") === v ? "selected" : ""}">${label}</button>`).join("")}
+        </div>
+        <p class="room-settings-note">Moyen : 30% débutant / 70% moyen · Difficile : 20% / 30% / 50%</p>
+      </fieldset>
+
       <button class="btn btn-primary room-settings-save" id="saveRoomSettings">Enregistrer</button>
     </section>
   `;
@@ -849,13 +867,14 @@ function renderRoomSettings() {
   const values = {
     rounds: state.rounds,
     categoryCount: state.categoryCount || state.categories.length || 6,
-    duration: state.duration
+    duration: state.duration,
+    categoryDifficulty: state.categoryDifficulty || "beginner"
   };
 
   overlay.querySelectorAll("[data-setting]").forEach(btn => {
     btn.onclick = () => {
       const setting = btn.dataset.setting;
-      values[setting] = Number(btn.dataset.value);
+      values[setting] = setting === "categoryDifficulty" ? btn.dataset.value : Number(btn.dataset.value);
       overlay.querySelectorAll(`[data-setting="${setting}"]`).forEach(item => item.classList.toggle("selected", item === btn));
     };
   });
@@ -871,6 +890,7 @@ function renderRoomSettings() {
       playerId: session.playerId,
       rounds: values.rounds,
       categoryCount: values.categoryCount,
+      categoryDifficulty: values.categoryDifficulty,
       duration: values.duration
     }, res => {
       if (!res?.ok) {

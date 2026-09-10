@@ -1880,6 +1880,8 @@ body {
 }
 .room-settings-sheet {
   width:min(100%,620px);
+  max-height:calc(100dvh - 24px);
+  overflow-y:auto;
   border-radius:30px 30px 24px 24px;
   padding:12px 18px max(20px,env(safe-area-inset-bottom));
   background:linear-gradient(160deg,#fffaf3 0%,#f8f1ff 100%);
@@ -1959,4 +1961,19 @@ body {
   .room-settings-sheet { border-radius:28px 28px 0 0; padding-left:16px; padding-right:16px; }
   .room-settings-options.room-settings-five { gap:6px; }
   .room-setting-choice { min-height:48px; border-radius:15px; font-size:.92rem; }
+}
+
+
+/* ===== Difficulté des catégories ===== */
+.difficulty-choice {
+  min-height:58px;
+  padding:8px 6px;
+  line-height:1.15;
+}
+.room-settings-note {
+  margin:8px 2px 0;
+  color:#847ca6;
+  font-size:.74rem;
+  line-height:1.35;
+  font-weight:700;
 }
