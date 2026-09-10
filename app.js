@@ -1357,90 +1357,111 @@ function renderFinished() {
   const state = session.state;
   const user = me();
   const ranked = rankedPlayers();
+  const rewards = state.rewardsByPlayerId || {};
   const myReward = Math.max(0, Number(state.myReward || 0));
+  const totalPlayers = ranked.length;
+  const podiumPlayers = ranked.slice(0, 3);
 
-  const podium = ranked.slice(0, 3).map((p, index) => {
-    const isMe = p.id === session.playerId;
+  const rewardFor = p => Math.max(0, Number(rewards[p.id] || 0));
+  const placeLabel = place => place === 1 ? "1" : String(place);
+  const podiumClass = place => place === 1 ? "gold" : place === 2 ? "silver" : "bronze";
+
+  const podium = podiumPlayers.map((p, index) => {
     const place = index + 1;
-    const medal = place === 1 ? `<div class="result-place-crown"><span>1</span></div>` : `<div class="result-medal result-medal-${place}">${place}</div>`;
+    const isMe = p.id === session.playerId;
+    const reward = rewardFor(p);
     return `
-      <article class="result-player-card result-place-${place} ${isMe ? "is-me" : ""}">
-        ${medal}
-        ${avatarMarkup(p, index, "podium-avatar")}
-        <div class="result-player-name">${escapeHtml(p.name)}${isMe ? ' <small class="me-badge">Toi</small>' : ''}</div>
-        <div class="result-player-score">${p.score} pt${p.score !== 1 ? "s" : ""}</div>
-        ${isMe ? `<div class="result-private-reward">${gameCoin("game-coin-xs")}<strong>+ ${myReward} pièce${myReward !== 1 ? "s" : ""}</strong></div>` : ''}
-        ${place === 1 ? `<div class="winner-ribbon">🏆 Vainqueur !</div>` : ''}
-      </article>
-    `;
+      <article class="final-v134-podium-card place-${place} ${isMe ? "is-me" : ""}">
+        <div class="final-v134-medal ${podiumClass(place)}">${placeLabel(place)}</div>
+        ${place === 1 ? '<div class="final-v134-crown">♛</div>' : ''}
+        ${avatarMarkup(p, index, "final-v134-podium-avatar")}
+        <strong class="final-v134-podium-name">${escapeHtml(p.name)}${isMe ? ' <small>Toi</small>' : ''}</strong>
+        <span class="final-v134-podium-score">${p.score} pt${p.score !== 1 ? "s" : ""}</span>
+        <span class="final-v134-podium-reward">${gameCoin("game-coin-xs")} +${reward} pièce${reward !== 1 ? "s" : ""}</span>
+      </article>`;
   }).join("");
 
-  const rows = ranked.slice(3).map((p, index) => {
+  const rankingRows = ranked.map((p, index) => {
+    const place = index + 1;
     const isMe = p.id === session.playerId;
+    const reward = rewardFor(p);
     return `
-      <div class="final-row result-extra-row">
-        <span class="final-rank">${index + 4}</span>
-        ${avatarMarkup(p, index + 3, "final-avatar")}
-        <strong>${escapeHtml(p.name)}${isMe ? ' <small class="me-badge">Toi</small>' : ''}</strong>
-        <b>${p.score} pt${p.score !== 1 ? "s" : ""}</b>
-        ${isMe ? `<span class="private-row-win">+${myReward} ${gameCoin("game-coin-tiny")}</span>` : ''}
-      </div>
-    `;
+      <div class="final-v134-row ${isMe ? "is-me" : ""}">
+        <span class="final-v134-rank rank-${Math.min(place,4)}">${place}</span>
+        <div class="final-v134-player">
+          ${avatarMarkup(p, index, "final-v134-row-avatar")}
+          <strong>${escapeHtml(p.name)}${isMe ? ' <small>Toi</small>' : ''}</strong>
+        </div>
+        <b>${p.score}</b>
+        <span class="final-v134-row-reward">${gameCoin("game-coin-tiny")} +${reward}</span>
+      </div>`;
   }).join("");
 
   setScreen(`
-    <main class="screen finished-screen finished-v123">
-      <div class="result-glow result-glow-a"></div>
-      <div class="result-glow result-glow-b"></div>
-      <div class="result-confetti-v123" aria-hidden="true">◆ ✦ ● ◆ ✦ ◆ ● ✦</div>
+    <main class="screen final-v134">
+      <div class="final-v134-glow final-v134-glow-a"></div>
+      <div class="final-v134-glow final-v134-glow-b"></div>
+      <div class="final-v134-confetti" aria-hidden="true">◆ ✦ ◆ ● ✦ ◆ ● ✦</div>
 
-      <header class="result-topbar-v123">
-        <button class="result-back" id="leaveTopBtn" aria-label="Retour">‹</button>
-        <img src="petit-bac-logo.png" class="result-logo-v123" alt="P’tit Bac">
-        ${walletBadge("result-wallet-badge")}
+      <header class="final-v134-topbar">
+        <button class="final-v134-back" id="leaveTopBtn" type="button" aria-label="Retour à l’accueil">${uiIcon("chevron", "final-v134-back-icon")}</button>
+        <img src="petit-bac-logo.png" class="final-v134-logo" alt="P’tit Bac">
+        ${walletBadge("final-v134-wallet")}
       </header>
 
-      <h1 class="result-title-v123">Partie terminée !</h1>
-
-      <section class="result-podium result-podium-${Math.min(ranked.length, 3)}">${podium}</section>
-      ${rows ? `<section class="final-list">${rows}</section>` : ""}
-
-      <section class="result-stats-v123">
-        <div><span>${statIcon("player")}</span><strong>${ranked.length}</strong><small>Joueur${ranked.length > 1 ? "s" : ""}</small></div>
-        <div><span>${statIcon("round")}</span><strong>${state.rounds}</strong><small>Manche${state.rounds > 1 ? "s" : ""}</small></div>
-        <div><span>${statIcon("timer")}</span><strong>${state.duration === 90 ? "1m30" : state.duration === 60 ? "1 min" : `${state.duration}s`}</strong><small>Durée</small></div>
+      <section class="final-v134-heading">
+        <h1>Partie <em>terminée !</em></h1>
       </section>
 
-      <section class="my-coins-result-v123">
-        <div class="coin-stack-art">${gameCoin("game-coin-xl")}${gameCoin("game-coin-stack-a")}${gameCoin("game-coin-stack-b")}</div>
-        <div class="coin-result-copy">
-          <strong>Tes pièces gagnées !</strong>
-          <p>Tu remportes <b>+${myReward} pièce${myReward !== 1 ? "s" : ""}</b>.<br>Nouveau solde : <b>${getCoins()}</b> ${gameCoin("game-coin-inline")}</p>
+      <section class="final-v134-podium final-v134-podium-${Math.min(3,totalPlayers)}">
+        ${podium}
+      </section>
+
+      <section class="final-v134-ranking">
+        <div class="final-v134-ranking-head">
+          <span>#</span><span>Joueur</span><span>Points</span><span>Pièces gagnées</span>
         </div>
-        <span class="well-played">Bien joué !</span>
+        ${rankingRows}
       </section>
 
-      <div class="final-actions result-actions-v123">
+      <section class="final-v134-stats">
+        <div><span>${statIcon("player")}</span><strong>${totalPlayers}</strong><small>Joueur${totalPlayers > 1 ? "s" : ""}</small></div>
+        <div><span>${statIcon("round")}</span><strong>${state.rounds}</strong><small>Manche${state.rounds > 1 ? "s" : ""}</small></div>
+        <div><span>${statIcon("timer")}</span><strong>${state.duration === 90 ? "1m30" : state.duration === 60 ? "1 min" : `${state.duration}s`}</strong><small>Temps / manche</small></div>
+      </section>
+
+      <section class="final-v134-myreward">
+        <div class="final-v134-myreward-coin">${gameCoin("game-coin-xl")}</div>
+        <div>
+          <small>Ton gain</small>
+          <strong>+${myReward} pièce${myReward !== 1 ? "s" : ""}</strong>
+          <span>Nouveau solde : ${getCoins()} pièces</span>
+        </div>
+      </section>
+
+      <div class="final-v134-actions">
+        <button class="final-v134-home" id="leaveBtn" type="button">${uiIcon("home")}<span>Retour à l’accueil</span></button>
         ${user?.isHost
-          ? `<button class="btn btn-light" id="restartBtn">↻ Refaire une partie</button>`
-          : `<div class="final-wait">L’hôte peut relancer la partie.</div>`
+          ? `<button class="final-v134-restart" id="restartBtn" type="button">↻ <span>Refaire une partie</span></button>`
+          : `<div class="final-v134-wait">L’hôte peut relancer une partie.</div>`
         }
-        <button class="btn btn-primary" id="leaveBtn">⌂ Retour à l’accueil</button>
       </div>
     </main>
   `);
 
   if (user?.isHost) {
-    document.getElementById("restartBtn").onclick = () =>
-      socket.emit("game:restart", { code: state.code, playerId: session.playerId });
+    document.getElementById("restartBtn")?.addEventListener("click", () =>
+      socket.emit("game:restart", { code: state.code, playerId: session.playerId })
+    );
   }
+
   const leave = () => {
     socket.emit("room:leave", { code: state.code, playerId: session.playerId });
     clearSession();
     renderHome();
   };
-  document.getElementById("leaveBtn").onclick = leave;
-  document.getElementById("leaveTopBtn").onclick = leave;
+  document.getElementById("leaveBtn")?.addEventListener("click", leave);
+  document.getElementById("leaveTopBtn")?.addEventListener("click", leave);
 }
 
 window.addEventListener("beforeunload", () => {

@@ -289,6 +289,7 @@ function publicRoom(room, viewerPlayerId = null) {
     lastRoundResults: room.lastRoundResults || null,
     pot: room.pot || 0,
     myReward: viewerPlayerId ? (room.rewardsByPlayerId?.[viewerPlayerId] || 0) : 0,
+    rewardsByPlayerId: room.rewardsDistributed ? (room.rewardsByPlayerId || {}) : {},
     rewardsDistributed: !!room.rewardsDistributed
   };
 }
