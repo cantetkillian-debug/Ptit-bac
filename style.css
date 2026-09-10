@@ -1209,3 +1209,30 @@ body {
   .home-v2-panel-compact strong { font-size: .95rem; }
   .home-v2-coin-copy b { font-size: 1.35rem; }
 }
+
+/* ===== ADMIN PIÈCES CACHÉ — V1.18 ===== */
+.home-v2-beta { user-select:none; -webkit-user-select:none; cursor:default; }
+.admin-coin-card { display:grid; gap:20px; }
+.admin-coin-balance {
+  display:flex; align-items:center; justify-content:center; gap:16px;
+  padding:18px; border-radius:24px;
+  background:linear-gradient(135deg,#fff8d9,#ffedaa);
+}
+.admin-coin-medal { width:58px; height:58px; font-size:1.35rem; }
+.admin-coin-balance small { display:block; color:#8179a6; font-weight:800; }
+.admin-coin-balance strong { display:block; margin-top:2px; font-size:2.4rem; line-height:1; color:#17123f; }
+.admin-coin-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.admin-coin-btn {
+  min-height:54px; border:0; border-radius:18px; cursor:pointer;
+  background:linear-gradient(135deg,#7756f1,#5b39e5); color:#fff;
+  font:inherit; font-weight:900; box-shadow:0 8px 18px rgba(91,57,229,.14);
+}
+.admin-coin-btn.secondary { grid-column:1/-1; background:#f1edfa; color:#5f5780; box-shadow:none; }
+.admin-custom-coins { display:grid; gap:10px; }
+.admin-custom-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:stretch; }
+.admin-apply-btn { min-width:120px; padding:0 18px; border-radius:18px; }
+@media (max-width:420px) {
+  .admin-coin-grid { grid-template-columns:repeat(3,1fr); }
+  .admin-custom-row { grid-template-columns:1fr; }
+  .admin-apply-btn { min-height:52px; }
+}

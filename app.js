@@ -12,6 +12,7 @@ const session = {
 
 const GAME_COST = 5;
 const DEFAULT_COINS = 25;
+const ADMIN_COIN_CODE = "PTITBAC-ADMIN"; // mode test local, pas une sécurité serveur
 const PROFILE_ICONS = ["🐼","🦊","🐯","🐸","🦁","🐨","🐙","🦄","🤖","😎","🧠","⭐"];
 
 function getProfile() {
@@ -204,7 +205,7 @@ function renderHome() {
         <span>›</span>
       </button>
 
-      <footer class="home-v2-footer home-v2-beta">Version bêta</footer>
+      <footer class="home-v2-footer home-v2-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
     </main>
   `);
 
@@ -220,6 +221,96 @@ function renderHome() {
   document.getElementById("coinsBtn").onclick = renderCoins;
   document.getElementById("rewardsBtn").onclick = () => toast("Récompenses bientôt disponibles.");
   document.getElementById("howToBtn").onclick = renderHowTo;
+
+  // Menu admin caché : 7 pressions rapides sur « Version bêta ».
+  // Il agit uniquement sur les pièces stockées dans ce navigateur/appareil.
+  const betaTrigger = document.getElementById("betaAdminTrigger");
+  let adminTapCount = 0;
+  let adminTapTimer = null;
+  betaTrigger.onclick = () => {
+    adminTapCount += 1;
+    clearTimeout(adminTapTimer);
+    adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 2200);
+    if (adminTapCount >= 7) {
+      adminTapCount = 0;
+      clearTimeout(adminTapTimer);
+      openAdminCoinAccess();
+    }
+  };
+}
+
+function openAdminCoinAccess() {
+  const code = window.prompt("Code administrateur");
+  if (code === null) return;
+  if (code.trim() !== ADMIN_COIN_CODE) {
+    toast("Code administrateur incorrect.");
+    return;
+  }
+  renderAdminCoins();
+}
+
+function renderAdminCoins() {
+  const coins = getCoins();
+  setScreen(`
+    <main class="screen utility-screen admin-coins-screen">
+      <button class="utility-back" id="backHome">←</button>
+      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
+      <div class="utility-heading">
+        <h1>Pièces — Admin</h1>
+        <p>Outil local de test pour ce navigateur.</p>
+      </div>
+      <section class="utility-card admin-coin-card">
+        <div class="admin-coin-balance">
+          <span class="coin-medal admin-coin-medal">👑</span>
+          <div><small>Solde actuel</small><strong id="adminCoinTotal">${coins}</strong></div>
+        </div>
+        <div class="admin-coin-grid">
+          <button type="button" class="admin-coin-btn" data-add="5">+5</button>
+          <button type="button" class="admin-coin-btn" data-add="25">+25</button>
+          <button type="button" class="admin-coin-btn" data-add="100">+100</button>
+          <button type="button" class="admin-coin-btn secondary" id="resetCoins">Remettre à 25</button>
+        </div>
+        <form class="admin-custom-coins" id="customCoinsForm">
+          <label class="label" for="customCoins">Définir un solde précis</label>
+          <div class="admin-custom-row">
+            <input class="input" id="customCoins" type="number" min="0" max="999999" inputmode="numeric" placeholder="Ex. 500">
+            <button class="btn-primary admin-apply-btn" type="submit">Appliquer</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  `);
+
+  const refresh = value => {
+    document.getElementById("adminCoinTotal").textContent = value;
+  };
+
+  document.querySelectorAll("[data-add]").forEach(btn => {
+    btn.onclick = () => {
+      const next = setCoins(getCoins() + Number(btn.dataset.add || 0));
+      refresh(next);
+      toast(`Solde : ${next} pièces`);
+    };
+  });
+
+  document.getElementById("resetCoins").onclick = () => {
+    const next = setCoins(DEFAULT_COINS);
+    refresh(next);
+    toast("Solde remis à 25 pièces.");
+  };
+
+  document.getElementById("customCoinsForm").onsubmit = e => {
+    e.preventDefault();
+    const field = document.getElementById("customCoins");
+    const value = Number(field.value);
+    if (!Number.isFinite(value) || value < 0) return toast("Entre un nombre valide.");
+    const next = setCoins(Math.min(999999, value));
+    refresh(next);
+    field.value = "";
+    toast(`Solde défini à ${next} pièces.`);
+  };
+
+  document.getElementById("backHome").onclick = renderHome;
 }
 
 function renderProfile() {
