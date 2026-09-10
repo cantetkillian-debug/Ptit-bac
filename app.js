@@ -1308,97 +1308,49 @@ function renderScoreboard() {
   `).join("");
 
   const playerRows = ranked.map((player, playerIndex) => {
-    const gain = state.lastRoundScores?.[player.id] ?? 0;
     const cells = categories.map(category => {
       const result = results.byPlayer?.[player.id]?.[category] || { answer: "", status: "invalid", correction: "Aucune réponse" };
       const statusClass = result.status === "valid" ? "is-valid" : result.status === "duplicate" ? "is-duplicate" : "is-invalid";
       const answer = result.answer ? escapeHtml(result.answer) : "—";
       const correction = result.status === "valid" ? "" : escapeHtml(result.correction || (result.status === "duplicate" ? "Doublon" : "Incorrect"));
-      const symbol = result.status === "valid" ? "✓" : result.status === "duplicate" ? "=" : "×";
-      return `
-        <div class="round-results-answer ${statusClass}" title="${escapeHtml(category)}">
-          <strong>${answer}</strong>
-          <span class="round-results-status">${symbol}</span>
-          ${correction ? `<small>${correction}</small>` : ""}
-        </div>
-      `;
+      const symbol = result.status === "valid" ? "✓" : result.status === "duplicate" ? "!" : "×";
+      return `<div class="round-results-answer ${statusClass}" title="${escapeHtml(category)}"><strong>${answer}</strong><span class="round-results-status">${symbol}</span>${correction ? `<small>${correction}</small>` : ""}</div>`;
     }).join("");
-
     return `
       <div class="round-results-player">
         <div class="round-results-player-card ${playerIndex === 0 ? "is-leader" : ""}">
           ${playerIndex === 0 ? '<span class="round-results-crown">♛</span>' : ""}
           ${avatarMarkup(player, playerIndex, "round-results-avatar")}
-          <div class="round-results-player-copy">
-            <strong>${escapeHtml(player.name)}</strong>
-            <small>+${gain} cette manche</small>
-          </div>
-          <span class="round-results-score">${player.score}</span>
+          <div class="round-results-player-copy"><strong>${escapeHtml(player.name)}</strong><small>${player.score} pt${player.score !== 1 ? "s" : ""}</small></div>
         </div>
         <div class="round-results-cells">${cells}</div>
-      </div>
-    `;
+      </div>`;
   }).join("");
 
   setScreen(`
-    <main class="round-results-v132">
-      <div class="round-results-glow round-results-glow-a"></div>
-      <div class="round-results-glow round-results-glow-b"></div>
-
-      <header class="round-results-top">
-        <div class="round-results-round-pill">
-          <span class="round-results-letter">${escapeHtml(letter)}</span>
-          <div><small>Manche ${state.roundIndex + 1}/${state.rounds}</small><strong>Lettre : ${escapeHtml(letter)}</strong></div>
-        </div>
+    <main class="round-results-v133">
+      <div class="round-results-glow round-results-glow-a"></div><div class="round-results-glow round-results-glow-b"></div>
+      <header class="round-results-top v133-top">
+        <div class="round-results-round-pill v133-letter-pill"><span class="round-results-letter">${escapeHtml(letter)}</span><div><small>Lettre</small><strong>${escapeHtml(letter)}</strong></div></div>
         <img src="petit-bac-logo.png" class="round-results-logo" alt="P’tit Bac">
-        <div class="round-results-state-pill">
-          <span>✓</span>
-          <div><small>Correction</small><strong>Terminée</strong></div>
+        <div class="v133-top-actions">
+          <div class="round-results-state-pill v133-round-pill"><div><small>Manche</small><strong>${state.roundIndex + 1}/${state.rounds}</strong></div></div>
+          <button class="v133-quit" id="leaveResultsBtn" type="button" aria-label="Quitter la partie">${uiIcon("logout")}<span>Quitter<br>la partie</span></button>
         </div>
       </header>
+      <section class="round-results-heading"><h1>Résultats <em>de la manche</em></h1><p>Voici toutes les réponses et leurs corrections !</p></section>
+      <section class="round-results-board-wrap"><div class="round-results-board" style="--result-cols:${Math.max(1,categories.length)}"><div class="round-results-grid-head"><div class="round-results-player-label">Joueurs</div><div class="round-results-category-row">${categoryHeaders}</div></div>${playerRows}</div></section>
+      ${winner ? `<section class="round-results-winner v133-winner"><div class="round-results-trophy">🏆</div><div class="round-results-winner-copy"><small>En tête après cette manche</small><strong>${escapeHtml(winner.name)}</strong><span>avec ${topGain} point${topGain !== 1 ? "s" : ""} !</span></div></section>` : ""}
+      ${user?.isHost ? `<button class="round-results-next v133-next" id="nextRound">${isLastRound ? "Classement final" : "Manche suivante"}${uiIcon("chevron")}</button>` : `<div class="round-results-wait v133-wait"><span class="spinner"></span><small>En attente de l’hôte pour continuer</small></div>`}
+      <div class="round-results-rule"><span>i</span><p>Une réponse rapporte <strong>1 point</strong> uniquement si elle est valide et qu’aucun autre joueur n’a donné la même réponse.</p></div>
+    </main>`);
 
-      <section class="round-results-heading">
-        <h1>Résultats <em>de la manche</em></h1>
-        <p>Voici toutes les réponses et leurs corrections.</p>
-      </section>
-
-      <section class="round-results-board-wrap">
-        <div class="round-results-board" style="--result-cols:${Math.max(1, categories.length)}">
-          <div class="round-results-grid-head">
-            <div class="round-results-player-label">Joueurs</div>
-            <div class="round-results-category-row">${categoryHeaders}</div>
-          </div>
-          ${playerRows}
-        </div>
-      </section>
-
-      ${winner ? `
-        <section class="round-results-winner">
-          <div class="round-results-trophy">🏆</div>
-          <div class="round-results-winner-copy">
-            <small>${ranked.length > 1 ? "En tête après cette manche" : "Résultat de la manche"}</small>
-            <strong>${escapeHtml(winner.name)}</strong>
-            <span>${topGain} point${topGain !== 1 ? "s" : ""} gagné${topGain !== 1 ? "s" : ""} sur cette manche</span>
-          </div>
-          ${user?.isHost
-            ? `<button class="round-results-next" id="nextRound">${isLastRound ? "Classement final" : "Suivante"}${uiIcon("chevron")}</button>`
-            : `<div class="round-results-wait"><span class="spinner"></span><small>En attente de l’hôte</small></div>`
-          }
-        </section>
-      ` : ""}
-
-      <div class="round-results-rule">
-        <span>i</span>
-        <p>Une réponse rapporte <strong>1 point</strong> uniquement si elle est valide et qu’aucun autre joueur n’a donné la même réponse.</p>
-      </div>
-    </main>
-  `);
-
-  if (user?.isHost) {
-    document.getElementById("nextRound")?.addEventListener("click", () => {
-      socket.emit("game:nextRound", { code: state.code, playerId: session.playerId });
-    });
-  }
+  document.getElementById("leaveResultsBtn")?.addEventListener("click", () => {
+    if (!confirm("Quitter la partie en cours ?")) return;
+    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+    clearSession(); renderHome();
+  });
+  if (user?.isHost) document.getElementById("nextRound")?.addEventListener("click", () => socket.emit("game:nextRound", { code: state.code, playerId: session.playerId }));
 }
 
 function renderFinished() {
