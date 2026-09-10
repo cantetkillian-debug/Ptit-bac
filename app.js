@@ -649,131 +649,104 @@ function renderLobby() {
   session.localAnswers = {};
   const state = session.state;
   const user = me();
-  const hasBot = state.players.some(p => p.isBot);
+  const botCount = state.players.filter(p => p.isBot).length;
 
   const players = state.players.map((p, index) => {
     const canKick = user?.isHost && !p.isHost && p.id !== session.playerId;
     return `
-      <div class="ref-player ${p.isBot ? "ref-player-bot" : ""}">
+      <div class="v141-lobby-player ${p.isBot ? "is-bot" : ""}">
         ${avatarMarkup(p, index)}
-        <div class="ref-player-info">
-          <div class="ref-player-name">
-            ${escapeHtml(p.name)}
-            ${p.id === session.playerId ? `<span class="you-pill">Toi</span>` : ""}
-          </div>
-          <div class="ref-player-state">${p.isBot ? "Bot de test" : (p.connected ? "Connecté" : "Déconnecté")}</div>
+        <div class="v141-lobby-player-main">
+          <div class="v141-lobby-player-name">${escapeHtml(p.name)} ${p.isHost ? `<span class="v141-host-pill">Hôte</span>` : ""}</div>
+          <div class="v141-lobby-player-sub">${p.isBot ? "Bot test · répond progressivement" : (p.connected ? "Prêt" : "Déconnecté")}</div>
         </div>
-        ${p.isHost ? `<span class="ref-host-crown" title="Hôte" aria-label="Hôte">👑</span>` : ""}
-        ${canKick ? `<button class="ref-kick" data-kick-id="${p.id}" aria-label="Expulser ${escapeHtml(p.name)}">×</button>` : ""}
+        <span class="v141-lobby-status ${p.connected || p.isBot ? "ready" : "off"}">${p.connected || p.isBot ? "● Prêt" : "● Hors ligne"}</span>
+        ${canKick ? `<button class="v141-kick" data-kick-id="${p.id}" aria-label="Retirer ${escapeHtml(p.name)}">×</button>` : ""}
       </div>
     `;
   }).join("");
 
   setScreen(`
-    <main class="screen ref-lobby-screen">
-      <div class="ref-deco ref-deco-a"></div>
-      <div class="ref-deco ref-deco-b"></div>
-      <div class="ref-deco ref-deco-c"></div>
-
-      <header class="ref-lobby-header">
-        <button class="ref-close" id="leaveLobbyBtn" aria-label="Quitter le salon">×</button>
-        <img class="ref-lobby-logo" src="petit-bac-logo.png" alt="Petit Bac">
-        <div class="ref-room-meta">
-          <div class="ref-room-pill">🔒 <span>Salon privé</span></div>
-          <button class="ref-room-pill ref-code-pill" id="copyCode">🔑 <strong>${escapeHtml(state.code)}</strong></button>
-          ${walletBadge("lobby-wallet-badge")}
+    <main class="screen v141-lobby-screen">
+      <div class="v141-glow v141-glow-a"></div><div class="v141-glow v141-glow-b"></div>
+      <header class="v141-lobby-top">
+        <button class="v141-back" id="leaveLobbyBtn" aria-label="Quitter le salon">←</button>
+        <div class="v141-room-head">
+          <div class="v141-room-label">Salon</div>
+          <button class="v141-code" id="copyCode">${escapeHtml(state.code)} <span>⧉</span></button>
         </div>
+        <div class="v141-player-count"><strong>${state.players.length}/12</strong><span>Joueurs</span></div>
       </header>
 
-      <section class="ref-stats" aria-label="Informations de la partie">
-        <div class="ref-stat-card">
-          <span class="ref-stat-icon">${categoryIcon(state.categories?.[0] || "")}</span>
-          <div><strong>${state.categoryCount || state.categories.length}</strong><span>catégories</span></div>
+      <section class="v141-lobby-grid">
+        <div class="v141-panel v141-players-panel">
+          <div class="v141-panel-title"><h2>Joueurs <span>(${state.players.length}/12)</span></h2></div>
+          <div class="v141-lobby-player-list">${players}</div>
+          ${user?.isHost ? `
+            <button class="v141-add-bot" id="addBotBtn" ${state.players.length >= 12 ? "disabled" : ""}>
+              <span class="v141-add-circle">＋</span><strong>Ajouter un bot</strong><small>${botCount ? `${botCount} bot${botCount > 1 ? "s" : ""} présent${botCount > 1 ? "s" : ""}` : "Pour tester une partie"}</small>
+            </button>
+          ` : ""}
         </div>
-        <div class="ref-stat-card">
-          <span class="ref-stat-icon">${statIcon("round")}</span>
-          <div><strong>${state.rounds}</strong><span>manche${state.rounds > 1 ? "s" : ""}</span></div>
-        </div>
-        <div class="ref-stat-card">
-          <span class="ref-stat-icon">${statIcon("timer")}</span>
-          <div><strong>${formatDuration(state.duration)}</strong><span>chrono</span></div>
+
+        <div class="v141-side-stack">
+          <section class="v141-panel v141-settings-card">
+            <h2>Paramètres de la partie</h2>
+            <button class="v141-setting-row" id="roomSettingsBtn" ${!user?.isHost ? "disabled" : ""}>
+              <span class="v141-setting-icon">⚡</span><span><small>Manches</small><strong>${state.rounds}</strong></span><b>›</b>
+            </button>
+            <button class="v141-setting-row" id="roomSettingsBtnTime" ${!user?.isHost ? "disabled" : ""}>
+              <span class="v141-setting-icon">◷</span><span><small>Temps par manche</small><strong>${formatDuration(state.duration)}</strong></span><b>›</b>
+            </button>
+            <button class="v141-setting-row" id="roomSettingsBtnDifficulty" ${!user?.isHost ? "disabled" : ""}>
+              <span class="v141-setting-icon">▥</span><span><small>Difficulté</small><strong>${state.categoryDifficulty === "hard" ? "Difficile" : state.categoryDifficulty === "medium" ? "Moyen" : "Débutant"}</strong></span><b>›</b>
+            </button>
+          </section>
+
+          <button class="v141-panel v141-nav-card" id="roomCategoriesCard"><span>🏷️</span><span><strong>Catégories</strong><small>${state.categoryCount || state.categories?.length || 6} sélectionnées</small></span><b>›</b></button>
+          <button class="v141-panel v141-nav-card" id="roomRulesCard"><span>▣</span><span><strong>Règles</strong><small>Voir les règles</small></span><b>›</b></button>
+          <div class="v141-panel v141-bot-note"><span>ⓘ</span><p>Les bots jouent comme de vrais joueurs : leurs réponses apparaissent progressivement pendant la manche.</p></div>
         </div>
       </section>
 
-      <section class="ref-participants">
-        <div class="ref-section-head">
-          <div>
-            <p class="ref-eyebrow">Participants</p>
-            <h2>Dans le salon</h2>
-          </div>
-          <span class="ref-count">${state.players.length}/12</span>
-        </div>
-
-        <div class="ref-player-list">${players}</div>
-
-        ${user?.isHost ? `
-          <button class="ref-add-bot" id="addBotBtn" ${hasBot ? "disabled" : ""}>
-            <span>🤖</span>
-            <strong>${hasBot ? "Bot test ajouté" : "Ajouter un bot test"}</strong>
-          </button>
-          <button class="lobby-settings-btn" id="roomSettingsBtn">
-            <span>⚙️</span>
-            <strong>Paramètres de la partie</strong>
-            <span class="lobby-settings-arrow">›</span>
-          </button>
-        ` : ""}
-
-        ${user?.isHost ? `
-          <button class="ref-start-btn" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>▶&nbsp; Lancer la partie</button>
-        ` : `
-          <div class="waiting-host ref-waiting-host">
-            <div class="spinner small-spinner"></div>
-            <div><strong>En attente de l'hôte</strong><span>La manche va bientôt commencer.</span></div>
-          </div>
-        `}
-      </section>
-
+      ${user?.isHost ? `
+        <button class="v141-start" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>▶ <span>Lancer la partie</span></button>
+      ` : `<div class="v141-wait-host"><span class="spinner small-spinner"></span> En attente de l'hôte…</div>`}
+      <button class="v141-quit" id="leaveLobbyBottom">← Quitter le salon</button>
     </main>
   `);
 
-  document.getElementById("copyCode").onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(state.code);
-      toast("Code copié !");
-    } catch {
-      toast(`Code : ${state.code}`);
-    }
-  };
-
-  document.getElementById("leaveLobbyBtn").onclick = () => {
+  const leave = () => {
     socket.emit("room:leave", { code: state.code, playerId: session.playerId });
     clearSession();
     renderHome();
   };
+  document.getElementById("leaveLobbyBtn").onclick = leave;
+  document.getElementById("leaveLobbyBottom").onclick = leave;
+  document.getElementById("copyCode").onclick = async () => {
+    try { await navigator.clipboard.writeText(state.code); toast("Code copié !"); }
+    catch { toast(`Code : ${state.code}`); }
+  };
+
+  const openSettings = () => user?.isHost && renderRoomSettings();
+  ["roomSettingsBtn","roomSettingsBtnTime","roomSettingsBtnDifficulty"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.onclick = openSettings;
+  });
+  const categoriesCard = document.getElementById("roomCategoriesCard");
+  if (categoriesCard) categoriesCard.onclick = openSettings;
+  const rulesCard = document.getElementById("roomRulesCard");
+  if (rulesCard) rulesCard.onclick = renderHowTo;
 
   if (user?.isHost) {
     const botBtn = document.getElementById("addBotBtn");
-    if (botBtn && !hasBot) {
-      botBtn.onclick = () => {
-        botBtn.disabled = true;
-        socket.emit("room:addBot", { code: state.code, playerId: session.playerId });
-      };
-    }
-
-    const settingsBtn = document.getElementById("roomSettingsBtn");
-    if (settingsBtn) settingsBtn.onclick = renderRoomSettings;
-
+    if (botBtn) botBtn.onclick = () => {
+      if (state.players.length >= 12) return toast("Salon complet.");
+      socket.emit("room:addBot", { code: state.code, playerId: session.playerId });
+    };
     const startBtn = document.getElementById("startBtn");
-    if (startBtn) {
-      startBtn.onclick = () => socket.emit("game:start", { code: state.code, playerId: session.playerId });
-    }
-
+    if (startBtn) startBtn.onclick = () => socket.emit("game:start", { code: state.code, playerId: session.playerId });
     document.querySelectorAll("[data-kick-id]").forEach(btn => {
-      btn.onclick = () => socket.emit("room:kick", {
-        code: state.code,
-        playerId: session.playerId,
-        targetPlayerId: btn.dataset.kickId
-      });
+      btn.onclick = () => socket.emit("room:kick", { code: state.code, playerId: session.playerId, targetPlayerId: btn.dataset.kickId });
     });
   }
 }
@@ -1252,32 +1225,44 @@ function renderRound() {
 
 function renderRoundWaiting() {
   const state = session.state;
+  const readyCount = state.players.filter(p => p.submitted).length;
   setScreen(`
-    <main class="screen">
-      <div class="game-top">
-        <span class="round-chip">Manche ${state.roundIndex + 1}/${state.rounds}</span>
-        <span class="timer" id="timer">—</span>
-      </div>
-      <div class="letter-card">
-        <div class="letter-label">Lettre</div>
-        <div class="letter">${escapeHtml(state.currentLetter)}</div>
-      </div>
-      <div class="wait-card">
-        <div class="spinner"></div>
-        <div class="wait-icon">⌛</div><h2>En attente des autres joueurs…</h2>
-        <p class="subtitle" style="margin-bottom:0">Tes réponses sont enregistrées. Encore un peu de patience !</p>
-      </div>
-      <h3 class="section-title">Joueurs</h3>
-      <div class="players">
-        ${state.players.map(p => `
-          <div class="player-row">
-            <span>${escapeHtml(p.name)}</span>
-            <span class="status-pill ${p.submitted ? "done" : ""}">${p.submitted ? "Prêt" : "Écrit…"}</span>
-          </div>
-        `).join("")}
-      </div>
+    <main class="screen v141-wait-screen">
+      <div class="v141-glow v141-glow-a"></div><div class="v141-glow v141-glow-b"></div>
+      <header class="v141-wait-top">
+        <div><small>Manche</small><strong>${state.roundIndex + 1}/${state.rounds}</strong></div>
+        <div class="v141-letter-mini"><small>Lettre</small><strong>${escapeHtml(state.currentLetter)}</strong></div>
+        <div><small>Catégories</small><strong>${state.categories?.length || state.categoryCount || 6}</strong></div>
+      </header>
+
+      <section class="v141-wait-card">
+        <div class="v141-hourglass-ring"><span>⌛</span></div>
+        <h1>En attente des autres joueurs…</h1>
+        <p>Tes réponses sont bien enregistrées.<br>Encore un peu de patience !</p>
+      </section>
+
+      <section class="v141-wait-players">
+        <h2>Joueurs <span>(${readyCount}/${state.players.length})</span></h2>
+        <div class="v141-wait-player-grid">
+          ${state.players.map((p, index) => `
+            <div class="v141-wait-player ${p.submitted ? "done" : "writing"}">
+              ${avatarMarkup(p, index)}
+              <strong>${escapeHtml(p.name)}</strong>
+              <span>${p.submitted ? "✓ Prêt" : "◌ En cours…"}</span>
+            </div>
+          `).join("")}
+        </div>
+      </section>
     </main>
   `);
+
+  const tick = () => {
+    const remaining = Math.max(0, Math.ceil((state.roundEndsAt - Date.now()) / 1000));
+    const ring = document.querySelector('.v141-hourglass-ring');
+    if (ring) ring.style.setProperty('--wait-progress', `${state.duration ? Math.max(0, Math.min(100, remaining / state.duration * 100)) : 0}%`);
+  };
+  tick();
+  session.timerHandle = setInterval(tick, 250);
 }
 
 function renderValidation() {

@@ -1632,24 +1632,46 @@ function startRound(room) {
 }
 
 
+const BOT_ANSWER_BANK = {
+  "Prénom": ["Alice","Bruno","Camille","David","Emma","Félix","Gabriel","Hugo","Inès","Jade","Kylian","Lucas","Manon","Nina","Oscar","Paul","Quentin","Rose","Sarah","Tom","Ulysse","Victor","William","Xavier","Yanis","Zoé"],
+  "Animal": ["Aigle","Baleine","Chat","Dauphin","Éléphant","Faucon","Girafe","Hérisson","Iguane","Jaguar","Koala","Lion","Mouton","Narval","Ours","Panda","Quokka","Renard","Singe","Tigre","Urubu","Vache","Wapiti","Xérus","Yak","Zèbre"],
+  "Lieu": ["Annecy","Bordeaux","Cannes","Dijon","Évry","Florence","Grenoble","Honfleur","Italie","Japon","Kyoto","Lyon","Marseille","Nantes","Oslo","Paris","Québec","Rome","Strasbourg","Toulouse","Utrecht","Venise","Washington","Xi'an","Yokohama","Zurich"],
+  "Métier": ["Architecte","Boulanger","Coiffeur","Dentiste","Électricien","Fleuriste","Garagiste","Horloger","Illustrateur","Journaliste","Kinésithérapeute","Libraire","Médecin","Notaire","Opticien","Pompier","Quincaillier","Réalisateur","Serveur","Traducteur","Urbaniste","Vétérinaire","Webdesigner","Xylophoniste","Youtubeur","Zoologiste"],
+  "Nourriture": ["Abricot","Burger","Croissant","Donut","Endive","Fraise","Gaufre","Haricot","Iceberg","Jambon","Kiwi","Lasagnes","Melon","Nouilles","Olive","Pizza","Quiche","Riz","Sushi","Tacos","Udon","Vanille","Wasabi","Xérès","Yaourt","Zeste"],
+  "Marque": ["Adidas","Bic","Canon","Dior","Epson","Ford","Google","Honda","Ikea","Jeep","Kia","Lego","Microsoft","Nike","Oasis","Peugeot","Quechua","Renault","Samsung","Tesla","Ubisoft","Vans","Wiko","Xiaomi","Yoplait","Zara"],
+  "Fruit / Légume": ["Avocat","Banane","Carotte","Datte","Épinard","Fraise","Goyave","Haricot","Igname","Jujube","Kiwi","Litchi","Mangue","Navet","Orange","Poire","Quetsche","Radis","Salade","Tomate","Ugli","Vitelotte","Wasabi","Ximenia","Yuzu","Zucchini"],
+  "Objet": ["Assiette","Bouteille","Chaise","Dé","Échelle","Fourchette","Gomme","Horloge","Interrupteur","Jumelles","Klaxon","Lampe","Marteau","Nappe","Ordinateur","Parapluie","Quille","Radio","Stylo","Table","Urne","Vase","Webcam","Xylophone","Yo-yo","Zip"],
+  "Sport": ["Athlétisme","Basket","Cyclisme","Darts","Escalade","Football","Golf","Hockey","Iaïdo","Judo","Karaté","Lutte","Motocross","Natation","Orientation","Pétanque","Quad","Rugby","Surf","Tennis","Ultimate","Volley","Water-polo","Xare","Yoga","Zumba"],
+  "Mot": ["Arbre","Bonjour","Chat","Danse","École","Fleur","Grand","Heure","Image","Jardin","Kilo","Livre","Maison","Nuage","Orange","Pierre","Quand","Route","Soleil","Table","Unique","Ville","Wagon","Xylophone","Yaourt","Zéro"],
+  "Vêtement": ["Anorak","Bonnet","Chemise","Débardeur","Écharpe","Foulard","Gilet","Haut","Imperméable","Jean","K-way","Legging","Manteau","Nœud papillon","Oversize","Pantalon","Queue-de-pie","Robe","Short","T-shirt","Uniforme","Veste","Windbreaker","X","Yoga pants","Zip hoodie"],
+  "Boisson": ["Aquarius","Badoit","Café","Dr Pepper","Eau","Fanta","Gini","Horchata","Ice tea","Jus","Kéfir","Limonade","Milkshake","Nectar","Oasis","Perrier","Quinquina","Red Bull","Sprite","Thé","Umeshu","Volvic","Whisky","Xérès","Yakult","Zumo"],
+  "Application / Réseau social": ["Airbnb","BeReal","Canva","Discord","Etsy","Facebook","Google Maps","Hinge","Instagram","Just Eat","KakaoTalk","LinkedIn","Messenger","Netflix","Outlook","Pinterest","Qwant","Reddit","Snapchat","TikTok","Uber","Vinted","WhatsApp","X","YouTube","Zoom"],
+  "Jeu vidéo": ["Among Us","Brawl Stars","Celeste","Doom","Elden Ring","Fortnite","Gran Turismo","Halo","It Takes Two","Journey","Kirby","Limbo","Minecraft","Nintendogs","Overwatch","Pokémon","Quake","Roblox","Subnautica","Terraria","Undertale","Valorant","Warframe","Xenoblade","Yakuza","Zelda"],
+  "Personnage fictif": ["Aladdin","Batman","Cendrillon","Dobby","Elsa","Flash","Goku","Hulk","Iron Man","Joker","Kirby","Luffy","Mario","Naruto","Olaf","Pikachu","Quasimodo","Robin","Shrek","Thor","Ursula","Vegeta","Wolverine","Xena","Yoshi","Zorro"],
+  "Dessert": ["Affogato","Brownie","Crêpe","Donut","Éclair","Flan","Gâteau","Halva","Île flottante","Jalousie","Kouign-amann","Liégeois","Macaron","Nougat","Opéra","Profiterole","Quatre-quarts","Riz au lait","Sorbet","Tiramisu","Ube cake","Vacherin","Waffle","X","Yaourt","Zlabia"],
+  "Artiste / Chanteur": ["Adele","Beyoncé","Coldplay","Drake","Eminem","Francis Cabrel","Gims","Hoshi","Indila","Jul","Kendji","Lomepal","Mylène Farmer","Ninho","Orelsan","PNL","Queen","Rihanna","Soprano","Tina Turner","Usher","Vianney","Whitney Houston","Xzibit","Yseult","Zaz"],
+  "Célébrité": ["Adele","Brad Pitt","Cristiano Ronaldo","Dua Lipa","Emma Watson","Florence Foresti","Gad Elmaleh","Hugh Jackman","Inoxtag","Jul","Kylian Mbappé","Lady Gaga","Marion Cotillard","Neymar","Omar Sy","Pierre Niney","Quentin Tarantino","Rihanna","Soprano","Taylor Swift","Usher","Vianney","Will Smith","Xavier Dolan","Yannick Noah","Zinedine Zidane"]
+};
+
 function makeBotAnswer(category, letter) {
-  const examples = {
-    "Prénom": { A:"Alice", B:"Bruno", C:"Camille", D:"David", E:"Emma", F:"Félix", G:"Gabriel", H:"Hugo", J:"Jade", L:"Lucas", M:"Manon", N:"Nina", P:"Paul", R:"Rose", S:"Sarah", T:"Tom", V:"Victor" },
-    "Animal": { A:"Aigle", B:"Baleine", C:"Chat", D:"Dauphin", E:"Éléphant", F:"Faucon", G:"Girafe", H:"Hérisson", J:"Jaguar", L:"Lion", M:"Mouton", N:"Narval", P:"Panda", R:"Renard", S:"Singe", T:"Tigre", V:"Vache" },
-    "Lieu": { A:"Annecy", B:"Bordeaux", C:"Cannes", D:"Dijon", E:"Évry", F:"Florence", G:"Grenoble", H:"Honfleur", J:"Japon", L:"Lyon", M:"Marseille", N:"Nantes", P:"Paris", R:"Rome", S:"Strasbourg", T:"Toulouse", V:"Venise" },
-    "Métier": { A:"Architecte", B:"Boulanger", C:"Coiffeur", D:"Dentiste", E:"Électricien", F:"Fleuriste", G:"Garagiste", H:"Horloger", J:"Journaliste", L:"Libraire", M:"Médecin", N:"Notaire", P:"Pompier", R:"Réalisateur", S:"Serveur", T:"Traducteur", V:"Vétérinaire" },
-    "Nourriture": { A:"Abricot", B:"Burger", C:"Croissant", D:"Donut", E:"Endive", F:"Fraise", G:"Gaufre", H:"Haricot", J:"Jambon", L:"Lasagnes", M:"Melon", N:"Nouilles", P:"Pizza", R:"Riz", S:"Sushi", T:"Tacos", V:"Vanille" },
-    "Marque": { A:"Adidas", B:"Bic", C:"Canon", D:"Dior", E:"Epson", F:"Ford", G:"Google", H:"Honda", J:"Jeep", L:"Lego", M:"Microsoft", N:"Nike", P:"Peugeot", R:"Renault", S:"Samsung", T:"Tesla", V:"Vans" },
-    "Film": { A:"Avatar", B:"Barbie", C:"Cars", D:"Dune", E:"Encanto", F:"Frozen", G:"Gladiator", H:"Hercule", J:"Joker", L:"Lucy", M:"Matrix", N:"Nope", P:"Parasite", R:"Rocky", S:"Shrek", T:"Titanic", V:"Venom" },
-    "Jeu vidéo": { A:"Among Us", B:"Brawl Stars", C:"Celeste", D:"Doom", E:"Elden Ring", F:"Fortnite", G:"Gran Turismo", H:"Halo", J:"Journey", L:"Limbo", M:"Minecraft", N:"Nintendogs", P:"Pokémon", R:"Roblox", S:"Subnautica", T:"Terraria", V:"Valorant" },
-    "Personnage fictif": { A:"Aladdin", B:"Batman", C:"Cendrillon", D:"Dobby", E:"Elsa", F:"Flash", G:"Goku", H:"Hulk", J:"Joker", L:"Luffy", M:"Mario", N:"Naruto", P:"Pikachu", R:"Robin", S:"Shrek", T:"Thor", V:"Vegeta" },
-    "Fruit / Légume": { A:"Avocat", B:"Banane", C:"Carotte", D:"Datte", E:"Épinard", F:"Fraise", G:"Goyave", H:"Haricot", J:"Jujube", L:"Litchi", M:"Mangue", N:"Navet", P:"Poire", R:"Radis", S:"Salade", T:"Tomate", V:"Vitelotte" },
-    "Objet": { A:"Assiette", B:"Bouteille", C:"Chaise", D:"Dé", E:"Échelle", F:"Fourchette", G:"Gomme", H:"Horloge", J:"Jumelles", L:"Lampe", M:"Marteau", N:"Nappe", P:"Parapluie", R:"Radio", S:"Stylo", T:"Table", V:"Vase" },
-    "Boisson": { A:"Aquarius", B:"Badoit", C:"Café", D:"Dr Pepper", E:"Eau", F:"Fanta", G:"Gini", H:"Horchata", J:"Jus", L:"Limonade", M:"Milkshake", N:"Nectar", P:"Perrier", R:"Red Bull", S:"Sprite", T:"Thé", V:"Volvic" },
-    "Application / Réseau social": { A:"Airbnb", B:"BeReal", C:"Canva", D:"Discord", E:"Etsy", F:"Facebook", G:"Google Maps", H:"Hinge", J:"Just Eat", L:"LinkedIn", M:"Messenger", N:"Netflix", P:"Pinterest", R:"Reddit", S:"Snapchat", T:"TikTok", V:"Vinted" },
-    "Sport": { A:"Athlétisme", B:"Basket", C:"Cyclisme", D:"Darts", E:"Escalade", F:"Football", G:"Golf", H:"Hockey", J:"Judo", L:"Lutte", M:"Moto-cross", N:"Natation", P:"Pétanque", R:"Rugby", S:"Surf", T:"Tennis", V:"Volley" }
-  };
-  return examples[category]?.[letter] || `${letter}test`;
+  const pool = BOT_ANSWER_BANK[category] || [];
+  const wanted = String(letter || "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toUpperCase();
+  const match = pool.find(answer => normalizeAnswer(answer).charAt(0).toUpperCase() === wanted);
+  return match || "";
+}
+
+function botThinkDelay(room, botIndex, answerIndex, answerCount) {
+  const totalMs = Math.max(10000, Number(room.duration || 60) * 1000);
+  const start = 1600 + botIndex * 500 + Math.floor(Math.random() * 1300);
+  const usable = Math.max(4500, totalMs * (0.66 + Math.random() * 0.16));
+  const step = usable / Math.max(1, answerCount);
+  return Math.min(totalMs - 1200, Math.round(start + answerIndex * step + Math.random() * Math.min(2300, step * .75)));
+}
+
+function botShouldAnswer(category, botIndex) {
+  // Les bots de test ne sont volontairement pas parfaits : ils peuvent laisser 5 à 18 % de cases vides.
+  const missRate = Math.min(.18, .05 + (botIndex % 3) * .045);
+  return Math.random() >= missRate;
 }
 
 function playBots(room) {
@@ -1659,20 +1681,39 @@ function playBots(room) {
   const roundIndex = room.roundIndex;
   const letter = room.letters[roundIndex];
 
-  bots.forEach((bot, index) => {
+  bots.forEach((bot, botIndex) => {
+    if (!bot.answers[roundIndex]) bot.answers[roundIndex] = {};
+    const categories = [...room.categories];
+    let lastDelay = 0;
+
+    categories.forEach((category, answerIndex) => {
+      const delay = botThinkDelay(room, botIndex, answerIndex, categories.length);
+      lastDelay = Math.max(lastDelay, delay);
+      setTimeout(() => {
+        const current = rooms.get(room.code);
+        if (!current || current.phase !== "round" || current.roundIndex !== roundIndex) return;
+        const currentBot = current.players.find(p => p.id === bot.id);
+        if (!currentBot || currentBot.submitted) return;
+        if (!currentBot.answers[roundIndex]) currentBot.answers[roundIndex] = {};
+
+        if (botShouldAnswer(category, botIndex)) {
+          const answer = makeBotAnswer(category, letter);
+          if (answer) currentBot.answers[roundIndex][category] = answer;
+        }
+        emitRoom(current);
+      }, delay);
+    });
+
+    const submitDelay = Math.min(Math.max(3500, Number(room.duration || 60) * 1000 - 650), lastDelay + 900 + Math.floor(Math.random() * 1800));
     setTimeout(() => {
       const current = rooms.get(room.code);
       if (!current || current.phase !== "round" || current.roundIndex !== roundIndex) return;
-
-      if (!bot.answers[roundIndex]) bot.answers[roundIndex] = {};
-      current.categories.forEach(category => {
-        bot.answers[roundIndex][category] = makeBotAnswer(category, letter);
-      });
-      bot.submitted = true;
+      const currentBot = current.players.find(p => p.id === bot.id);
+      if (!currentBot || currentBot.submitted) return;
+      currentBot.submitted = true;
       emitRoom(current);
-
       if (current.players.every(p => p.submitted)) endRound(current);
-    }, 1800 + index * 500);
+    }, submitDelay);
   });
 }
 
@@ -1871,13 +1912,17 @@ io.on("connection", socket => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "lobby") return;
 
-    if (room.players.some(p => p.isBot)) {
-      return socket.emit("toast", "Le bot test est déjà dans le salon.");
+    if (room.players.length >= 12) {
+      return socket.emit("toast", "Le salon est complet (12 joueurs maximum).");
     }
 
+    const botNumber = Math.max(0, ...room.players.filter(p => p.isBot).map(p => {
+      const m = String(p.name || "").match(/(\d+)$/);
+      return m ? Number(m[1]) : 0;
+    })) + 1;
     const bot = {
       id: id(),
-      name: "Bot Test",
+      name: `Bot ${botNumber}`,
       connected: true,
       socketId: null,
       score: 0,
