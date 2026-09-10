@@ -687,6 +687,7 @@ function renderLobby() {
             <button class="v141-add-bot" id="addBotBtn" ${state.players.length >= 12 ? "disabled" : ""}>
               <span class="v141-add-circle">＋</span><strong>Ajouter un bot</strong><small>${botCount ? `${botCount} bot${botCount > 1 ? "s" : ""} présent${botCount > 1 ? "s" : ""}` : "Pour tester une partie"}</small>
             </button>
+            ${state.players.length < 12 ? `<div class="v143-empty-player"><span>＋</span><small>En attente d’un joueur…</small></div>` : ""}
           ` : ""}
         </div>
 

@@ -3221,3 +3221,227 @@ body {
   .v141-wait-card p { font-size:.9rem; }
   .v141-wait-player-grid { grid-template-columns:1fr; }
 }
+
+/* =========================================================
+   V1.43 — SALON COMPACT, fidèle à la maquette mobile
+   ========================================================= */
+.v141-lobby-screen {
+  width: 100%;
+  max-width: 980px;
+  padding: max(18px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 2% 1%, rgba(111, 53, 255, .34), transparent 240px),
+    radial-gradient(circle at 98% 84%, rgba(91, 40, 255, .24), transparent 300px),
+    linear-gradient(145deg, #07133b 0%, #0a1846 48%, #10184b 76%, #120e43 100%);
+}
+
+.v141-lobby-top {
+  grid-template-columns: 58px minmax(0, 1fr) 76px;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.v141-back {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  font-size: 1.7rem;
+}
+.v141-room-label {
+  margin-bottom: 6px;
+  font-size: .86rem;
+}
+.v141-code {
+  width: min(100%, 310px);
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 16px;
+  font-size: 1.62rem;
+}
+.v141-code span { font-size: 1.08rem; }
+.v141-player-count strong { font-size: 1.35rem; }
+.v141-player-count span { font-size: .68rem; }
+
+/* Sur téléphone on GARDE les deux colonnes de la maquette. */
+.v141-lobby-grid {
+  grid-template-columns: minmax(0, 1.42fr) minmax(0, .92fr) !important;
+  gap: 12px;
+  align-items: start;
+}
+.v141-panel {
+  border-radius: 18px;
+  border-color: rgba(113, 101, 210, .36);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.015), 0 10px 24px rgba(1,7,34,.14);
+}
+.v141-players-panel { padding: 13px; }
+.v141-panel-title h2 { margin-bottom: 11px; font-size: 1rem; }
+.v141-panel-title h2 span { font-size: .96em; }
+.v141-lobby-player-list { gap: 6px; }
+.v141-lobby-player {
+  min-height: 54px;
+  padding: 6px 8px;
+  gap: 8px;
+  border-radius: 14px;
+}
+.v141-lobby-player .avatar {
+  width: 38px;
+  height: 38px;
+  font-size: 1rem;
+}
+.v141-lobby-player-name { gap: 5px; font-size: .78rem; }
+.v141-host-pill { padding: 2px 6px; font-size: .57rem; }
+.v141-lobby-player-sub { margin-top: 1px; font-size: .61rem; }
+.v141-lobby-status { font-size: .62rem; }
+.v141-kick {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  font-size: 1.05rem;
+}
+
+.v141-add-bot {
+  min-height: 56px;
+  margin-top: 7px;
+  padding: 7px 9px;
+  border-radius: 14px;
+  grid-template-columns: 38px 1fr;
+}
+.v141-add-circle {
+  width: 34px;
+  height: 34px;
+  font-size: 1.15rem;
+}
+.v141-add-bot strong { font-size: .75rem; }
+.v141-add-bot small { font-size: .58rem; }
+.v143-empty-player {
+  min-height: 46px;
+  margin-top: 7px;
+  padding: 6px 9px;
+  border: 1px dashed rgba(134,118,238,.35);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #7772a7;
+  background: rgba(22,34,84,.28);
+}
+.v143-empty-player > span {
+  width: 31px;
+  height: 31px;
+  border: 1px dashed rgba(143,126,255,.5);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  color: #887bc4;
+}
+.v143-empty-player small { font-size: .61rem; }
+
+.v141-side-stack { gap: 8px; }
+.v141-settings-card { padding: 12px; }
+.v141-settings-card h2 { margin-bottom: 9px; font-size: .82rem; }
+.v141-setting-row {
+  min-height: 55px;
+  margin-top: 6px;
+  padding: 6px 9px;
+  border-radius: 14px;
+  grid-template-columns: 34px 1fr 14px;
+  gap: 6px;
+}
+.v141-setting-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  font-size: 1rem;
+}
+.v141-setting-row small { font-size: .58rem; }
+.v141-setting-row strong { font-size: .72rem; }
+.v141-setting-row b { font-size: 1.08rem; }
+.v141-nav-card {
+  min-height: 57px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  grid-template-columns: 33px 1fr 14px;
+  gap: 7px;
+}
+.v141-nav-card > span:first-child { font-size: 1.08rem; }
+.v141-nav-card strong { font-size: .75rem; }
+.v141-nav-card small { font-size: .58rem; }
+.v141-nav-card b { font-size: 1.08rem; }
+.v141-bot-note {
+  min-height: 70px;
+  padding: 10px;
+  border-radius: 16px;
+  gap: 8px;
+}
+.v141-bot-note span { font-size: .95rem; }
+.v141-bot-note p { font-size: .61rem; line-height: 1.45; }
+
+.v141-start {
+  min-height: 66px;
+  margin-top: 18px;
+  border-radius: 22px;
+  font-size: 1rem;
+}
+.v141-quit {
+  min-height: 48px;
+  margin-top: 10px;
+  border-radius: 18px;
+  font-size: .76rem;
+}
+
+/* Le précédent breakpoint empilait tout et créait les gros cubes : on l'annule. */
+@media (max-width: 760px) {
+  .v141-lobby-screen { padding-left: 14px; padding-right: 14px; }
+  .v141-lobby-top { grid-template-columns: 50px minmax(0,1fr) 62px; gap: 8px; margin-bottom: 15px; }
+  .v141-back { width: 44px; height: 44px; border-radius: 15px; font-size: 1.45rem; }
+  .v141-room-label { font-size: .72rem; }
+  .v141-code { min-height: 46px; font-size: 1.34rem; padding: 5px 10px; }
+  .v141-player-count strong { font-size: 1.12rem; }
+  .v141-player-count span { font-size: .58rem; }
+  .v141-lobby-grid { grid-template-columns: minmax(0,1.4fr) minmax(0,.9fr) !important; gap: 9px; }
+  .v141-players-panel { padding: 10px; }
+  .v141-settings-card { padding: 9px; }
+  .v141-setting-row { min-height: 51px; }
+  .v141-nav-card { min-height: 52px; }
+  .v141-bot-note { min-height: 63px; }
+  .v141-start { min-height: 60px; margin-top: 14px; font-size: .9rem; }
+}
+
+@media (max-width: 430px) {
+  .v141-lobby-screen { padding-left: 10px; padding-right: 10px; }
+  .v141-lobby-top { grid-template-columns: 44px minmax(0,1fr) 54px; gap: 6px; }
+  .v141-back { width: 40px; height: 40px; border-radius: 13px; }
+  .v141-code { min-height: 42px; font-size: 1.16rem; }
+  .v141-code span { margin-left: 5px; font-size: .86rem; }
+  .v141-player-count strong { font-size: .95rem; }
+  .v141-player-count span { font-size: .52rem; }
+  .v141-lobby-grid { gap: 7px; }
+  .v141-panel { border-radius: 15px; }
+  .v141-players-panel { padding: 8px; }
+  .v141-panel-title h2 { font-size: .84rem; margin-bottom: 8px; }
+  .v141-lobby-player { min-height: 48px; padding: 5px 6px; gap: 6px; border-radius: 12px; }
+  .v141-lobby-player .avatar { width: 33px; height: 33px; font-size: .85rem; }
+  .v141-lobby-player-name { font-size: .68rem; }
+  .v141-lobby-player-sub, .v141-lobby-status { font-size: .52rem; }
+  .v141-kick { width: 24px; height: 24px; font-size: .92rem; }
+  .v141-add-bot { min-height: 49px; padding: 5px 6px; grid-template-columns: 32px 1fr; }
+  .v141-add-circle { width: 29px; height: 29px; font-size: .96rem; }
+  .v141-add-bot strong { font-size: .65rem; }
+  .v141-add-bot small, .v143-empty-player small { font-size: .5rem; }
+  .v143-empty-player { min-height: 40px; padding: 5px 6px; gap: 7px; }
+  .v143-empty-player > span { width: 27px; height: 27px; }
+  .v141-settings-card { padding: 8px; }
+  .v141-settings-card h2 { font-size: .7rem; }
+  .v141-setting-row { min-height: 45px; margin-top: 5px; grid-template-columns: 28px 1fr 12px; padding: 5px 6px; }
+  .v141-setting-icon { width: 26px; height: 26px; font-size: .84rem; }
+  .v141-setting-row small { font-size: .49rem; }
+  .v141-setting-row strong { font-size: .62rem; }
+  .v141-nav-card { min-height: 46px; padding: 6px 7px; grid-template-columns: 27px 1fr 12px; }
+  .v141-nav-card > span:first-child { font-size: .92rem; }
+  .v141-nav-card strong { font-size: .64rem; }
+  .v141-nav-card small { font-size: .49rem; }
+  .v141-bot-note { min-height: 56px; padding: 8px; }
+  .v141-bot-note p { font-size: .5rem; }
+  .v141-start { min-height: 56px; margin-top: 12px; font-size: .84rem; }
+  .v141-quit { min-height: 44px; font-size: .68rem; }
+}
