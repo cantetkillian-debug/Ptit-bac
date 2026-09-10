@@ -2983,3 +2983,48 @@ body {
   font-size: .92rem;
   opacity: .78;
 }
+
+/* V1.40 — retour salon + signalement IA */
+.pregame-return-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 14px;
+  background: rgba(14, 23, 73, .68);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.pregame-return-btn:hover { background: rgba(34, 46, 112, .82); }
+.pregame-return-btn > span { white-space: nowrap; }
+.pregame-return-spacer { width: 140px; }
+
+.answer-report-btn {
+  margin-top: 8px;
+  padding: 5px 10px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px;
+  background: rgba(255,255,255,.10);
+  color: rgba(255,255,255,.94);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+.answer-report-btn:hover:not(:disabled) { background: rgba(255,255,255,.18); }
+.answer-report-btn.is-reported,
+.answer-report-btn:disabled { opacity: .72; cursor: default; }
+
+@media (max-width: 720px) {
+  .pregame-return-btn { min-height: 40px; padding: 0 10px; border-radius: 12px; }
+  .pregame-return-btn > span { display: none; }
+  .pregame-return-spacer { width: 42px; }
+  .answer-report-btn { font-size: 10px; padding: 5px 8px; margin-top: 6px; }
+}

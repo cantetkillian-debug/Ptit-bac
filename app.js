@@ -885,6 +885,7 @@ function renderCategorySelection() {
       <div class="category-pick-blob category-pick-blob-b"></div>
 
       <header class="category-pick-header">
+        ${user?.isHost ? `<button class="pregame-return-btn" id="returnLobbyCategoriesBtn" type="button" aria-label="Retour au salon">‹ <span>Retour au salon</span></button>` : `<span class="pregame-return-spacer"></span>`}
         <img src="petit-bac-logo.png" class="category-pick-logo" alt="P’tit Bac">
         ${walletBadge("category-pick-wallet")}
       </header>
@@ -921,6 +922,11 @@ function renderCategorySelection() {
       `}
     </main>
   `);
+
+  document.getElementById("returnLobbyCategoriesBtn")?.addEventListener("click", () => {
+    if (!confirm("Retourner au salon ? Les 5 pièces de participation seront remboursées.")) return;
+    socket.emit("game:returnLobby", { code: state.code, playerId: session.playerId });
+  });
 
   if (user?.isHost) {
     const rerollBtn = document.getElementById("rerollCategoriesBtn");
@@ -970,7 +976,9 @@ function renderLetterSelection() {
       <div class="letter-pick-spark spark-b">✦</div>
 
       <header class="letter-pick-header v135-letter-header">
-        <button class="v135-letter-back" id="leaveLetterBtn" type="button" aria-label="Quitter la partie"><span class="v137-back-arrow">‹</span><span class="v137-back-label">Quitter<br>la partie</span></button>
+        ${user?.isHost
+          ? `<button class="v135-letter-back pregame-letter-return" id="returnLobbyLetterBtn" type="button" aria-label="Retour au salon"><span class="v137-back-arrow">‹</span><span class="v137-back-label">Retour<br>au salon</span></button>`
+          : `<button class="v135-letter-back" id="leaveLetterBtn" type="button" aria-label="Quitter la partie"><span class="v137-back-arrow">‹</span><span class="v137-back-label">Quitter<br>la partie</span></button>`}
         <img src="petit-bac-logo.png" class="letter-pick-logo" alt="P’tit Bac">
         ${walletBadge("letter-pick-wallet")}
       </header>
@@ -1023,6 +1031,11 @@ function renderLetterSelection() {
       `}
     </main>
   `);
+
+  document.getElementById("returnLobbyLetterBtn")?.addEventListener("click", () => {
+    if (!confirm("Retourner au salon ? Les 5 pièces de participation seront remboursées.")) return;
+    socket.emit("game:returnLobby", { code: state.code, playerId: session.playerId });
+  });
 
   document.getElementById("leaveLetterBtn")?.addEventListener("click", () => {
     socket.emit("room:leave", { code: state.code, playerId: session.playerId });
@@ -1353,7 +1366,11 @@ function renderScoreboard() {
       const answer = result.answer ? escapeHtml(result.answer) : "—";
       const correction = result.status === "valid" ? "" : escapeHtml(result.correction || (result.status === "duplicate" ? "Doublon" : "Incorrect"));
       const symbol = result.status === "valid" ? "✓" : result.status === "duplicate" ? "!" : "×";
-      return `<div class="round-results-answer ${statusClass}" title="${escapeHtml(category)}"><strong>${answer}</strong><span class="round-results-status">${symbol}</span>${correction ? `<small>${correction}</small>` : ""}</div>`;
+      const canReport = player.id === session.playerId && result.status === "invalid" && result.reportable;
+      const reportButton = canReport
+        ? `<button class="answer-report-btn ${result.reported ? "is-reported" : ""}" type="button" data-category="${encodeURIComponent(category)}" data-round="${Number(results.roundIndex ?? state.roundIndex)}" ${result.reported ? "disabled" : ""}>${result.reported ? "Signalé ✓" : "Signaler"}</button>`
+        : "";
+      return `<div class="round-results-answer ${statusClass}" title="${escapeHtml(category)}"><strong>${answer}</strong><span class="round-results-status">${symbol}</span>${correction ? `<small>${correction}</small>` : ""}${reportButton}</div>`;
     }).join("");
     return `
       <div class="round-results-player">
@@ -1389,6 +1406,28 @@ function renderScoreboard() {
     socket.emit("room:leave", { code: state.code, playerId: session.playerId });
     clearSession(); renderHome();
   });
+  document.querySelectorAll(".answer-report-btn:not(:disabled)").forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.disabled = true;
+      btn.textContent = "Envoi…";
+      socket.emit("answer:report", {
+        code: state.code,
+        playerId: session.playerId,
+        roundIndex: Number(btn.dataset.round),
+        category: decodeURIComponent(btn.dataset.category || "")
+      }, res => {
+        if (!res?.ok) {
+          btn.disabled = false;
+          btn.textContent = "Signaler";
+          return toast(res?.error || "Impossible d’envoyer le signalement.");
+        }
+        btn.textContent = "Signalé ✓";
+        btn.classList.add("is-reported");
+        toast("Signalement envoyé. L’IA le réexaminera en arrière-plan.");
+      });
+    });
+  });
+
   if (user?.isHost) document.getElementById("nextRound")?.addEventListener("click", () => socket.emit("game:nextRound", { code: state.code, playerId: session.playerId }));
 }
 

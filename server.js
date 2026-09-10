@@ -25,7 +25,8 @@ const WALLET_FILE = process.env.PTITBAC_WALLET_FILE
   ? path.resolve(process.env.PTITBAC_WALLET_FILE)
   : path.join(__dirname, "wallets.json");
 const DATABASE_URL = String(process.env.DATABASE_URL || "").trim();
-const VALIDATION_ENGINE_VERSION = "v2.1.0";
+const VALIDATION_ENGINE_VERSION = "v2.2.0";
+const LEARNING_ENGINE_VERSION = "learn-v1.0.0";
 
 // Validation automatique des réponses.
 // Sur Render, ajoute OPENAI_API_KEY dans Environment pour activer la vérification sémantique.
@@ -35,7 +36,13 @@ const OPENAI_VALIDATION_REVIEW_MODEL = process.env.OPENAI_VALIDATION_REVIEW_MODE
 const OPENAI_VALIDATION_WEB_SEARCH = String(process.env.OPENAI_VALIDATION_WEB_SEARCH || "false").toLowerCase() === "true";
 const AUTO_VALIDATION_TIMEOUT_MS = Math.max(8000, Number(process.env.AUTO_VALIDATION_TIMEOUT_MS) || 30000);
 const VALIDATION_CACHE_FILE = path.join(__dirname, "validation-cache-v2.json");
+const VALIDATION_LEARNING_FILE = path.join(__dirname, "validation-learning-v1.json");
+const VALIDATION_REPORTS_FILE = path.join(__dirname, "validation-reports-v1.json");
 const validationCache = new Map();
+const learnedAnswers = new Map();
+const answerReports = new Map();
+const reportQueue = [];
+let reportWorkerRunning = false;
 const validationServiceState = {
   lastSuccessAt: null,
   lastErrorAt: null,
@@ -214,6 +221,81 @@ function emitWallet(player) {
 }
 
 
+
+function learnedAnswerKey(category, answer) {
+  return `${normalizeAnswer(category)}|${normalizeAnswer(answer)}`;
+}
+
+function loadLearningData() {
+  try {
+    if (fs.existsSync(VALIDATION_LEARNING_FILE)) {
+      const data = JSON.parse(fs.readFileSync(VALIDATION_LEARNING_FILE, "utf8"));
+      for (const [key, value] of Object.entries(data || {})) {
+        if (value && ["valid", "invalid"].includes(value.status)) learnedAnswers.set(key, value);
+      }
+    }
+  } catch (err) { console.warn("Impossible de charger validation-learning-v1.json:", err.message); }
+  try {
+    if (fs.existsSync(VALIDATION_REPORTS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(VALIDATION_REPORTS_FILE, "utf8"));
+      for (const [key, value] of Object.entries(data || {})) if (value?.id) answerReports.set(key, value);
+    }
+  } catch (err) { console.warn("Impossible de charger validation-reports-v1.json:", err.message); }
+}
+
+function saveLearningData() {
+  if (pgPool) return;
+  try {
+    const tmp = `${VALIDATION_LEARNING_FILE}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(Object.fromEntries(learnedAnswers), null, 2));
+    fs.renameSync(tmp, VALIDATION_LEARNING_FILE);
+  } catch (err) { console.warn("Impossible de sauvegarder validation-learning-v1.json:", err.message); }
+  try {
+    const trimmed = [...answerReports.values()].sort((a,b) => Number(b.createdAt||0)-Number(a.createdAt||0)).slice(0, 1000);
+    const tmp = `${VALIDATION_REPORTS_FILE}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(Object.fromEntries(trimmed.map(r => [r.id, r])), null, 2));
+    fs.renameSync(tmp, VALIDATION_REPORTS_FILE);
+  } catch (err) { console.warn("Impossible de sauvegarder validation-reports-v1.json:", err.message); }
+}
+
+async function initLearningPersistence() {
+  loadLearningData();
+  if (!pgPool) return;
+  try {
+    await pgPool.query(`CREATE TABLE IF NOT EXISTS ptitbac_learned_answers (
+      answer_key TEXT PRIMARY KEY, category TEXT NOT NULL, answer TEXT NOT NULL, status TEXT NOT NULL,
+      confidence INTEGER NOT NULL, source TEXT NOT NULL, support_count INTEGER NOT NULL DEFAULT 1, updated_at BIGINT NOT NULL)`);
+    await pgPool.query(`CREATE TABLE IF NOT EXISTS ptitbac_answer_reports (
+      id TEXT PRIMARY KEY, room_code TEXT, player_id TEXT, round_index INTEGER, category TEXT NOT NULL, answer TEXT NOT NULL,
+      letter TEXT NOT NULL, original_reason TEXT, status TEXT NOT NULL, review_verdict TEXT, review_confidence INTEGER,
+      created_at BIGINT NOT NULL, reviewed_at BIGINT)`);
+    const learned = await pgPool.query("SELECT answer_key, category, answer, status, confidence, source, support_count, updated_at FROM ptitbac_learned_answers");
+    learnedAnswers.clear();
+    for (const row of learned.rows) learnedAnswers.set(row.answer_key, { category: row.category, answer: row.answer, status: row.status, confidence: row.confidence, source: row.source, supportCount: row.support_count, updatedAt: Number(row.updated_at) });
+    const reports = await pgPool.query("SELECT id, room_code, player_id, round_index, category, answer, letter, original_reason, status, review_verdict, review_confidence, created_at, reviewed_at FROM ptitbac_answer_reports ORDER BY created_at DESC LIMIT 1000");
+    answerReports.clear();
+    for (const row of reports.rows) answerReports.set(row.id, { id: row.id, roomCode: row.room_code, playerId: row.player_id, roundIndex: Number(row.round_index), category: row.category, answer: row.answer, letter: row.letter, originalReason: row.original_reason, status: row.status, reviewVerdict: row.review_verdict || "", reviewConfidence: Number(row.review_confidence || 0), createdAt: Number(row.created_at), reviewedAt: Number(row.reviewed_at || 0) });
+  } catch (err) { console.error("Initialisation mémoire IA PostgreSQL impossible:", err.message); }
+}
+
+function persistLearnedAnswer(key) {
+  const entry = learnedAnswers.get(key);
+  if (!entry) return;
+  if (!pgPool) return saveLearningData();
+  pgPool.query(`INSERT INTO ptitbac_learned_answers(answer_key, category, answer, status, confidence, source, support_count, updated_at)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(answer_key) DO UPDATE SET category=EXCLUDED.category, answer=EXCLUDED.answer, status=EXCLUDED.status, confidence=EXCLUDED.confidence, source=EXCLUDED.source, support_count=EXCLUDED.support_count, updated_at=EXCLUDED.updated_at`,
+    [key, entry.category, entry.answer, entry.status, entry.confidence, entry.source, entry.supportCount || 1, entry.updatedAt]
+  ).catch(err => console.error("Erreur persistance mémoire IA:", err.message));
+}
+
+function persistAnswerReport(report) {
+  if (!pgPool) return saveLearningData();
+  pgPool.query(`INSERT INTO ptitbac_answer_reports(id, room_code, player_id, round_index, category, answer, letter, original_reason, status, review_verdict, review_confidence, created_at, reviewed_at)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT(id) DO UPDATE SET status=EXCLUDED.status, review_verdict=EXCLUDED.review_verdict, review_confidence=EXCLUDED.review_confidence, reviewed_at=EXCLUDED.reviewed_at`,
+    [report.id, report.roomCode, report.playerId, report.roundIndex, report.category, report.answer, report.letter, report.originalReason, report.status, report.reviewVerdict || null, report.reviewConfidence || null, report.createdAt, report.reviewedAt || null]
+  ).catch(err => console.error("Erreur persistance signalement IA:", err.message));
+}
+
 function loadValidationCache() {
   try {
     if (!fs.existsSync(VALIDATION_CACHE_FILE)) return;
@@ -246,11 +328,15 @@ app.get("/api/validation-health", async (req, res) => {
   res.json({
     ok: true,
     engineVersion: VALIDATION_ENGINE_VERSION,
+    learningEngineVersion: LEARNING_ENGINE_VERSION,
     aiConfigured: Boolean(OPENAI_API_KEY),
     model: OPENAI_VALIDATION_MODEL,
     reviewModel: OPENAI_VALIDATION_REVIEW_MODEL,
     webSearchReview: OPENAI_VALIDATION_WEB_SEARCH,
     cacheEntries: validationCache.size,
+    learnedAnswers: learnedAnswers.size,
+    answerReports: answerReports.size,
+    learningStorage: pgPool ? "postgres" : "json",
     walletStorage: walletStorageMode,
     lastSuccessAt: validationServiceState.lastSuccessAt,
     lastErrorAt: validationServiceState.lastErrorAt,
@@ -599,7 +685,7 @@ const CATEGORY_RULES = {
   },
   "Cuisine": {
     type: "subjective",
-    rule: "Un objet, ustensile, appareil, ingrédient, meuble ou élément normalement associé à la cuisine."
+    rule: "Catégorie assez large : accepte un objet, ustensile, appareil, ingrédient, plat, meuble, technique, action, cuisson, texture ou terme réellement lié à la cuisine. Une petite faute évidente d’un terme culinaire peut être acceptée si le mot visé est certain (ex. « cuir » peut viser « cuire » dans un contexte de cuisson). Refuse les associations sans lien culinaire réel."
   },
   "Maison": {
     type: "subjective",
@@ -817,6 +903,7 @@ RÈGLES ABSOLUES :
 - Une petite faute d'orthographe peut être acceptée seulement si l'intention correcte est évidente, unique et sans ambiguïté. Utilise alors reason_code = recognizable_typo et canonical_answer avec l'orthographe normale.
 - Pour les catégories subjectives, accepte une association raisonnable, naturelle et compréhensible par la plupart des joueurs. Refuse les associations forcées ou purement hypothétiques.
 - Les noms propres, marques, célébrités, restaurants, jeux, films et applications doivent être réellement identifiables ; n'en invente jamais.
+- Pour la catégorie « Mot », exige un vrai mot français attesté : une marque, un nom propre, une abréviation, une interjection inventée ou un pseudo-mot comme « Yop » ne compte pas comme mot français sauf s’il existe réellement comme mot commun indépendant de la marque.
 - Exemple important : « Atest » n'est pas un petit-déjeuner et n'est pas un vêtement. Un pseudo-mot de ce type doit être refusé.
 - Sois cohérent entre deux joueurs donnant la même notion.
 
@@ -952,7 +1039,7 @@ async function callValidationModel(items, letter, { review = false } = {}) {
       format: validationSchema(review ? "ptit_bac_validation_review" : "ptit_bac_validation_primary"),
       verbosity: "low"
     },
-    max_output_tokens: Math.max(2500, Math.min(9000, items.length * 240))
+    max_output_tokens: Math.max(900, Math.min(6000, items.length * 150))
   };
 
   if (review && OPENAI_VALIDATION_WEB_SEARCH) {
@@ -999,9 +1086,9 @@ async function callValidationModel(items, letter, { review = false } = {}) {
 
 function decisionThresholds(category) {
   const type = categoryRule(category).type;
-  if (type === "subjective") return { valid: 78, invalid: 78 };
-  if (type === "lexical") return { valid: 90, invalid: 82 };
-  return { valid: 88, invalid: 82 };
+  if (type === "subjective") return { valid: 76, invalid: 78 };
+  if (type === "lexical") return { valid: 88, invalid: 82 };
+  return { valid: 82, invalid: 80 };
 }
 
 function normalizeAiResult(raw) {
@@ -1056,7 +1143,7 @@ function shouldCacheDecision(item) {
 
 async function validateInBatches(items, letter, options = {}) {
   const all = [];
-  const batchSize = Math.max(1, Math.min(30, Number(process.env.OPENAI_VALIDATION_BATCH_SIZE) || 20));
+  const batchSize = Math.max(1, Math.min(30, Number(process.env.OPENAI_VALIDATION_BATCH_SIZE) || 30));
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
     let results = null;
@@ -1105,6 +1192,16 @@ async function runAutomaticValidation(room, roundAtStart) {
       continue;
     }
 
+    const learned = learnedAnswers.get(learnedAnswerKey(item.category, item.answer));
+    if (learned && ["valid", "invalid"].includes(learned.status) && Number(learned.confidence || 0) >= 95) {
+      item.status = learned.status;
+      item.reason = learned.status === "valid" ? "learned_valid" : "learned_invalid";
+      item.aiConfidence = Number(learned.confidence || 95);
+      item.validationSource = "learned_memory";
+      item.correction = "";
+      continue;
+    }
+
     const cached = validationCache.get(validationCacheKey(item.category, item.answer));
     if (cached && cached.engineVersion === VALIDATION_ENGINE_VERSION) {
       item.status = cached.status;
@@ -1140,12 +1237,22 @@ async function runAutomaticValidation(room, roundAtStart) {
           applyAiDecision(item, result, letter, "ai_primary");
         } else {
           const normalized = normalizeAiResult(result);
-          if (normalized) {
-            item.primaryDecision = normalized;
-            item.aiConfidence = normalized.confidence;
-            item.aiExplanation = normalized.explanation;
+          if (!normalized) {
+            needsReview.push(item);
+            continue;
           }
-          needsReview.push(item);
+          item.primaryDecision = normalized;
+          item.aiConfidence = normalized.confidence;
+          item.aiExplanation = normalized.explanation;
+          // Mode rapide : une décision explicite >= 76% évite un second appel.
+          // La seconde passe est réservée aux véritables cas ambigus.
+          if (normalized.verdict === "valid" && normalized.confidence >= 76) {
+            applyAiDecision(item, result, letter, "ai_primary_fast");
+          } else if (normalized.verdict === "invalid" && normalized.confidence >= 76) {
+            applyAiDecision(item, result, letter, "ai_primary_fast");
+          } else {
+            needsReview.push(item);
+          }
         }
       }
 
@@ -1223,6 +1330,80 @@ async function runAutomaticValidation(room, roundAtStart) {
     const latest = rooms.get(room.code);
     if (latest === room && latest.phase === "validation" && latest.roundIndex === roundAtStart) finalizeRound(latest);
   }, 650);
+}
+
+
+async function reviewReportedAnswer(report) {
+  if (!OPENAI_API_KEY) throw new OpenAIRequestError("IA non configurée", { code: "not_configured", retryable: false });
+  const item = { id: report.id, category: report.category, answer: report.answer };
+  const results = await callValidationModel([item], report.letter, { review: true });
+  return normalizeAiResult(results?.[0]);
+}
+
+function applyLearningFromReport(report, decision) {
+  if (!decision) return false;
+  let learnedStatus = "";
+  if (decision.verdict === "valid" && decision.confidence >= 95) learnedStatus = "valid";
+  if (decision.verdict === "invalid" && decision.confidence >= 92) learnedStatus = "invalid";
+  if (!learnedStatus) return false;
+  const key = learnedAnswerKey(report.category, report.answer);
+  const previous = learnedAnswers.get(key);
+  learnedAnswers.set(key, {
+    category: report.category, answer: report.answer, status: learnedStatus, confidence: decision.confidence,
+    source: "player_report_review", supportCount: Math.max(1, Number(previous?.supportCount || 0) + 1), updatedAt: Date.now()
+  });
+  persistLearnedAnswer(key);
+  return true;
+}
+
+async function processReportQueue() {
+  if (reportWorkerRunning) return;
+  reportWorkerRunning = true;
+  try {
+    while (reportQueue.length) {
+      const reportId = reportQueue.shift();
+      const report = answerReports.get(reportId);
+      if (!report || report.status !== "queued") continue;
+      report.status = "reviewing"; persistAnswerReport(report);
+      try {
+        const decision = await reviewReportedAnswer(report);
+        report.reviewVerdict = decision?.verdict || "uncertain";
+        report.reviewConfidence = Number(decision?.confidence || 0);
+        report.reviewedAt = Date.now();
+        report.status = applyLearningFromReport(report, decision) ? "learned" : "reviewed_no_learning";
+      } catch (err) {
+        console.error("Révision différée d’un signalement impossible:", sanitizeOpenAIErrorMessage(err?.message));
+        report.status = "queued";
+      }
+      persistAnswerReport(report);
+      if (report.status === "queued") {
+        if (!reportQueue.includes(report.id)) reportQueue.push(report.id);
+        setTimeout(() => processReportQueue().catch(err => console.error("Worker signalements:", err.message)), 60000);
+        break;
+      }
+      await wait(250);
+    }
+  } finally { reportWorkerRunning = false; }
+}
+
+function queueAnswerReport(report) {
+  answerReports.set(report.id, report);
+  persistAnswerReport(report);
+  reportQueue.push(report.id);
+  setTimeout(() => processReportQueue().catch(err => console.error("Worker signalements:", err.message)), 50);
+}
+
+function refundPreGameEntry(room) {
+  if (!room.entryDebited || !room.gameSessionId) return;
+  const paid = new Set(room.paidPlayerIds || []);
+  room.players.forEach(player => {
+    if (player.isBot || !player.walletToken || !paid.has(player.id)) return;
+    walletTransaction(player.walletToken, GAME_COST, "GAME_ENTRY_REFUND",
+      { roomCode: room.code, note: `Retour au salon (+${GAME_COST})` },
+      `entry-refund:${room.code}:${room.gameSessionId}:${player.id}`);
+    emitWallet(player);
+  });
+  room.entryDebited = false; room.paidPlayerIds = []; room.pot = 0; room.gameSessionId = null;
 }
 
 function rewardSharesForCount(count) {
@@ -1330,6 +1511,7 @@ function resultLabel(result, letter) {
   if (reason === "factual_unverified") return result.correction || "Non vérifié";
   if (reason === "too_vague") return result.correction || "Réponse trop vague";
   if (reason === "review_unresolved") return result.correction || "Réponse non confirmée";
+  if (reason === "learned_invalid") return "Réponse déjà vérifiée";
   if (reason === "ai_unavailable") return "Vérification indisponible";
   if (reason === "semantic_validation_disabled") return "IA non configurée";
   if (result.correction) return result.correction;
@@ -1350,11 +1532,14 @@ function buildRoundResults(room) {
       const item = room.validation.items.find(i => i.playerId === player.id && i.category === category);
       const source = auto || item || { status: "invalid", reason: "unknown" };
       const status = source.status === "valid" ? "valid" : source.status === "duplicate" ? "duplicate" : "invalid";
+      const nonReportableReasons = new Set(["empty", "letter", "length", "duplicate"]);
       byPlayer[player.id][category] = {
         answer,
         status,
         reason: source.reason || "",
-        correction: resultLabel(source, letter)
+        correction: resultLabel(source, letter),
+        reportable: status === "invalid" && !!answer && !nonReportableReasons.has(source.reason || ""),
+        reported: false
       };
     });
   });
@@ -1839,6 +2024,36 @@ io.on("connection", socket => {
 
   // La validation est désormais entièrement automatique côté serveur.
 
+
+  socket.on("game:returnLobby", payload => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player?.isHost) return;
+    if (!["category_selection", "letter_selection"].includes(room.phase) || room.roundIndex >= 0) return;
+    refundPreGameEntry(room);
+    room.phase = "lobby";
+    room.categories = pickCategories(room.categoryDifficulty || "beginner", room.categoryCount || 6);
+    room.letters = []; room.letterChooserPlayerId = null; room.pendingLetter = null; room.letterSpinVersion = 0;
+    room.roundIndex = -1; room.roundEndsAt = null; room.validation = null; room.lastRoundScores = {}; room.lastRoundResults = null;
+    emitRoom(room);
+  });
+
+  socket.on("answer:report", ({ code, playerId, roundIndex, category } = {}, cb = () => {}) => {
+    const { room, player } = requireMember(socket, { code, playerId });
+    if (!room || !player || room.phase !== "scoreboard") return cb({ ok: false, error: "Signalement indisponible." });
+    const results = room.lastRoundResults;
+    if (!results || Number(results.roundIndex) !== Number(roundIndex)) return cb({ ok: false, error: "Cette manche n’est plus disponible." });
+    const cell = results.byPlayer?.[player.id]?.[category];
+    if (!cell || cell.status !== "invalid" || !cell.reportable || cell.reported) return cb({ ok: false, error: "Cette réponse ne peut pas être signalée." });
+    const answer = String(cell.answer || "").trim();
+    if (!answer || !room.categories.includes(category)) return cb({ ok: false, error: "Réponse invalide." });
+    const duplicateExisting = [...answerReports.values()].find(r => r.playerId === player.id && r.roomCode === room.code && Number(r.roundIndex) === Number(roundIndex) && r.category === category);
+    if (duplicateExisting) { cell.reported = true; emitRoom(room); return cb({ ok: true, alreadyReported: true }); }
+    const report = { id: id(), roomCode: room.code, playerId: player.id, roundIndex: Number(roundIndex), category, answer,
+      letter: String(results.letter || room.letters?.[roundIndex] || "").slice(0,1).toUpperCase(), originalReason: String(cell.reason || "").slice(0,60),
+      status: "queued", reviewVerdict: "", reviewConfidence: 0, createdAt: Date.now(), reviewedAt: 0 };
+    cell.reported = true; queueAnswerReport(report); emitRoom(room); cb({ ok: true });
+  });
+
   socket.on("validation:retry", payload => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "validation" || room.validation?.status !== "unavailable") return;
@@ -1929,12 +2144,14 @@ app.get("*", (req, res) => {
 });
 
 initWalletPersistence()
-  .catch(err => console.error("Initialisation stockage portefeuille:", err.message))
+  .then(() => initLearningPersistence())
+  .catch(err => console.error("Initialisation stockage persistant:", err.message))
   .finally(() => {
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`Petit Bac lancé sur http://localhost:${PORT}`);
       console.log(`Validation IA: ${OPENAI_API_KEY ? `configurée (${OPENAI_VALIDATION_MODEL})` : "non configurée"}`);
       console.log(`Stockage portefeuille: ${walletStorageMode}`);
+      console.log(`Mémoire IA: ${pgPool ? "PostgreSQL" : "JSON local"} (${learnedAnswers.size} réponse(s) apprise(s))`);
       console.log(`Admin pièces: ${ADMIN_COIN_CODE ? "activé par variable d’environnement" : "désactivé"}`);
     });
   });
