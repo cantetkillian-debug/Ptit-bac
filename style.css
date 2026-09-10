@@ -1651,3 +1651,69 @@ body {
   .my-coins-result strong { font-size:1rem; }
   .my-coins-result p { font-size:.82rem; }
 }
+
+/* ===== V1.23 — pièce P’tit Bac + soldes sur les écrans ===== */
+.game-coin{
+  --coin-size:34px;
+  width:var(--coin-size);height:var(--coin-size);border-radius:50%;display:inline-grid;place-items:center;
+  flex:0 0 auto;position:relative;vertical-align:middle;
+  background:radial-gradient(circle at 34% 28%,#fff3a8 0 10%,#ffd85a 11% 31%,#ffb815 58%,#e79400 100%);
+  border:2px solid #ffd45a;box-shadow:inset 0 2px 0 rgba(255,255,255,.7),inset 0 -3px 0 rgba(173,97,0,.18),0 5px 12px rgba(231,157,16,.22);
+}
+.game-coin::after{content:"";position:absolute;inset:5px;border-radius:50%;border:1.5px solid rgba(177,105,0,.24)}
+.game-coin-crown{font-size:calc(var(--coin-size)*.46);line-height:1;color:#fff3a0;text-shadow:0 1px 0 #b86f00;transform:translateY(-1px);z-index:1}
+.game-coin-sm{--coin-size:30px}.game-coin-xs{--coin-size:26px}.game-coin-tiny{--coin-size:20px}.game-coin-xl{--coin-size:72px}.game-coin-inline{--coin-size:19px}.game-coin-stack-a,.game-coin-stack-b{--coin-size:48px;position:absolute}.game-coin-stack-a{left:2px;bottom:0}.game-coin-stack-b{right:1px;bottom:2px}
+.wallet-badge{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.92);box-shadow:0 10px 28px rgba(76,52,128,.09);color:#17104b;backdrop-filter:blur(12px)}
+.wallet-badge strong{font-size:1.12rem;line-height:1}
+.form-wallet-badge{position:absolute;right:clamp(18px,5vw,36px);top:clamp(18px,5vw,34px);z-index:4}
+.join-game-screen{position:relative}
+.lobby-wallet-badge{min-height:42px;padding:5px 11px;justify-self:end}
+.ref-room-meta{align-content:start}
+
+/* ===== V1.23 — résultats final redesign ===== */
+.finished-v123{position:relative;overflow:hidden;min-height:100svh;padding:18px 18px max(42px,env(safe-area-inset-bottom));background:linear-gradient(180deg,#8e71f5 0%,#aa90f8 27%,#cab8fb 64%,#efe5ff 100%);color:#17104b}
+.finished-v123::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 8%,rgba(255,255,255,.52),transparent 30%),radial-gradient(circle at 15% 70%,rgba(255,210,236,.4),transparent 28%);pointer-events:none}
+.result-glow{position:absolute;border-radius:50%;filter:blur(2px);opacity:.58;pointer-events:none}.result-glow-a{width:260px;height:260px;background:#e9dcff;left:-130px;top:110px}.result-glow-b{width:250px;height:250px;background:#ffd5ef;right:-130px;bottom:90px}
+.result-confetti-v123{position:absolute;inset:145px 7% auto;z-index:1;color:#ffd440;font-size:1.35rem;letter-spacing:clamp(18px,6vw,52px);text-align:center;white-space:nowrap;opacity:.95;pointer-events:none}
+.result-topbar-v123{position:relative;z-index:3;display:grid;grid-template-columns:62px 1fr auto;align-items:start;width:min(100%,700px);margin:0 auto 6px}
+.result-logo-v123{width:130px;height:90px;object-fit:contain;justify-self:center;align-self:center}
+.finished-v123 .result-back{width:52px;height:52px;border-radius:18px;border:1px solid rgba(255,255,255,.65);background:rgba(255,255,255,.82);box-shadow:0 10px 24px rgba(55,36,119,.12);font-size:2.1rem;color:#26156a;display:grid;place-items:center}
+.result-wallet-badge{align-self:start;margin-top:5px;background:rgba(255,255,255,.88);min-width:96px}
+.result-title-v123{position:relative;z-index:2;text-align:center;margin:4px 0 30px;font-size:clamp(2.35rem,9vw,4rem);line-height:1;background:linear-gradient(90deg,#25116f,#5a38e9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.result-podium{position:relative;z-index:2;width:min(100%,700px);margin:0 auto 28px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end}
+.result-podium-1{grid-template-columns:minmax(0,1fr);max-width:340px}.result-podium-2{grid-template-columns:repeat(2,minmax(0,1fr));max-width:540px}
+.result-player-card{position:relative;min-width:0;border-radius:32px;padding:50px 12px 20px;text-align:center;background:rgba(255,255,255,.88);box-shadow:0 20px 42px rgba(51,31,118,.14);border:1px solid rgba(255,255,255,.92);display:flex;flex-direction:column;align-items:center;gap:10px}
+.result-place-1{min-height:350px;padding-top:70px;background:linear-gradient(180deg,#fffdf8 0%,#fff6cf 100%);border:3px solid #ffd351;box-shadow:0 24px 48px rgba(239,176,22,.2)}
+.result-place-2,.result-place-3{min-height:290px}
+.result-place-crown{position:absolute;top:-55px;left:50%;transform:translateX(-50%);width:100px;height:80px;background:linear-gradient(180deg,#ffef7c,#ffb909 72%,#e99000);clip-path:polygon(8% 72%,2% 24%,28% 49%,50% 4%,72% 49%,98% 24%,92% 72%);filter:drop-shadow(0 8px 8px rgba(210,128,0,.25))}
+.result-place-crown::before,.result-place-crown::after{content:"";position:absolute;width:13px;height:13px;border-radius:50%;background:#ffe85f;top:8px}.result-place-crown::before{left:10px}.result-place-crown::after{right:10px}
+.result-place-crown span{position:absolute;left:50%;top:41px;transform:translateX(-50%);font-size:1.7rem;font-weight:1000;color:#7b3d00;z-index:2}
+.result-medal{position:absolute;top:-28px;left:50%;transform:translateX(-50%);width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:1.3rem;font-weight:1000;border:5px solid rgba(255,255,255,.8);box-shadow:0 7px 14px rgba(45,28,105,.12)}
+.result-medal-2{background:linear-gradient(180deg,#f2f3f8,#9fa7b8);color:#545b69}.result-medal-3{background:linear-gradient(180deg,#f7c59f,#bd7246);color:#7a3e25}
+.result-player-card .podium-avatar{width:92px;height:92px;border-radius:50%;font-size:2.5rem;border:7px solid #ded4ff;background:#f0ebff;box-shadow:none}
+.result-place-1 .podium-avatar{width:108px;height:108px}
+.result-player-name{font-size:1.18rem;font-weight:900;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.result-player-score{padding:10px 24px;border-radius:999px;background:#f3efff;font-size:1.08rem;font-weight:900;min-width:95px}.result-place-1 .result-player-score{background:#fff0b5}
+.result-private-reward{display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:999px;background:linear-gradient(90deg,#fff7cf,#ffe99b);font-size:.92rem;color:#3a246f}
+.result-private-reward strong{white-space:nowrap}
+.finished-v123 .winner-ribbon{position:static;margin-top:2px;padding:9px 18px;border-radius:999px;background:#ffe473;color:#754308;font-weight:900;font-size:.9rem}
+.finished-v123 .final-list{position:relative;z-index:2;width:min(100%,700px);margin:-12px auto 24px}
+.result-extra-row{background:rgba(255,255,255,.84);border:1px solid rgba(255,255,255,.95);color:#17104b}
+.result-stats-v123{position:relative;z-index:2;width:min(100%,700px);margin:0 auto 24px;padding:20px 14px;display:grid;grid-template-columns:repeat(3,1fr);border-radius:28px;background:rgba(255,255,255,.78);box-shadow:0 16px 38px rgba(64,42,127,.12);backdrop-filter:blur(12px)}
+.result-stats-v123>div{display:grid;grid-template-columns:48px 1fr;grid-template-rows:auto auto;align-items:center;padding:0 14px;border-right:1px solid rgba(106,79,181,.14)}.result-stats-v123>div:last-child{border-right:0}.result-stats-v123 span{grid-row:1/3;width:42px;height:42px;border-radius:14px;background:#eee8ff;color:#6544e9;display:grid;place-items:center}.result-stats-v123 span svg{width:25px;height:25px}.result-stats-v123 strong{font-size:1.35rem;line-height:1.1}.result-stats-v123 small{color:#71679b;font-size:.78rem;font-weight:700}
+.my-coins-result-v123{position:relative;z-index:2;width:min(100%,700px);margin:0 auto 24px;padding:22px;border-radius:28px;background:rgba(255,255,255,.84);display:grid;grid-template-columns:120px 1fr auto;align-items:center;gap:18px;box-shadow:0 18px 40px rgba(58,37,123,.12);border:1px solid rgba(255,255,255,.9)}
+.coin-stack-art{width:105px;height:82px;position:relative;display:flex;align-items:flex-start;justify-content:center}.coin-stack-art>.game-coin-xl{z-index:2}.coin-stack-art>.game-coin-stack-a,.coin-stack-art>.game-coin-stack-b{z-index:1}
+.coin-result-copy strong{display:block;font-size:1.25rem;margin-bottom:8px}.coin-result-copy p{margin:0;color:#6f6495;line-height:1.42}.coin-result-copy b{color:#5b38de}.well-played{font-family:cursive;font-style:italic;color:#7957e8;transform:rotate(-5deg);font-size:1.15rem;white-space:nowrap}
+.result-actions-v123{position:relative;z-index:2;width:min(100%,700px);margin:0 auto;display:grid;gap:14px}.result-actions-v123 .btn{min-height:70px;border-radius:24px;font-size:1.15rem}.result-actions-v123 .btn-light{background:#fff;color:#2a176f;box-shadow:0 14px 32px rgba(67,44,126,.10)}
+
+@media(max-width:620px){
+  .form-wallet-badge{top:16px;right:16px;min-height:42px;padding:6px 10px}.form-wallet-badge .game-coin{--coin-size:26px}.form-wallet-badge strong{font-size:1rem}
+  .ref-room-meta{gap:8px}.lobby-wallet-badge{min-height:38px}.lobby-wallet-badge .game-coin{--coin-size:25px}
+  .finished-v123{padding-left:10px;padding-right:10px}
+  .result-topbar-v123{grid-template-columns:50px 1fr 88px}.result-logo-v123{width:105px;height:72px}.finished-v123 .result-back{width:44px;height:44px;border-radius:15px}.result-wallet-badge{min-width:82px;padding:6px 9px}.result-wallet-badge .game-coin{--coin-size:26px}.result-wallet-badge strong{font-size:.95rem}
+  .result-title-v123{font-size:2.2rem;margin:2px 0 34px}
+  .result-podium{gap:7px}.result-player-card{padding:42px 7px 14px;border-radius:22px;gap:7px}.result-place-1{min-height:315px;padding-top:62px}.result-place-2,.result-place-3{min-height:250px}.result-place-crown{width:82px;height:68px;top:-47px}.result-place-crown span{top:35px;font-size:1.35rem}.result-medal{width:45px;height:45px;top:-23px;border-width:4px}
+  .result-player-card .podium-avatar{width:64px;height:64px;font-size:1.8rem;border-width:5px}.result-place-1 .podium-avatar{width:78px;height:78px}.result-player-name{font-size:.87rem}.result-player-score{font-size:.82rem;padding:7px 11px;min-width:68px}.result-private-reward{font-size:.72rem;padding:7px 8px;gap:5px}.result-private-reward .game-coin{--coin-size:21px}.finished-v123 .winner-ribbon{padding:7px 10px;font-size:.72rem}
+  .result-stats-v123{padding:16px 5px;border-radius:22px}.result-stats-v123>div{grid-template-columns:36px 1fr;padding:0 7px}.result-stats-v123 span{width:32px;height:32px;border-radius:10px}.result-stats-v123 span svg{width:20px;height:20px}.result-stats-v123 strong{font-size:1.02rem}.result-stats-v123 small{font-size:.66rem}
+  .my-coins-result-v123{grid-template-columns:72px 1fr;padding:16px;gap:12px;border-radius:22px}.coin-stack-art{width:68px;height:60px}.coin-stack-art>.game-coin-xl{--coin-size:54px}.coin-stack-art>.game-coin-stack-a,.coin-stack-art>.game-coin-stack-b{--coin-size:34px}.coin-result-copy strong{font-size:1rem}.coin-result-copy p{font-size:.79rem}.well-played{display:none}.result-actions-v123 .btn{min-height:60px;border-radius:20px;font-size:1rem}
+}

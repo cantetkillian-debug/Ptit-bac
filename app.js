@@ -417,10 +417,19 @@ function renderHowTo() {
   document.getElementById('backHome').onclick = renderHome;
 }
 
+function gameCoin(sizeClass = "") {
+  return `<span class="game-coin ${sizeClass}" aria-hidden="true"><span class="game-coin-crown">♛</span></span>`;
+}
+
+function walletBadge(extraClass = "") {
+  return `<div class="wallet-badge ${extraClass}">${gameCoin("game-coin-sm")}<strong>${getCoins()}</strong></div>`;
+}
+
 function renderNameForm(mode) {
   setScreen(`
     <main class="screen form-screen premium-form create-game-screen">
       <button class="back" id="backBtn" aria-label="Retour">←</button>
+      ${walletBadge("form-wallet-badge")}
 
       <div class="form-heading create-heading">
         <img class="create-game-logo" src="./petit-bac-logo.png" alt="P’tit Bac" />
@@ -490,8 +499,9 @@ function renderNameForm(mode) {
 
 function renderJoinForm() {
   setScreen(`
-    <main class="screen form-screen premium-form">
+    <main class="screen form-screen premium-form join-game-screen">
       <button class="back" id="backBtn">←</button>
+      ${walletBadge("form-wallet-badge")}
       <div class="form-heading">
         <span class="screen-icon">🤝</span>
         <h1>Rejoindre une partie</h1>
@@ -597,6 +607,7 @@ function renderLobby() {
         <div class="ref-room-meta">
           <div class="ref-room-pill">🔒 <span>Salon privé</span></div>
           <button class="ref-room-pill ref-code-pill" id="copyCode">🔑 <strong>${escapeHtml(state.code)}</strong></button>
+          ${walletBadge("lobby-wallet-badge")}
         </div>
       </header>
 
@@ -973,68 +984,69 @@ function renderFinished() {
   const user = me();
   const ranked = rankedPlayers();
   const myReward = Math.max(0, Number(state.myReward || 0));
-  const roundsLabel = `${state.rounds} manche${state.rounds > 1 ? "s" : ""} terminée${state.rounds > 1 ? "s" : ""}`;
 
   const podium = ranked.slice(0, 3).map((p, index) => {
     const isMe = p.id === session.playerId;
+    const place = index + 1;
+    const medal = place === 1 ? `<div class="result-place-crown"><span>1</span></div>` : `<div class="result-medal result-medal-${place}">${place}</div>`;
     return `
-      <div class="podium-card podium-${index + 1}">
-        <div class="podium-crown">${index === 0 ? "👑" : index === 1 ? "🥈" : "🥉"}</div>
+      <article class="result-player-card result-place-${place} ${isMe ? "is-me" : ""}">
+        ${medal}
         ${avatarMarkup(p, index, "podium-avatar")}
-        <strong>${escapeHtml(p.name)}${isMe ? ' <small class="me-badge">Toi</small>' : ''}</strong>
-        <span>${index + 1}</span>
-        <b>${p.score} pt${p.score !== 1 ? "s" : ""}</b>
-        ${isMe ? `<div class="private-coin-win">🪙 +${myReward} pièce${myReward !== 1 ? "s" : ""}</div>` : ''}
-        ${index === 0 ? `<div class="winner-ribbon">🏆 Vainqueur !</div>` : ''}
-      </div>
+        <div class="result-player-name">${escapeHtml(p.name)}${isMe ? ' <small class="me-badge">Toi</small>' : ''}</div>
+        <div class="result-player-score">${p.score} pt${p.score !== 1 ? "s" : ""}</div>
+        ${isMe ? `<div class="result-private-reward">${gameCoin("game-coin-xs")}<strong>+ ${myReward} pièce${myReward !== 1 ? "s" : ""}</strong></div>` : ''}
+        ${place === 1 ? `<div class="winner-ribbon">🏆 Vainqueur !</div>` : ''}
+      </article>
     `;
   }).join("");
 
   const rows = ranked.slice(3).map((p, index) => {
     const isMe = p.id === session.playerId;
     return `
-      <div class="final-row">
+      <div class="final-row result-extra-row">
         <span class="final-rank">${index + 4}</span>
         ${avatarMarkup(p, index + 3, "final-avatar")}
         <strong>${escapeHtml(p.name)}${isMe ? ' <small class="me-badge">Toi</small>' : ''}</strong>
-        <b>${p.score} pts</b>
-        ${isMe ? `<span class="private-row-win">🪙 +${myReward}</span>` : ''}
+        <b>${p.score} pt${p.score !== 1 ? "s" : ""}</b>
+        ${isMe ? `<span class="private-row-win">+${myReward} ${gameCoin("game-coin-tiny")}</span>` : ''}
       </div>
     `;
   }).join("");
 
   setScreen(`
-    <main class="screen finished-screen finished-v122">
-      <div class="result-blob result-blob-a"></div>
-      <div class="result-blob result-blob-b"></div>
-      <div class="result-confetti">✦ ◆ ● ✦ ◆</div>
+    <main class="screen finished-screen finished-v123">
+      <div class="result-glow result-glow-a"></div>
+      <div class="result-glow result-glow-b"></div>
+      <div class="result-confetti-v123" aria-hidden="true">◆ ✦ ● ◆ ✦ ◆ ● ✦</div>
 
-      <div class="result-topbar">
-        <button class="result-back" id="leaveTopBtn">‹</button>
-        <img src="petit-bac-logo.png" class="result-logo" alt="P’tit Bac">
-        <div class="result-balance">🪙 <strong>${getCoins()}</strong></div>
-      </div>
-
-      <header class="final-header">
-        <h1>Partie terminée !</h1>
-        <p>${roundsLabel} · Bravo à tous !</p>
+      <header class="result-topbar-v123">
+        <button class="result-back" id="leaveTopBtn" aria-label="Retour">‹</button>
+        <img src="petit-bac-logo.png" class="result-logo-v123" alt="P’tit Bac">
+        ${walletBadge("result-wallet-badge")}
       </header>
 
-      <section class="podium podium-count-${Math.min(ranked.length, 3)}">${podium}</section>
+      <h1 class="result-title-v123">Partie terminée !</h1>
+
+      <section class="result-podium result-podium-${Math.min(ranked.length, 3)}">${podium}</section>
       ${rows ? `<section class="final-list">${rows}</section>` : ""}
 
-      <section class="result-stats">
-        <div><span>👥</span><strong>${ranked.length}</strong><small>Joueur${ranked.length > 1 ? "s" : ""}</small></div>
-        <div><span>🎮</span><strong>${state.rounds}</strong><small>Manche${state.rounds > 1 ? "s" : ""}</small></div>
-        <div><span>🕒</span><strong>${state.duration === 60 ? "1 min" : `${state.duration}s`}</strong><small>Durée</small></div>
+      <section class="result-stats-v123">
+        <div><span>${statIcon("player")}</span><strong>${ranked.length}</strong><small>Joueur${ranked.length > 1 ? "s" : ""}</small></div>
+        <div><span>${statIcon("round")}</span><strong>${state.rounds}</strong><small>Manche${state.rounds > 1 ? "s" : ""}</small></div>
+        <div><span>${statIcon("timer")}</span><strong>${state.duration === 60 ? "1 min" : `${state.duration}s`}</strong><small>Durée</small></div>
       </section>
 
-      <section class="my-coins-result">
-        <div class="my-coins-stack">🪙</div>
-        <div><strong>Pièces gagnées !</strong><p>Tu remportes <b>+${myReward} pièce${myReward !== 1 ? "s" : ""}</b>. Nouveau solde : <b>${getCoins()}</b>.</p></div>
+      <section class="my-coins-result-v123">
+        <div class="coin-stack-art">${gameCoin("game-coin-xl")}${gameCoin("game-coin-stack-a")}${gameCoin("game-coin-stack-b")}</div>
+        <div class="coin-result-copy">
+          <strong>Tes pièces gagnées !</strong>
+          <p>Tu remportes <b>+${myReward} pièce${myReward !== 1 ? "s" : ""}</b>.<br>Nouveau solde : <b>${getCoins()}</b> ${gameCoin("game-coin-inline")}</p>
+        </div>
+        <span class="well-played">Bien joué !</span>
       </section>
 
-      <div class="final-actions">
+      <div class="final-actions result-actions-v123">
         ${user?.isHost
           ? `<button class="btn btn-light" id="restartBtn">↻ Refaire une partie</button>`
           : `<div class="final-wait">L’hôte peut relancer la partie.</div>`
