@@ -79,7 +79,8 @@ function publicPlayer(p) {
     score: p.score,
     isHost: p.isHost,
     isBot: !!p.isBot,
-    submitted: p.submitted
+    submitted: p.submitted,
+    avatar: p.avatar || ""
   };
 }
 
@@ -306,7 +307,7 @@ function playBots(room) {
 }
 
 io.on("connection", socket => {
-  socket.on("room:create", ({ name, rounds, duration }, cb = () => {}) => {
+  socket.on("room:create", ({ name, rounds, duration, avatar }, cb = () => {}) => {
     const safeName = cleanName(name);
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
     const safeDuration = [30, 60].includes(Number(duration)) ? Number(duration) : 60;
@@ -321,6 +322,7 @@ io.on("connection", socket => {
       score: 0,
       isHost: true,
       isBot: false,
+      avatar: String(avatar || "").slice(0, 8),
       submitted: false,
       answers: {}
     };
@@ -346,7 +348,7 @@ io.on("connection", socket => {
     emitRoom(room);
   });
 
-  socket.on("room:join", ({ code, name }, cb = () => {}) => {
+  socket.on("room:join", ({ code, name, avatar }, cb = () => {}) => {
     const room = getRoom(code);
     const safeName = cleanName(name);
 
@@ -366,6 +368,7 @@ io.on("connection", socket => {
       score: 0,
       isHost: false,
       isBot: false,
+      avatar: String(avatar || "").slice(0, 8),
       submitted: false,
       answers: {}
     };
@@ -442,6 +445,7 @@ io.on("connection", socket => {
       score: 0,
       isHost: false,
       isBot: true,
+      avatar: "🤖",
       submitted: false,
       answers: {}
     };

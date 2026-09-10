@@ -132,3 +132,11 @@ Modifications :
 - Les scores sont cumulés jusqu’à la dernière manche.
 - Le bot test rejoue automatiquement à chaque manche.
 - « Refaire une partie » conserve les réglages du salon et génère de nouvelles catégories / lettres.
+
+## V1.16 — Accueil, profil et pièces
+- Nouvel écran d'accueil dans le style pastel premium.
+- Profil local persistant : pseudo + icône.
+- L'icône choisie suit le joueur dans le salon et les classements.
+- Solde de pièces persistant (12 pièces au premier lancement).
+- Créer ou rejoindre une partie coûte 5 pièces, débitées seulement après succès.
+- Pages liées : Profil, Mes pièces, 12 catégories, Comment jouer ?

@@ -10,6 +10,48 @@ const session = {
   timerHandle: null
 };
 
+const GAME_COST = 5;
+const DEFAULT_COINS = 12;
+const PROFILE_ICONS = ["🐼","🦊","🐯","🐸","🦁","🐨","🐙","🦄","🤖","😎","🧠","⭐"];
+
+function getProfile() {
+  return {
+    name: localStorage.getItem("petitbac_profile_name") || "",
+    icon: localStorage.getItem("petitbac_profile_icon") || "🐼"
+  };
+}
+
+function saveProfile(name, icon) {
+  localStorage.setItem("petitbac_profile_name", String(name || "").trim().slice(0, 24));
+  localStorage.setItem("petitbac_profile_icon", icon || "🐼");
+}
+
+function getCoins() {
+  const raw = localStorage.getItem("petitbac_coins");
+  if (raw === null) {
+    localStorage.setItem("petitbac_coins", String(DEFAULT_COINS));
+    return DEFAULT_COINS;
+  }
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : DEFAULT_COINS;
+}
+
+function setCoins(value) {
+  const safe = Math.max(0, Math.floor(Number(value) || 0));
+  localStorage.setItem("petitbac_coins", String(safe));
+  return safe;
+}
+
+function canAffordGame() {
+  return getCoins() >= GAME_COST;
+}
+
+function spendGameCoins() {
+  if (!canAffordGame()) return false;
+  setCoins(getCoins() - GAME_COST);
+  return true;
+}
+
 function toast(message) {
   toastEl.textContent = message;
   toastEl.classList.add("show");
@@ -81,8 +123,10 @@ function categoryIcon(category) {
 }
 
 function avatarMarkup(player, index = 0, extra = "") {
-  const initial = player.isBot ? "🤖" : escapeHtml(player.name.charAt(0).toUpperCase());
-  return `<div class="avatar avatar-${index % 6} ${player.isBot ? "avatar-bot" : ""} ${extra}">${initial}</div>`;
+  const initial = player.isBot
+    ? "🤖"
+    : (player.avatar ? escapeHtml(player.avatar) : escapeHtml(player.name.charAt(0).toUpperCase()));
+  return `<div class="avatar avatar-${index % 6} ${player.isBot ? "avatar-bot" : ""} ${player.avatar ? "avatar-emoji" : ""} ${extra}">${initial}</div>`;
 }
 
 
@@ -93,38 +137,196 @@ function setScreen(html) {
 
 function renderHome() {
   if (session.state) return render();
-  setScreen(`
-    <main class="screen home-screen">
-      <div class="home-orb orb-a"></div>
-      <div class="home-orb orb-b"></div>
-      <div class="floating-letter letter-a">A</div>
-      <div class="floating-letter letter-b">B</div>
-      <div class="floating-letter letter-c">C</div>
+  const profile = getProfile();
+  const coins = getCoins();
+  const displayName = profile.name || "Joueur";
 
-      <section class="home-hero">
-        <div class="crown">👑</div>
-        <div class="home-logo"><span>Petit</span><span>Bac</span></div>
-        <p class="home-tagline">Le jeu de mots qui rassemble tout le monde !</p>
-        <div class="hero-card-art" aria-hidden="true">
-          <div class="paper-card">A</div>
-          <div class="pencil">✏️</div>
-        </div>
+  setScreen(`
+    <main class="screen home-v2-screen">
+      <div class="home-v2-blob home-v2-blob-a"></div>
+      <div class="home-v2-blob home-v2-blob-b"></div>
+      <div class="home-v2-blob home-v2-blob-c"></div>
+      <div class="home-v2-letter home-v2-a">A</div>
+      <div class="home-v2-letter home-v2-b">B</div>
+      <div class="home-v2-letter home-v2-c">C</div>
+
+      <header class="home-v2-topbar">
+        <button class="home-v2-square" id="settingsBtn" aria-label="Réglages">⚙️</button>
+        <button class="home-v2-square" id="crownBtn" aria-label="Récompenses">👑</button>
+      </header>
+
+      <section class="home-v2-hero">
+        <img src="petit-bac-logo.png" class="home-v2-logo" alt="P’tit Bac">
+        <p>Le jeu de mots qui rassemble<br>tout le monde !</p>
+        <span class="home-v2-underline"></span>
       </section>
 
-      <div class="home-actions">
-        <button class="btn btn-primary btn-icon" id="createBtn"><span>＋</span>Créer une partie</button>
-        <button class="btn btn-outline btn-icon" id="joinBtn"><span>👥</span>Rejoindre une partie</button>
-      </div>
+      <section class="home-v2-dashboard">
+        <button class="home-v2-panel profile-panel" id="profileBtn">
+          <span class="home-v2-panel-icon">👤</span>
+          <span class="home-v2-panel-copy">
+            <strong>Mon profil</strong>
+            <small>Choisis ton pseudo<br>et ton icône</small>
+          </span>
+          <span class="home-v2-chevron">›</span>
+          <span class="home-v2-profile-preview">
+            <span class="home-v2-avatar">${escapeHtml(profile.icon)}</span>
+            <b>${escapeHtml(displayName)}</b>
+            <span>›</span>
+          </span>
+        </button>
 
-      <div class="home-benefits">
-        <div><span>👥</span><strong>Entre amis</strong></div>
-        <div><span>🧩</span><strong>12 catégories</strong></div>
-        <div><span>✨</span><strong>Fun & rapide</strong></div>
-      </div>
+        <button class="home-v2-panel coin-panel" id="coinsBtn">
+          <span class="home-v2-panel-icon coin-stack">🪙</span>
+          <span class="home-v2-panel-copy">
+            <strong>Mes pièces</strong>
+            <small>Ton solde pour<br>jouer</small>
+          </span>
+          <span class="home-v2-chevron">›</span>
+          <span class="home-v2-coin-preview"><span class="coin-medal">👑</span><b>${coins}</b></span>
+        </button>
+      </section>
+
+      <button class="home-v2-category-card" id="categoriesBtn">
+        <span class="home-v2-category-icon">🧩</span>
+        <span><strong>12 catégories</strong><small>Toujours variées</small></span>
+        <span>›</span>
+      </button>
+
+      <section class="home-v2-actions">
+        <button class="home-v2-action primary" id="createBtn" ${coins < GAME_COST ? 'disabled' : ''}>
+          <span class="action-symbol">＋</span>
+          <span class="action-label">Créer une partie</span>
+          <span class="cost-pill"><span class="mini-coin">👑</span>${GAME_COST}</span>
+          <span class="action-arrow">›</span>
+        </button>
+        <button class="home-v2-action secondary" id="joinBtn" ${coins < GAME_COST ? 'disabled' : ''}>
+          <span class="action-symbol">👥</span>
+          <span class="action-label">Rejoindre une partie</span>
+          <span class="cost-pill"><span class="mini-coin">👑</span>${GAME_COST}</span>
+          <span class="action-arrow">›</span>
+        </button>
+      </section>
+
+      ${coins < GAME_COST ? `<p class="home-v2-no-coins">Il te faut ${GAME_COST} pièces pour jouer.</p>` : ''}
+
+      <button class="home-v2-howto" id="howToBtn">
+        <span>💡</span>
+        <span><strong>Comment jouer ?</strong><small>Règles simples et rapides</small></span>
+        <span>›</span>
+      </button>
+
+      <footer class="home-v2-footer">
+        <strong>💜 P’tit Bac</strong>
+        <span>Des mots, des rires, des souvenirs !</span>
+      </footer>
     </main>
   `);
-  document.getElementById("createBtn").onclick = () => renderNameForm("create");
-  document.getElementById("joinBtn").onclick = () => renderJoinForm();
+
+  document.getElementById("createBtn").onclick = () => {
+    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
+    renderNameForm("create");
+  };
+  document.getElementById("joinBtn").onclick = () => {
+    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
+    renderJoinForm();
+  };
+  document.getElementById("profileBtn").onclick = renderProfile;
+  document.getElementById("coinsBtn").onclick = renderCoins;
+  document.getElementById("categoriesBtn").onclick = renderCategoriesInfo;
+  document.getElementById("howToBtn").onclick = renderHowTo;
+  document.getElementById("settingsBtn").onclick = () => toast("Réglages bientôt disponibles.");
+  document.getElementById("crownBtn").onclick = () => toast("Récompenses bientôt disponibles.");
+}
+
+function renderProfile() {
+  const profile = getProfile();
+  setScreen(`
+    <main class="screen utility-screen">
+      <button class="utility-back" id="backHome">←</button>
+      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
+      <div class="utility-heading">
+        <h1>Mon profil</h1>
+        <p>Choisis le pseudo et l’icône qui te représenteront dans les salons.</p>
+      </div>
+      <form class="utility-card" id="profileForm">
+        <label class="label" for="profileName">Ton pseudo</label>
+        <input class="input" id="profileName" maxlength="24" autocomplete="nickname" placeholder="Ton pseudo" value="${escapeHtml(profile.name)}">
+        <div class="profile-icon-label">Ton icône</div>
+        <div class="profile-icon-grid" id="profileIcons">
+          ${PROFILE_ICONS.map(icon => `<button type="button" class="profile-icon-choice ${icon === profile.icon ? 'selected' : ''}" data-icon="${icon}">${icon}</button>`).join('')}
+        </div>
+        <button class="btn btn-primary utility-save" type="submit">Enregistrer</button>
+      </form>
+    </main>
+  `);
+  let selectedIcon = profile.icon;
+  document.querySelectorAll('[data-icon]').forEach(btn => {
+    btn.onclick = () => {
+      selectedIcon = btn.dataset.icon;
+      document.querySelectorAll('[data-icon]').forEach(b => b.classList.toggle('selected', b === btn));
+    };
+  });
+  document.getElementById('profileForm').onsubmit = e => {
+    e.preventDefault();
+    const name = document.getElementById('profileName').value.trim();
+    if (!name) return toast('Choisis un pseudo.');
+    saveProfile(name, selectedIcon);
+    toast('Profil enregistré !');
+    renderHome();
+  };
+  document.getElementById('backHome').onclick = renderHome;
+}
+
+function renderCoins() {
+  const coins = getCoins();
+  setScreen(`
+    <main class="screen utility-screen">
+      <button class="utility-back" id="backHome">←</button>
+      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
+      <div class="utility-heading"><h1>Mes pièces</h1><p>Les pièces servent à créer ou rejoindre une partie.</p></div>
+      <section class="utility-card coins-screen-card">
+        <div class="big-coin">👑</div>
+        <div class="coin-total">${coins}</div>
+        <div class="coin-caption">pièce${coins > 1 ? 's' : ''} disponible${coins > 1 ? 's' : ''}</div>
+        <div class="coin-rule"><span>🎮</span><div><strong>Une partie = ${GAME_COST} pièces</strong><small>Le coût est débité uniquement quand la création ou la connexion au salon réussit.</small></div></div>
+      </section>
+    </main>
+  `);
+  document.getElementById('backHome').onclick = renderHome;
+}
+
+function renderCategoriesInfo() {
+  const categories = Object.keys(CATEGORY_ICONS);
+  setScreen(`
+    <main class="screen utility-screen">
+      <button class="utility-back" id="backHome">←</button>
+      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
+      <div class="utility-heading"><h1>12 catégories</h1><p>Six catégories sont tirées au hasard au début de chaque partie.</p></div>
+      <section class="utility-card category-info-grid">
+        ${categories.map(c => `<div><span>${categoryIcon(c)}</span><strong>${escapeHtml(c)}</strong></div>`).join('')}
+      </section>
+    </main>
+  `);
+  document.getElementById('backHome').onclick = renderHome;
+}
+
+function renderHowTo() {
+  setScreen(`
+    <main class="screen utility-screen">
+      <button class="utility-back" id="backHome">←</button>
+      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
+      <div class="utility-heading"><h1>Comment jouer ?</h1><p>Le principe du P’tit Bac en quelques secondes.</p></div>
+      <section class="utility-card howto-list">
+        <div><b>1</b><span>Crée ou rejoins un salon avec tes amis.</span></div>
+        <div><b>2</b><span>Une lettre est tirée pour chaque manche.</span></div>
+        <div><b>3</b><span>Écris un mot qui commence par cette lettre dans chaque catégorie.</span></div>
+        <div><b>4</b><span>Les réponses uniques et validées rapportent 1 point.</span></div>
+        <div><b>5</b><span>Le meilleur score cumulé gagne la partie.</span></div>
+      </section>
+    </main>
+  `);
+  document.getElementById('backHome').onclick = renderHome;
 }
 
 function renderNameForm(mode) {
@@ -141,7 +343,7 @@ function renderNameForm(mode) {
       <form id="nameForm" class="stack form-card create-game-card">
         <div>
           <label class="label" for="name">Ton prénom</label>
-          <div class="input-wrap"><span class="field-icon">♟</span><input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ton prénom" autofocus /></div>
+          <div class="input-wrap"><span class="field-icon">♟</span><input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ton prénom" value="${escapeHtml(getProfile().name)}" autofocus /></div>
         </div>
 
         <fieldset class="choice-fieldset">
@@ -185,8 +387,12 @@ function renderNameForm(mode) {
   document.getElementById("nameForm").onsubmit = e => {
     e.preventDefault();
     const name = document.getElementById("name").value.trim();
-    socket.emit("room:create", { name, rounds, duration }, res => {
+    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
+    const avatar = getProfile().icon;
+    socket.emit("room:create", { name, rounds, duration, avatar }, res => {
       if (!res?.ok) return toast(res?.error || "Impossible de créer la partie.");
+      spendGameCoins();
+      if (name) saveProfile(name, avatar);
       saveSession(res.code, res.playerId);
       session.state = res.state;
       render();
@@ -210,7 +416,7 @@ function renderJoinForm() {
         </div>
         <div>
           <label class="label" for="name">Ton prénom</label>
-          <div class="input-wrap"><span>👤</span><input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ex. Sarah" /></div>
+          <div class="input-wrap"><span>👤</span><input class="input" id="name" maxlength="24" autocomplete="name" placeholder="Ton prénom" value="${escapeHtml(getProfile().name)}" /></div>
         </div>
         <button class="btn btn-primary" type="submit">Rejoindre →</button>
       </form>
@@ -223,11 +429,17 @@ function renderJoinForm() {
   };
   document.getElementById("joinForm").onsubmit = e => {
     e.preventDefault();
+    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
+    const joinName = document.getElementById("name").value.trim();
+    const avatar = getProfile().icon;
     socket.emit("room:join", {
       code: codeInput.value,
-      name: document.getElementById("name").value
+      name: joinName,
+      avatar
     }, res => {
       if (!res?.ok) return toast(res?.error || "Impossible de rejoindre.");
+      spendGameCoins();
+      if (joinName) saveProfile(joinName, avatar);
       saveSession(res.code, res.playerId);
       session.state = res.state;
       render();
