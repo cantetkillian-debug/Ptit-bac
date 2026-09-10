@@ -169,6 +169,9 @@ function uiIcon(name, extraClass = "") {
     home: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9h-5v-6H9v6H4v-9Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
     game: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5.5 5.5 0 0 1 5.1 7.55l-.9 2.2a2.8 2.8 0 0 1-4.45 1.03L14.5 17h-5l-1.75 1.78a2.8 2.8 0 0 1-4.45-1.03l-.9-2.2A5.5 5.5 0 0 1 7.5 8Z" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M7 11v4M5 13h4M16.5 12.2h.01M18.6 14.1h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
     trophy: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v3.5c0 3.7-1.7 6.2-4 6.2s-4-2.5-4-6.2V4Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 6H4v1.5c0 3 1.7 4.6 4.5 4.6M16 6h4v1.5c0 3-1.7 4.6-4.5 4.6M12 14v4M8 20h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    info: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10v6M12 7.2h.01" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+    chart: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V11M12 19V5M19 19v-9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>`,
+    save: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5V3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 3v6h8V4M9 21v-7h6v7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
     chevron: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`
   };
   return `<span class="ui-icon ${extraClass}">${icons[name] || icons.chevron}</span>`;
@@ -187,7 +190,7 @@ function renderHome() {
   while (decorativeLetters.length < 2) decorativeLetters.push(decorativePool.splice(Math.floor(Math.random() * decorativePool.length), 1)[0]);
 
   setScreen(`
-    <main class="screen home-v129 home-v130">
+    <main class="screen home-v129 home-v130 home-v150">
       <section class="home-v129-hero home-v130-hero">
         <div class="home-v129-glow home-v129-glow-a"></div><div class="home-v129-glow home-v129-glow-b"></div>
         <div class="home-v129-letter home-v129-letter-left">${decorativeLetters[0]}</div>
@@ -196,7 +199,7 @@ function renderHome() {
           <button class="home-v130-profile-top" id="profileBtn"><span class="home-v130-profile-avatar">${escapeHtml(profile.icon)}</span><strong>Mon profil</strong>${uiIcon("chevron")}</button>
           <button class="home-v129-wallet" id="topShopBtn" aria-label="Ouvrir la boutique">${homeCoin("home-coin-main")}<strong>${coins}</strong><span class="home-v129-wallet-plus">${uiIcon("plus")}</span></button>
         </header>
-        <div class="home-v129-brand home-v130-brand"><img src="petit-bac-logo.png" class="home-v129-logo" alt="P’tit Bac"><p>Le jeu de mots qui rassemble<br>tout le monde !</p><span class="home-v129-underline"></span></div>
+        <div class="home-v129-brand home-v130-brand home-v150-brand"><img src="ptit-bac-logo-v2.png" class="home-v129-logo home-v150-logo" alt="P’tit Bac"></div>
       </section>
 
       <section class="home-v129-content home-v130-content">
@@ -215,7 +218,7 @@ function renderHome() {
         </section>
         ${coins < GAME_COST ? `<p class="home-v129-no-coins">Il te faut ${GAME_COST} pièces pour lancer une partie rapide.</p>` : ''}
         <div class="home-v130-spacer"></div>
-        <button class="home-v130-howto" id="howToBtn">${uiIcon("bulb")}<span>Comment jouer ?</span></button>
+        <div class="home-v150-mini-actions"><button class="home-v150-mini" id="howToBtn">${uiIcon("bulb")}<span>Comment jouer ?</span></button><button class="home-v150-mini" id="creditsBtn">${uiIcon("info")}<span>Crédits</span></button></div>
         <footer class="home-v129-beta home-v130-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
       </section>
 
@@ -258,6 +261,7 @@ function renderHome() {
     });
   };
   document.getElementById("howToBtn").onclick = renderHowTo;
+  document.getElementById("creditsBtn")?.addEventListener("click", () => toast("Crédits P’tit Bac — bientôt disponible."));
   document.querySelectorAll('[data-nav]').forEach(btn => btn.onclick = () => {
     const t=btn.dataset.nav; if(t==='home') return; if(t==='shop') return renderShop();
     toast(t==='rewards' ? 'Récompenses bientôt disponibles.' : 'Amis bientôt disponibles.');
@@ -278,7 +282,7 @@ function renderAdminCoins() {
   setScreen(`
     <main class="screen utility-screen admin-coins-screen">
       <button class="utility-back" id="backHome">←</button>
-      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
+      <img src="ptit-bac-logo-v2.png" class="utility-logo" alt="P’tit Bac">
       <div class="utility-heading">
         <h1>Pièces — Admin</h1>
         <p>Outil local de test pour ce navigateur.</p>
@@ -341,35 +345,82 @@ function renderAdminCoins() {
 
 function renderProfile() {
   const profile = getProfile();
+  const coins = getCoins();
+  const stats = (() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem("ptitbac_profile_stats") || "{}");
+      const played = Math.max(0, Number(raw.played) || 0);
+      const wins = Math.max(0, Math.min(played, Number(raw.wins) || 0));
+      const streak = Math.max(0, Number(raw.streak) || 0);
+      return { played, wins, streak, rate: played ? Math.round((wins / played) * 100) : 0 };
+    } catch { return { played:0, wins:0, streak:0, rate:0 }; }
+  })();
+
   setScreen(`
-    <main class="screen utility-screen">
-      <button class="utility-back" id="backHome">←</button>
-      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
-      <div class="utility-heading">
-        <h1>Mon profil</h1>
-        <p>Choisis le pseudo et l’icône qui te représenteront dans les salons.</p>
-      </div>
-      <form class="utility-card" id="profileForm">
-        <label class="label" for="profileName">Ton pseudo</label>
-        <input class="input" id="profileName" maxlength="24" autocomplete="nickname" placeholder="Ton pseudo" value="${escapeHtml(profile.name)}">
-        <div class="profile-icon-label">Ton icône</div>
-        <div class="profile-icon-grid" id="profileIcons">
-          ${PROFILE_ICONS.map(icon => `<button type="button" class="profile-icon-choice ${icon === profile.icon ? 'selected' : ''}" data-icon="${icon}">${icon}</button>`).join('')}
-        </div>
-        <button class="btn btn-primary utility-save" type="submit">Enregistrer</button>
+    <main class="screen profile-v150">
+      <div class="profile-v150-glow profile-v150-glow-a"></div>
+      <div class="profile-v150-glow profile-v150-glow-b"></div>
+      <header class="profile-v150-topbar">
+        <button class="profile-v150-back" id="backHome" aria-label="Retour">‹</button>
+        <img src="ptit-bac-logo-v2.png" class="profile-v150-logo" alt="P’tit Bac">
+        <button class="profile-v150-wallet" id="profileShopBtn" aria-label="Boutique">${homeCoin("home-coin-main")}<strong>${coins}</strong><span>${uiIcon("plus")}</span></button>
+      </header>
+
+      <h1 class="profile-v150-title">Mon <span>profil</span></h1>
+
+      <form id="profileForm" class="profile-v150-form">
+        <section class="profile-v150-card profile-v150-name-card">
+          <div class="profile-v150-label">TON PSEUDO</div>
+          <div class="profile-v150-name-row">
+            <div class="profile-v150-user-icon">${uiIcon("users")}</div>
+            <div class="profile-v150-input-wrap">
+              <input id="profileName" maxlength="16" autocomplete="nickname" placeholder="Ton pseudo" value="${escapeHtml(profile.name)}">
+              <button type="button" id="clearProfileName" class="profile-v150-clear" aria-label="Effacer">×</button>
+            </div>
+          </div>
+          <div class="profile-v150-count" id="profileNameCount">${String(profile.name || '').length}/16</div>
+        </section>
+
+        <section class="profile-v150-card profile-v150-avatar-card">
+          <div class="profile-v150-card-head"><div class="profile-v150-label">TON ICÔNE</div><span>Choisis un avatar</span></div>
+          <div class="profile-v150-avatar-grid" id="profileIcons">
+            ${PROFILE_ICONS.map(icon => `<button type="button" class="profile-v150-avatar ${icon === profile.icon ? 'selected' : ''}" data-icon="${icon}"><span>${icon}</span>${icon === profile.icon ? '<b>✓</b>' : ''}</button>`).join('')}
+          </div>
+        </section>
+
+        <section class="profile-v150-card profile-v150-stats">
+          <div class="profile-v150-stats-title"><span>${uiIcon("chart")}</span><strong>MES STATISTIQUES</strong></div>
+          <div class="profile-v150-stats-grid">
+            <div><strong>${stats.played}</strong><small>Parties jouées</small></div>
+            <div><strong>${stats.wins}</strong><small>Victoires</small></div>
+            <div><strong>${stats.rate}%</strong><small>Taux de victoire</small></div>
+            <div><strong>${stats.streak}</strong><small>Série actuelle</small></div>
+          </div>
+        </section>
+
+        <button class="profile-v150-save" type="submit">${uiIcon("save")}<span>Enregistrer</span></button>
       </form>
     </main>
   `);
+
   let selectedIcon = profile.icon;
-  document.querySelectorAll('[data-icon]').forEach(btn => {
-    btn.onclick = () => {
-      selectedIcon = btn.dataset.icon;
-      document.querySelectorAll('[data-icon]').forEach(b => b.classList.toggle('selected', b === btn));
-    };
-  });
+  const repaintAvatarSelection = () => {
+    document.querySelectorAll('[data-icon]').forEach(btn => {
+      const selected = btn.dataset.icon === selectedIcon;
+      btn.classList.toggle('selected', selected);
+      btn.querySelector('b')?.remove();
+      if (selected) btn.insertAdjacentHTML('beforeend','<b>✓</b>');
+    });
+  };
+  document.querySelectorAll('[data-icon]').forEach(btn => btn.onclick = () => { selectedIcon = btn.dataset.icon; repaintAvatarSelection(); });
+  const nameInput = document.getElementById('profileName');
+  const count = document.getElementById('profileNameCount');
+  nameInput.addEventListener('input', () => count.textContent = `${nameInput.value.length}/16`);
+  document.getElementById('clearProfileName').onclick = () => { nameInput.value=''; count.textContent='0/16'; nameInput.focus(); };
+  document.getElementById('profileShopBtn').onclick = renderShop;
   document.getElementById('profileForm').onsubmit = e => {
     e.preventDefault();
-    const name = document.getElementById('profileName').value.trim();
+    const name = nameInput.value.trim();
     if (!name) return toast('Choisis un pseudo.');
     saveProfile(name, selectedIcon);
     toast('Profil enregistré !');
@@ -384,7 +435,7 @@ function renderShop() {
     <main class="screen shop-screen">
       <header class="shop-topbar">
         <button class="utility-back shop-back" id="backHome">←</button>
-        <img src="petit-bac-logo.png" class="shop-logo" alt="P’tit Bac">
+        <img src="ptit-bac-logo-v2.png" class="shop-logo" alt="P’tit Bac">
         <div class="shop-wallet"><span class="home-mix-coin">♛</span><strong>${coins}</strong></div>
       </header>
 
@@ -454,7 +505,7 @@ function renderCategoriesInfo() {
   setScreen(`
     <main class="screen utility-screen">
       <button class="utility-back" id="backHome">←</button>
-      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
+      <img src="ptit-bac-logo-v2.png" class="utility-logo" alt="P’tit Bac">
       <div class="utility-heading"><h1>43 catégories</h1><p>Les catégories sont classées en trois niveaux de difficulté et tirées selon les réglages du salon.</p></div>
       <section class="utility-card category-info-grid">
         ${categories.map(c => `<div><span>${categoryIcon(c)}</span><strong>${escapeHtml(c)}</strong></div>`).join('')}
@@ -468,7 +519,7 @@ function renderHowTo() {
   setScreen(`
     <main class="screen utility-screen">
       <button class="utility-back" id="backHome">←</button>
-      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
+      <img src="ptit-bac-logo-v2.png" class="utility-logo" alt="P’tit Bac">
       <div class="utility-heading"><h1>Comment jouer ?</h1><p>Le principe du P’tit Bac en quelques secondes.</p></div>
       <section class="utility-card howto-list">
         <div><b>1</b><span>Crée ou rejoins un salon avec tes amis.</span></div>
@@ -497,7 +548,7 @@ function renderNameForm(mode) {
       ${walletBadge("form-wallet-badge")}
 
       <div class="form-heading create-heading">
-        <img class="create-game-logo" src="./petit-bac-logo.png" alt="P’tit Bac" />
+        <img class="create-game-logo" src="./ptit-bac-logo-v2.png" alt="P’tit Bac" />
         <h1>Créer une partie</h1>
         <p class="subtitle">Choisis ton prénom et lance ton salon.</p>
       </div>
@@ -992,7 +1043,7 @@ function renderCategorySelection() {
 
       <header class="category-pick-header">
         ${user?.isHost ? `<button class="pregame-return-btn" id="returnLobbyCategoriesBtn" type="button" aria-label="Retour au salon">‹ <span>Retour au salon</span></button>` : `<span class="pregame-return-spacer"></span>`}
-        <img src="petit-bac-logo.png" class="category-pick-logo" alt="P’tit Bac">
+        <img src="ptit-bac-logo-v2.png" class="category-pick-logo" alt="P’tit Bac">
         ${walletBadge("category-pick-wallet")}
       </header>
 
@@ -1085,7 +1136,7 @@ function renderLetterSelection() {
         ${user?.isHost
           ? `<button class="v135-letter-back pregame-letter-return" id="returnLobbyLetterBtn" type="button" aria-label="Retour au salon"><span class="v137-back-arrow">‹</span><span class="v137-back-label">Retour<br>au salon</span></button>`
           : `<button class="v135-letter-back" id="leaveLetterBtn" type="button" aria-label="Quitter la partie"><span class="v137-back-arrow">‹</span><span class="v137-back-label">Quitter<br>la partie</span></button>`}
-        <img src="petit-bac-logo.png" class="letter-pick-logo" alt="P’tit Bac">
+        <img src="ptit-bac-logo-v2.png" class="letter-pick-logo" alt="P’tit Bac">
         ${walletBadge("letter-pick-wallet")}
       </header>
 
@@ -1257,7 +1308,7 @@ function renderRound() {
           <span class="play-quit-arrow">‹</span>
           <span class="play-quit-copy">Quitter<br>la partie</span>
         </button>
-        <img class="play-logo" src="./petit-bac-logo.png" alt="P’tit Bac" />
+        <img class="play-logo" src="./ptit-bac-logo-v2.png" alt="P’tit Bac" />
         <div class="play-round-badge">Manche <b>${state.roundIndex + 1}/${state.rounds}</b></div>
       </header>
 
@@ -1416,7 +1467,7 @@ function renderValidation() {
       <div class="validation-auto-blob validation-auto-blob-a"></div>
       <div class="validation-auto-blob validation-auto-blob-b"></div>
       <section class="auto-review-card ${unavailable ? "is-unavailable" : ""}">
-        <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
+        <img src="ptit-bac-logo-v2.png" class="validation-logo" alt="P’tit Bac">
         <div class="auto-review-icon ${complete ? "done" : unavailable ? "unavailable" : ""}">
           ${complete ? "✓" : unavailable ? "!" : '<span class="auto-review-spinner"></span>'}
         </div>
@@ -1506,7 +1557,7 @@ function renderScoreboard() {
       <div class="round-results-glow round-results-glow-a"></div><div class="round-results-glow round-results-glow-b"></div>
       <header class="round-results-top v133-top">
         <div class="round-results-round-pill v133-letter-pill"><span class="round-results-letter">${escapeHtml(letter)}</span><div><small>Lettre</small><strong>${escapeHtml(letter)}</strong></div></div>
-        <img src="petit-bac-logo.png" class="round-results-logo" alt="P’tit Bac">
+        <img src="ptit-bac-logo-v2.png" class="round-results-logo" alt="P’tit Bac">
         <div class="v133-top-actions">
           <div class="round-results-state-pill v133-round-pill"><div><small>Manche</small><strong>${state.roundIndex + 1}/${state.rounds}</strong></div></div>
           <button class="v133-quit" id="leaveResultsBtn" type="button" aria-label="Quitter la partie">${uiIcon("logout")}<span>Quitter<br>la partie</span></button>
@@ -1601,7 +1652,7 @@ function renderFinished() {
 
       <header class="final-v134-topbar">
         <button class="final-v134-back" id="leaveTopBtn" type="button" aria-label="Retour à l’accueil">${uiIcon("chevron", "final-v134-back-icon")}</button>
-        <img src="petit-bac-logo.png" class="final-v134-logo" alt="P’tit Bac">
+        <img src="ptit-bac-logo-v2.png" class="final-v134-logo" alt="P’tit Bac">
         ${walletBadge("final-v134-wallet")}
       </header>
 
