@@ -7,7 +7,10 @@ const session = {
   playerId: localStorage.getItem("petitbac_playerId") || "",
   state: null,
   localAnswers: {},
-  timerHandle: null
+  timerHandle: null,
+  walletToken: localStorage.getItem("petitbac_walletToken") || "",
+  walletBalance: Number(localStorage.getItem("petitbac_walletBalance") || "0"),
+  adminCoinCode: ""
 };
 
 const GAME_COST = 5;
@@ -28,29 +31,30 @@ function saveProfile(name, icon) {
 }
 
 function getCoins() {
-  const raw = localStorage.getItem("petitbac_coins");
-  if (raw === null) {
-    localStorage.setItem("petitbac_coins", String(DEFAULT_COINS));
-    return DEFAULT_COINS;
-  }
-  const parsed = Number(raw);
-  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : DEFAULT_COINS;
+  return Math.max(0, Math.floor(Number(session.walletBalance) || 0));
 }
 
-function setCoins(value) {
-  const safe = Math.max(0, Math.floor(Number(value) || 0));
-  localStorage.setItem("petitbac_coins", String(safe));
-  return safe;
+function setWalletState(token, balance) {
+  if (token) {
+    session.walletToken = token;
+    localStorage.setItem("petitbac_walletToken", token);
+  }
+  if (Number.isFinite(Number(balance))) {
+    session.walletBalance = Math.max(0, Math.floor(Number(balance)));
+    localStorage.setItem("petitbac_walletBalance", String(session.walletBalance));
+  }
 }
 
 function canAffordGame() {
   return getCoins() >= GAME_COST;
 }
 
-function spendGameCoins() {
-  if (!canAffordGame()) return false;
-  setCoins(getCoins() - GAME_COST);
-  return true;
+function initWallet(cb = () => {}) {
+  socket.emit("wallet:init", { token: session.walletToken }, res => {
+    if (!res?.ok) return cb(false);
+    setWalletState(res.token, res.balance);
+    cb(true);
+  });
 }
 
 function toast(message) {
@@ -61,6 +65,10 @@ function toast(message) {
 }
 
 socket.on("toast", toast);
+socket.on("wallet:update", ({ balance } = {}) => {
+  setWalletState(session.walletToken, balance);
+  if (!session.state) renderHome();
+});
 socket.on("room:kicked", () => {
   toast("Tu as été retiré du salon.");
   clearSession();
@@ -72,19 +80,22 @@ socket.on("room:state", state => {
 });
 
 socket.on("connect", () => {
-  if (session.code && session.playerId) {
-    socket.emit("room:reconnect", { code: session.code, playerId: session.playerId }, res => {
-      if (res?.ok) {
-        session.state = res.state;
-        render();
-      } else {
-        clearSession();
-        renderHome();
-      }
-    });
-  } else {
-    renderHome();
-  }
+  initWallet(() => {
+    if (session.code && session.playerId) {
+      socket.emit("room:reconnect", { code: session.code, playerId: session.playerId, walletToken: session.walletToken }, res => {
+        if (res?.ok) {
+          setWalletState(session.walletToken, res.balance);
+          session.state = res.state;
+          render();
+        } else {
+          clearSession();
+          renderHome();
+        }
+      });
+    } else {
+      renderHome();
+    }
+  });
 });
 
 function saveSession(code, playerId) {
@@ -246,6 +257,7 @@ function openAdminCoinAccess() {
     toast("Code administrateur incorrect.");
     return;
   }
+  session.adminCoinCode = code.trim();
   renderAdminCoins();
 }
 
@@ -287,16 +299,18 @@ function renderAdminCoins() {
 
   document.querySelectorAll("[data-add]").forEach(btn => {
     btn.onclick = () => {
-      const next = setCoins(getCoins() + Number(btn.dataset.add || 0));
-      refresh(next);
-      toast(`Solde : ${next} pièces`);
+      socket.emit("wallet:adminAdjust", { token: session.walletToken, code: session.adminCoinCode, mode: "add", value: Number(btn.dataset.add || 0) }, res => {
+        if (!res?.ok) return toast(res?.error || "Impossible de modifier le solde.");
+        setWalletState(res.token, res.balance); refresh(res.balance); toast(`Solde : ${res.balance} pièces`);
+      });
     };
   });
 
   document.getElementById("resetCoins").onclick = () => {
-    const next = setCoins(DEFAULT_COINS);
-    refresh(next);
-    toast("Solde remis à 25 pièces.");
+    socket.emit("wallet:adminAdjust", { token: session.walletToken, code: session.adminCoinCode, mode: "set", value: DEFAULT_COINS }, res => {
+      if (!res?.ok) return toast(res?.error || "Impossible de modifier le solde.");
+      setWalletState(res.token, res.balance); refresh(res.balance); toast("Solde remis à 25 pièces.");
+    });
   };
 
   document.getElementById("customCoinsForm").onsubmit = e => {
@@ -304,10 +318,10 @@ function renderAdminCoins() {
     const field = document.getElementById("customCoins");
     const value = Number(field.value);
     if (!Number.isFinite(value) || value < 0) return toast("Entre un nombre valide.");
-    const next = setCoins(Math.min(999999, value));
-    refresh(next);
-    field.value = "";
-    toast(`Solde défini à ${next} pièces.`);
+    socket.emit("wallet:adminAdjust", { token: session.walletToken, code: session.adminCoinCode, mode: "set", value: Math.min(999999, value) }, res => {
+      if (!res?.ok) return toast(res?.error || "Impossible de modifier le solde.");
+      setWalletState(res.token, res.balance); refresh(res.balance); field.value = ""; toast(`Solde défini à ${res.balance} pièces.`);
+    });
   };
 
   document.getElementById("backHome").onclick = renderHome;
@@ -363,7 +377,7 @@ function renderCoins() {
         <div class="big-coin">👑</div>
         <div class="coin-total">${coins}</div>
         <div class="coin-caption">pièce${coins > 1 ? 's' : ''} disponible${coins > 1 ? 's' : ''}</div>
-        <div class="coin-rule"><span>🎮</span><div><strong>Une partie = ${GAME_COST} pièces</strong><small>Le coût est débité uniquement quand la création ou la connexion au salon réussit.</small></div></div>
+        <div class="coin-rule"><span>🎮</span><div><strong>Une partie = ${GAME_COST} pièces</strong><small>Les 5 pièces sont débitées au lancement réel de la partie.</small></div></div>
       </section>
     </main>
   `);
@@ -463,9 +477,9 @@ function renderNameForm(mode) {
     const name = document.getElementById("name").value.trim();
     if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
     const avatar = getProfile().icon;
-    socket.emit("room:create", { name, rounds, duration, avatar }, res => {
+    socket.emit("room:create", { name, rounds, duration, avatar, walletToken: session.walletToken }, res => {
       if (!res?.ok) return toast(res?.error || "Impossible de créer la partie.");
-      spendGameCoins();
+      if (res.walletToken) setWalletState(res.walletToken, res.balance);
       if (name) saveProfile(name, avatar);
       saveSession(res.code, res.playerId);
       session.state = res.state;
@@ -509,10 +523,11 @@ function renderJoinForm() {
     socket.emit("room:join", {
       code: codeInput.value,
       name: joinName,
-      avatar
+      avatar,
+      walletToken: session.walletToken
     }, res => {
       if (!res?.ok) return toast(res?.error || "Impossible de rejoindre.");
-      spendGameCoins();
+      if (res.walletToken) setWalletState(res.walletToken, res.balance);
       if (joinName) saveProfile(joinName, avatar);
       saveSession(res.code, res.playerId);
       session.state = res.state;
@@ -848,7 +863,8 @@ function renderValidation() {
 
   if (!user?.isHost) {
     setScreen(`
-      <main class="screen center-screen">
+      <main class="screen center-screen validation-screen validation-wait-screen">
+        <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
         <div class="wait-card">
           <div class="spinner"></div>
           <h2>Validation des réponses</h2>
@@ -861,7 +877,8 @@ function renderValidation() {
 
   if (!pending) {
     setScreen(`
-      <main class="screen center-screen">
+      <main class="screen center-screen validation-screen validation-wait-screen">
+        <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
         <div class="wait-card"><div class="spinner"></div><h2>Calcul des scores…</h2></div>
       </main>
     `);
@@ -870,18 +887,23 @@ function renderValidation() {
 
   const remaining = validation.items.filter(i => i.status === "pending").length;
   setScreen(`
-    <main class="screen center-screen">
-      <div class="review-card">
-        <div class="review-icon">✓?</div><div class="review-kicker">À valider · ${remaining} restante${remaining > 1 ? "s" : ""}</div>
+    <main class="screen center-screen validation-screen validation-v122">
+      <div class="validation-blob validation-blob-a"></div>
+      <div class="validation-blob validation-blob-b"></div>
+      <section class="review-card">
+        <button class="validation-close" id="validationLeave">×</button>
+        <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
+        <div class="review-icon">✓?</div>
+        <div class="review-kicker">À valider · ${remaining} restante${remaining > 1 ? "s" : ""}</div>
         <div class="review-answer">${escapeHtml(pending.answer)}</div>
-        <div class="review-meta">${escapeHtml(pending.category)} · ${escapeHtml(pending.playerName)}</div>
-        <p>Cette réponse est-elle valide pour la lettre <strong>${escapeHtml(state.currentLetter)}</strong> ?</p>
+        <div class="review-meta"><span class="review-meta-icon">👤</span><strong>${escapeHtml(pending.category)}</strong> · ${escapeHtml(pending.playerName)}</div>
+        <p>Cette réponse est-elle valide<br>pour la lettre <strong>${escapeHtml(state.currentLetter)}</strong> ?</p>
         <div class="review-actions">
           <button class="btn btn-red" id="invalidBtn">✕ Invalide</button>
           <button class="btn btn-green" id="validBtn">✓ Valide</button>
         </div>
-      </div>
-      <p class="rules-mini">Les doublons, réponses vides et mauvaises lettres sont déjà mis à 0 automatiquement.</p>
+      </section>
+      <div class="rules-mini"><span>ⓘ</span><p>Les doublons, réponses vides et mauvaises lettres sont déjà mis à 0 automatiquement.</p></div>
     </main>
   `);
 
@@ -893,6 +915,12 @@ function renderValidation() {
   });
   document.getElementById("invalidBtn").onclick = () => judge("invalid");
   document.getElementById("validBtn").onclick = () => judge("valid");
+  document.getElementById("validationLeave").onclick = () => {
+    if (!confirm("Quitter la partie pendant la validation ?")) return;
+    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+    clearSession();
+    renderHome();
+  };
 }
 
 function rankedPlayers() {
@@ -944,40 +972,67 @@ function renderFinished() {
   const state = session.state;
   const user = me();
   const ranked = rankedPlayers();
-  const topScore = ranked[0]?.score ?? 0;
-  const winners = ranked.filter(p => p.score === topScore);
-  const winnerText = winners.length === 1 ? winners[0].name : winners.map(w => w.name).join(" & ");
+  const myReward = Math.max(0, Number(state.myReward || 0));
+  const roundsLabel = `${state.rounds} manche${state.rounds > 1 ? "s" : ""} terminée${state.rounds > 1 ? "s" : ""}`;
 
-  const podium = ranked.slice(0, 3).map((p, index) => `
-    <div class="podium-card podium-${index + 1}">
-      <div class="podium-crown">${index === 0 ? "👑" : index === 1 ? "🥈" : "🥉"}</div>
-      ${avatarMarkup(p, index, "podium-avatar")}
-      <strong>${escapeHtml(p.name)}</strong>
-      <span>${index + 1}</span>
-      <b>${p.score} pt${p.score !== 1 ? "s" : ""}</b>
-    </div>
-  `).join("");
+  const podium = ranked.slice(0, 3).map((p, index) => {
+    const isMe = p.id === session.playerId;
+    return `
+      <div class="podium-card podium-${index + 1}">
+        <div class="podium-crown">${index === 0 ? "👑" : index === 1 ? "🥈" : "🥉"}</div>
+        ${avatarMarkup(p, index, "podium-avatar")}
+        <strong>${escapeHtml(p.name)}${isMe ? ' <small class="me-badge">Toi</small>' : ''}</strong>
+        <span>${index + 1}</span>
+        <b>${p.score} pt${p.score !== 1 ? "s" : ""}</b>
+        ${isMe ? `<div class="private-coin-win">🪙 +${myReward} pièce${myReward !== 1 ? "s" : ""}</div>` : ''}
+        ${index === 0 ? `<div class="winner-ribbon">🏆 Vainqueur !</div>` : ''}
+      </div>
+    `;
+  }).join("");
 
-  const rows = ranked.slice(3).map((p, index) => `
-    <div class="final-row">
-      <span class="final-rank">${index + 4}</span>
-      ${avatarMarkup(p, index + 3, "final-avatar")}
-      <strong>${escapeHtml(p.name)}</strong>
-      <b>${p.score} pts</b>
-    </div>
-  `).join("");
+  const rows = ranked.slice(3).map((p, index) => {
+    const isMe = p.id === session.playerId;
+    return `
+      <div class="final-row">
+        <span class="final-rank">${index + 4}</span>
+        ${avatarMarkup(p, index + 3, "final-avatar")}
+        <strong>${escapeHtml(p.name)}${isMe ? ' <small class="me-badge">Toi</small>' : ''}</strong>
+        <b>${p.score} pts</b>
+        ${isMe ? `<span class="private-row-win">🪙 +${myReward}</span>` : ''}
+      </div>
+    `;
+  }).join("");
 
   setScreen(`
-    <main class="screen finished-screen">
-      <div class="confetti confetti-1">✦</div><div class="confetti confetti-2">◆</div><div class="confetti confetti-3">●</div>
+    <main class="screen finished-screen finished-v122">
+      <div class="result-blob result-blob-a"></div>
+      <div class="result-blob result-blob-b"></div>
+      <div class="result-confetti">✦ ◆ ● ✦ ◆</div>
+
+      <div class="result-topbar">
+        <button class="result-back" id="leaveTopBtn">‹</button>
+        <img src="petit-bac-logo.png" class="result-logo" alt="P’tit Bac">
+        <div class="result-balance">🪙 <strong>${getCoins()}</strong></div>
+      </div>
+
       <header class="final-header">
-        <div class="winner-emoji">👑</div>
         <h1>Partie terminée !</h1>
-        <p>${state.rounds} manche${state.rounds > 1 ? "s" : ""} terminée${state.rounds > 1 ? "s" : ""} · Bravo à tous !</p>
+        <p>${roundsLabel} · Bravo à tous !</p>
       </header>
 
-      <section class="podium">${podium}</section>
+      <section class="podium podium-count-${Math.min(ranked.length, 3)}">${podium}</section>
       ${rows ? `<section class="final-list">${rows}</section>` : ""}
+
+      <section class="result-stats">
+        <div><span>👥</span><strong>${ranked.length}</strong><small>Joueur${ranked.length > 1 ? "s" : ""}</small></div>
+        <div><span>🎮</span><strong>${state.rounds}</strong><small>Manche${state.rounds > 1 ? "s" : ""}</small></div>
+        <div><span>🕒</span><strong>${state.duration === 60 ? "1 min" : `${state.duration}s`}</strong><small>Durée</small></div>
+      </section>
+
+      <section class="my-coins-result">
+        <div class="my-coins-stack">🪙</div>
+        <div><strong>Pièces gagnées !</strong><p>Tu remportes <b>+${myReward} pièce${myReward !== 1 ? "s" : ""}</b>. Nouveau solde : <b>${getCoins()}</b>.</p></div>
+      </section>
 
       <div class="final-actions">
         ${user?.isHost
@@ -993,10 +1048,13 @@ function renderFinished() {
     document.getElementById("restartBtn").onclick = () =>
       socket.emit("game:restart", { code: state.code, playerId: session.playerId });
   }
-  document.getElementById("leaveBtn").onclick = () => {
+  const leave = () => {
+    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
     clearSession();
-    location.reload();
+    renderHome();
   };
+  document.getElementById("leaveBtn").onclick = leave;
+  document.getElementById("leaveTopBtn").onclick = leave;
 }
 
 window.addEventListener("beforeunload", () => {

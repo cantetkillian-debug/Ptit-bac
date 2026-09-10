@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const path = require("path");
 const crypto = require("crypto");
+const fs = require("fs");
 const { Server } = require("socket.io");
 
 const app = express();
@@ -12,6 +13,73 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 app.use(express.static(__dirname));
+
+const GAME_COST = 5;
+const DEFAULT_COINS = 25;
+const ADMIN_COIN_CODE = process.env.PTITBAC_ADMIN_CODE || "PTITBAC-ADMIN";
+const WALLET_FILE = path.join(__dirname, "wallets.json");
+
+const wallets = new Map();
+
+function loadWallets() {
+  try {
+    if (!fs.existsSync(WALLET_FILE)) return;
+    const data = JSON.parse(fs.readFileSync(WALLET_FILE, "utf8"));
+    for (const [token, wallet] of Object.entries(data || {})) {
+      wallets.set(token, {
+        coins: Math.max(0, Math.floor(Number(wallet?.coins) || 0)),
+        createdAt: Number(wallet?.createdAt) || Date.now(),
+        updatedAt: Number(wallet?.updatedAt) || Date.now()
+      });
+    }
+  } catch (err) {
+    console.error("Impossible de charger wallets.json:", err);
+  }
+}
+
+function saveWallets() {
+  try {
+    const out = Object.fromEntries(wallets);
+    const tmp = `${WALLET_FILE}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(out, null, 2));
+    fs.renameSync(tmp, WALLET_FILE);
+  } catch (err) {
+    console.error("Impossible de sauvegarder wallets.json:", err);
+  }
+}
+
+function createWalletToken() {
+  return crypto.randomBytes(24).toString("hex");
+}
+
+function ensureWallet(token) {
+  let safeToken = typeof token === "string" && /^[a-f0-9]{48}$/i.test(token) ? token : "";
+  if (!safeToken) safeToken = createWalletToken();
+  if (!wallets.has(safeToken)) {
+    wallets.set(safeToken, { coins: DEFAULT_COINS, createdAt: Date.now(), updatedAt: Date.now() });
+    saveWallets();
+  }
+  return { token: safeToken, wallet: wallets.get(safeToken) };
+}
+
+function walletBalance(token) {
+  return wallets.get(token)?.coins ?? 0;
+}
+
+function updateWallet(token, delta) {
+  const wallet = wallets.get(token);
+  if (!wallet) return null;
+  wallet.coins = Math.max(0, Math.floor(wallet.coins + Number(delta || 0)));
+  wallet.updatedAt = Date.now();
+  return wallet.coins;
+}
+
+function emitWallet(player) {
+  if (!player || player.isBot || !player.walletToken || !player.socketId) return;
+  io.to(player.socketId).emit("wallet:update", { balance: walletBalance(player.walletToken) });
+}
+
+loadWallets();
 
 const CATEGORIES = [
   "Prénom",
@@ -84,7 +152,7 @@ function publicPlayer(p) {
   };
 }
 
-function publicRoom(room) {
+function publicRoom(room, viewerPlayerId = null) {
   return {
     code: room.code,
     phase: room.phase,
@@ -102,12 +170,19 @@ function publicRoom(room) {
           cursor: room.validation.cursor
         }
       : null,
-    lastRoundScores: room.lastRoundScores || {}
+    lastRoundScores: room.lastRoundScores || {},
+    pot: room.pot || 0,
+    myReward: viewerPlayerId ? (room.rewardsByPlayerId?.[viewerPlayerId] || 0) : 0,
+    rewardsDistributed: !!room.rewardsDistributed
   };
 }
 
 function emitRoom(room) {
-  io.to(room.code).emit("room:state", publicRoom(room));
+  room.players.forEach(player => {
+    if (player.socketId) {
+      io.to(player.socketId).emit("room:state", publicRoom(room, player.id));
+    }
+  });
 }
 
 function getRoom(code) {
@@ -191,6 +266,92 @@ function currentPending(validation) {
   return validation?.items.findIndex(item => item.status === "pending") ?? -1;
 }
 
+function rewardSharesForCount(count) {
+  if (count <= 1) return [1];
+  if (count === 2) return [1];
+  if (count === 3) return [0.67, 0.33];
+  if (count === 4) return [0.60, 0.40];
+  return [0.60, 0.25, 0.15];
+}
+
+function shuffled(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function calculateRewards(room) {
+  const humans = room.players
+    .filter(p => !p.isBot && p.walletToken)
+    .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+  const pot = Math.max(0, Math.floor(room.pot || 0));
+  const rewards = Object.fromEntries(room.players.map(p => [p.id, 0]));
+  if (!humans.length || pot <= 0) return rewards;
+
+  const baseShares = rewardSharesForCount(humans.length);
+  const groups = [];
+  let start = 0;
+  while (start < humans.length) {
+    let end = start + 1;
+    while (end < humans.length && humans[end].score === humans[start].score) end += 1;
+    const members = humans.slice(start, end);
+    let baseWeight = 0;
+    for (let pos = start; pos < end; pos++) baseWeight += baseShares[pos] || 0;
+    if (baseWeight > 0) {
+      const factor = 0.8 + Math.random() * 0.4;
+      groups.push({ members, adjustedWeight: baseWeight * factor, exact: 0, amount: 0 });
+    }
+    start = end;
+  }
+
+  // Cas défensif : si aucune place n'a de poids, rembourser équitablement tous les humains.
+  if (!groups.length) groups.push({ members: humans, adjustedWeight: 1, exact: pot, amount: pot });
+
+  const totalWeight = groups.reduce((sum, g) => sum + g.adjustedWeight, 0) || 1;
+  let allocated = 0;
+  groups.forEach(g => {
+    g.exact = pot * (g.adjustedWeight / totalWeight);
+    g.amount = Math.floor(g.exact);
+    allocated += g.amount;
+  });
+
+  let remaining = pot - allocated;
+  const byRemainder = [...groups].sort((a, b) => (b.exact - b.amount) - (a.exact - a.amount));
+  for (let i = 0; i < remaining; i++) byRemainder[i % byRemainder.length].amount += 1;
+
+  // Partage équitable à l'intérieur de chaque groupe d'égalité.
+  groups.forEach(g => {
+    const each = Math.floor(g.amount / g.members.length);
+    let leftovers = g.amount - each * g.members.length;
+    g.members.forEach(m => { rewards[m.id] = each; });
+    for (const m of shuffled(g.members)) {
+      if (leftovers <= 0) break;
+      rewards[m.id] += 1;
+      leftovers -= 1;
+    }
+  });
+
+  return rewards;
+}
+
+function distributeRewards(room) {
+  if (room.rewardsDistributed) return;
+  room.rewardsDistributed = true;
+  room.rewardsByPlayerId = calculateRewards(room);
+  room.rewardsDistributedAt = Date.now();
+
+  room.players.forEach(player => {
+    if (player.isBot || !player.walletToken) return;
+    const reward = room.rewardsByPlayerId[player.id] || 0;
+    updateWallet(player.walletToken, reward);
+  });
+  saveWallets();
+  room.players.forEach(emitWallet);
+}
+
 function finalizeRound(room) {
   const round = room.roundIndex;
   const scores = {};
@@ -215,6 +376,7 @@ function finalizeRound(room) {
   room.phase = room.roundIndex + 1 < room.rounds ? "scoreboard" : "finished";
   room.roundEndsAt = null;
   room.validation = null;
+  if (room.phase === "finished") distributeRewards(room);
   emitRoom(room);
 }
 
@@ -307,11 +469,32 @@ function playBots(room) {
 }
 
 io.on("connection", socket => {
-  socket.on("room:create", ({ name, rounds, duration, avatar }, cb = () => {}) => {
+  socket.on("wallet:init", ({ token } = {}, cb = () => {}) => {
+    const result = ensureWallet(token);
+    socket.data.walletToken = result.token;
+    cb({ ok: true, token: result.token, balance: result.wallet.coins });
+  });
+
+  socket.on("wallet:adminAdjust", ({ token, code, mode, value } = {}, cb = () => {}) => {
+    if (String(code || "") !== ADMIN_COIN_CODE) return cb({ ok: false, error: "Code administrateur incorrect." });
+    const result = ensureWallet(token);
+    let next = result.wallet.coins;
+    if (mode === "add") next = Math.max(0, next + Math.floor(Number(value) || 0));
+    else if (mode === "set") next = Math.max(0, Math.floor(Number(value) || 0));
+    else return cb({ ok: false, error: "Action invalide." });
+    result.wallet.coins = Math.min(999999, next);
+    result.wallet.updatedAt = Date.now();
+    saveWallets();
+    cb({ ok: true, token: result.token, balance: result.wallet.coins });
+  });
+  socket.on("room:create", ({ name, rounds, duration, avatar, walletToken }, cb = () => {}) => {
     const safeName = cleanName(name);
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
     const safeDuration = [30, 60].includes(Number(duration)) ? Number(duration) : 60;
     if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
+    const walletResult = ensureWallet(walletToken || socket.data.walletToken);
+    socket.data.walletToken = walletResult.token;
+    if (walletResult.wallet.coins < GAME_COST) return cb({ ok: false, error: `Il te faut ${GAME_COST} pièces pour jouer.` });
 
     const code = roomCode();
     const player = {
@@ -322,6 +505,7 @@ io.on("connection", socket => {
       score: 0,
       isHost: true,
       isBot: false,
+      walletToken: walletResult.token,
       avatar: String(avatar || "").slice(0, 8),
       submitted: false,
       answers: {}
@@ -339,16 +523,22 @@ io.on("connection", socket => {
       roundEndsAt: null,
       validation: null,
       lastRoundScores: {},
+      entryDebited: false,
+      paidPlayerIds: [],
+      pot: 0,
+      rewardsDistributed: false,
+      rewardsByPlayerId: {},
+      rewardsDistributedAt: null,
       createdAt: Date.now()
     };
 
     rooms.set(code, room);
     setPlayerSocket(room, player, socket);
-    cb({ ok: true, code, playerId: player.id, state: publicRoom(room) });
+    cb({ ok: true, code, playerId: player.id, walletToken: walletResult.token, balance: walletResult.wallet.coins, state: publicRoom(room, player.id) });
     emitRoom(room);
   });
 
-  socket.on("room:join", ({ code, name, avatar }, cb = () => {}) => {
+  socket.on("room:join", ({ code, name, avatar, walletToken }, cb = () => {}) => {
     const room = getRoom(code);
     const safeName = cleanName(name);
 
@@ -356,6 +546,10 @@ io.on("connection", socket => {
     if (room.phase !== "lobby") return cb({ ok: false, error: "La partie a déjà commencé." });
     if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
     if (room.players.length >= 12) return cb({ ok: false, error: "Cette partie est pleine." });
+    const walletResult = ensureWallet(walletToken || socket.data.walletToken);
+    socket.data.walletToken = walletResult.token;
+    if (walletResult.wallet.coins < GAME_COST) return cb({ ok: false, error: `Il te faut ${GAME_COST} pièces pour jouer.` });
+    if (room.players.some(p => !p.isBot && p.walletToken === walletResult.token)) return cb({ ok: false, error: "Ce profil est déjà dans le salon." });
 
     const duplicateName = room.players.some(p => p.name.toLowerCase() === safeName.toLowerCase());
     if (duplicateName) return cb({ ok: false, error: "Ce prénom est déjà utilisé." });
@@ -368,6 +562,7 @@ io.on("connection", socket => {
       score: 0,
       isHost: false,
       isBot: false,
+      walletToken: walletResult.token,
       avatar: String(avatar || "").slice(0, 8),
       submitted: false,
       answers: {}
@@ -375,17 +570,18 @@ io.on("connection", socket => {
 
     room.players.push(player);
     setPlayerSocket(room, player, socket);
-    cb({ ok: true, code: room.code, playerId: player.id, state: publicRoom(room) });
+    cb({ ok: true, code: room.code, playerId: player.id, walletToken: walletResult.token, balance: walletResult.wallet.coins, state: publicRoom(room, player.id) });
     emitRoom(room);
   });
 
-  socket.on("room:reconnect", ({ code, playerId }, cb = () => {}) => {
+  socket.on("room:reconnect", ({ code, playerId, walletToken }, cb = () => {}) => {
     const room = getRoom(code);
     const player = getPlayer(room, playerId);
     if (!room || !player) return cb({ ok: false });
+    if (!player.isBot && (!walletToken || player.walletToken !== walletToken)) return cb({ ok: false });
 
     setPlayerSocket(room, player, socket);
-    cb({ ok: true, state: publicRoom(room) });
+    cb({ ok: true, balance: player.walletToken ? walletBalance(player.walletToken) : 0, state: publicRoom(room, player.id) });
     emitRoom(room);
   });
 
@@ -445,6 +641,7 @@ io.on("connection", socket => {
       score: 0,
       isHost: false,
       isBot: true,
+      walletToken: null,
       avatar: "🤖",
       submitted: false,
       answers: {}
@@ -460,6 +657,25 @@ io.on("connection", socket => {
     if (room.players.length < 2) {
       return socket.emit("toast", "Il faut au moins 2 joueurs.");
     }
+
+    if (!room.entryDebited) {
+      const humans = room.players.filter(p => !p.isBot);
+      const insufficient = humans.filter(p => !p.walletToken || walletBalance(p.walletToken) < GAME_COST);
+      if (insufficient.length) {
+        insufficient.forEach(p => {
+          if (p.socketId) io.to(p.socketId).emit("toast", `Tu n’as pas assez de pièces. Il en faut ${GAME_COST}.`);
+        });
+        return socket.emit("toast", `${insufficient.map(p => p.name).join(", ")} n’a pas assez de pièces.`);
+      }
+
+      humans.forEach(p => updateWallet(p.walletToken, -GAME_COST));
+      room.entryDebited = true;
+      room.paidPlayerIds = humans.map(p => p.id);
+      room.pot = humans.length * GAME_COST;
+      saveWallets();
+      humans.forEach(emitWallet);
+    }
+
     startRound(room);
   });
 
@@ -518,6 +734,12 @@ io.on("connection", socket => {
     room.roundEndsAt = null;
     room.validation = null;
     room.lastRoundScores = {};
+    room.entryDebited = false;
+    room.paidPlayerIds = [];
+    room.pot = 0;
+    room.rewardsDistributed = false;
+    room.rewardsByPlayerId = {};
+    room.rewardsDistributedAt = null;
     room.players.forEach(p => {
       p.score = 0;
       p.submitted = false;

@@ -140,3 +140,17 @@ Modifications :
 - Solde de pièces persistant (12 pièces au premier lancement).
 - Créer ou rejoindre une partie coûte 5 pièces, débitées seulement après succès.
 - Pages liées : Profil, Mes pièces, 12 catégories, Comment jouer ?
+
+## V1.22 — Économie serveur et récompenses
+
+- Portefeuille créé côté serveur avec 25 pièces au premier accès.
+- 5 pièces sont vérifiées à la création/rejoint du salon mais débitées uniquement au lancement réel de la partie.
+- Les bots ne paient pas et ne reçoivent aucune récompense économique.
+- La cagnotte contient exactement les mises des joueurs humains.
+- Répartition: 2 joueurs = 100% au 1er; 3 = 67/33; 4 = 60/40; 5+ = 60/25/15, avec variation aléatoire ±20%, puis normalisation exacte à la cagnotte.
+- Les égalités partagent les places/récompenses concernées.
+- Une partie ne peut ni débiter l'entrée ni distribuer les récompenses deux fois.
+- À l'écran final, chaque client ne reçoit et ne voit que son propre gain de pièces.
+- Les soldes sont enregistrés dans `wallets.json` côté serveur et ne sont plus pilotés par `localStorage`.
+
+> Pour une mise en production durable sur plusieurs redéploiements/instances Render, remplacer `wallets.json` par une base persistante (PostgreSQL/Redis/etc.). Le fichier serveur protège déjà les actualisations/reconnexions tant que le stockage de l'instance est conservé.
