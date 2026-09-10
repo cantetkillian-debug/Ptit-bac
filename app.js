@@ -145,10 +145,10 @@ function categoryIcon(category) {
 }
 
 function avatarMarkup(player, index = 0, extra = "") {
-  const initial = player.isBot
-    ? "🤖"
-    : (player.avatar ? escapeHtml(player.avatar) : escapeHtml(player.name.charAt(0).toUpperCase()));
-  return `<div class="avatar avatar-${index % 6} ${player.isBot ? "avatar-bot" : ""} ${player.avatar ? "avatar-emoji" : ""} ${extra}">${initial}</div>`;
+  const initial = player.avatar
+    ? escapeHtml(player.avatar)
+    : escapeHtml(player.name.charAt(0).toUpperCase());
+  return `<div class="avatar avatar-${index % 6} ${player.avatar ? "avatar-emoji" : ""} ${extra}">${initial}</div>`;
 }
 
 
@@ -655,11 +655,11 @@ function renderLobby() {
   const players = state.players.map((p, index) => {
     const canKick = user?.isHost && !p.isHost && p.id !== session.playerId;
     return `
-      <div class="v141-lobby-player ${p.isBot ? "is-bot" : ""}">
+      <div class="v141-lobby-player">
         ${avatarMarkup(p, index)}
         <div class="v141-lobby-player-main">
           <div class="v141-lobby-player-name">${escapeHtml(p.name)} ${p.isHost ? `<span class="v141-host-pill">Hôte</span>` : ""}</div>
-          <div class="v141-lobby-player-sub">${p.isBot ? "Bot test · répond progressivement" : (p.connected ? "Prêt" : "Déconnecté")}</div>
+          <div class="v141-lobby-player-sub">${p.connected || p.isBot ? "Prêt" : "Déconnecté"}</div>
         </div>
         <span class="v141-lobby-status ${p.connected || p.isBot ? "ready" : "off"}">${p.connected || p.isBot ? "● Prêt" : "● Hors ligne"}</span>
         ${canKick ? `<button class="v141-kick" data-kick-id="${p.id}" aria-label="Retirer ${escapeHtml(p.name)}">×</button>` : ""}
@@ -667,53 +667,74 @@ function renderLobby() {
     `;
   }).join("");
 
-  setScreen(`
-    <main class="screen v141-lobby-screen">
-      <div class="v141-glow v141-glow-a"></div><div class="v141-glow v141-glow-b"></div>
-      <header class="v145-lobby-top">
-        <div class="v145-room-head">
-          <div class="v145-room-label">Salon</div>
-          <button class="v145-code" id="copyCode">${escapeHtml(state.code)} <span aria-hidden="true">⧉</span></button>
+  const difficultyLabel = state.categoryDifficulty === "hard" ? "Difficile" : state.categoryDifficulty === "medium" ? "Normal" : "Facile";
+  const categoryCount = Number(state.categoryCount || state.categories?.length || 6);
+
+  const inlineControl = (key, label, value, icon) => `
+    <div class="v147-setting-row" data-setting="${key}">
+      <span class="v147-setting-icon">${icon}</span>
+      <div class="v147-setting-content">
+        <small>${label}</small>
+        <div class="v147-inline-picker ${!user?.isHost ? "is-readonly" : ""}">
+          ${user?.isHost ? `<button type="button" class="v147-step" data-setting-step="${key}" data-dir="-1" aria-label="Valeur précédente">‹</button>` : ""}
+          <strong>${value}</strong>
+          ${user?.isHost ? `<button type="button" class="v147-step" data-setting-step="${key}" data-dir="1" aria-label="Valeur suivante">›</button>` : ""}
         </div>
-        <div class="v145-player-count"><strong>${state.players.length}/12</strong><span>Joueurs</span></div>
+      </div>
+    </div>`;
+
+  setScreen(`
+    <main class="screen v141-lobby-screen v147-lobby-screen">
+      <div class="v141-glow v141-glow-a"></div><div class="v141-glow v141-glow-b"></div>
+
+      <header class="v147-lobby-top">
+        <div class="v147-room-head">
+          <div class="v147-room-label">Salon</div>
+          <div class="v147-room-subtitle">Partage ce code avec tes amis</div>
+          <button class="v147-code" id="copyCode">${escapeHtml(state.code)} <span aria-hidden="true">⧉</span></button>
+        </div>
+        <div class="v147-player-count" aria-label="${state.players.length} joueurs sur 12">
+          <span class="v147-player-count-icon">♟</span>
+          <strong>${state.players.length}/12</strong>
+          <span>Joueurs</span>
+        </div>
       </header>
 
-      <section class="v141-lobby-grid">
-        <div class="v141-panel v141-players-panel">
-          <div class="v141-panel-title"><h2>Joueurs <span>(${state.players.length}/12)</span></h2></div>
-          <div class="v141-lobby-player-list">${players}</div>
-          ${user?.isHost ? `
-            <button class="v141-add-bot" id="addBotBtn" ${state.players.length >= 12 ? "disabled" : ""}>
-              <span class="v141-add-circle">＋</span><strong>Ajouter un bot</strong><small>${botCount ? `${botCount} bot${botCount > 1 ? "s" : ""} présent${botCount > 1 ? "s" : ""}` : "Pour tester une partie"}</small>
-            </button>
-            ${state.players.length < 12 ? `<div class="v143-empty-player"><span>＋</span><small>En attente d’un joueur…</small></div>` : ""}
-          ` : ""}
+      <section class="v147-lobby-grid">
+        <div class="v147-left-column">
+          <div class="v141-panel v141-players-panel v147-players-panel">
+            <div class="v141-panel-title"><h2>Joueurs <span>(${state.players.length}/12)</span></h2></div>
+            <div class="v141-lobby-player-list">${players}</div>
+            ${user?.isHost ? `
+              <button class="v141-add-bot" id="addBotBtn" ${state.players.length >= 12 ? "disabled" : ""}>
+                <span class="v141-add-circle">＋</span><strong>Ajouter un joueur</strong><small>${botCount ? `${botCount} joueur${botCount > 1 ? "s" : ""} test ajouté${botCount > 1 ? "s" : ""}` : "Pour tester une partie"}</small>
+              </button>
+              ${state.players.length < 12 ? `<div class="v143-empty-player"><span>＋</span><small>En attente d’un joueur…</small></div>` : ""}
+            ` : ""}
+          </div>
+
+          <button class="v147-invite" id="inviteFriendsBtn" type="button">
+            <span class="v147-invite-icon">♙＋</span>
+            <strong>Inviter des amis</strong>
+            <b>›</b>
+          </button>
         </div>
 
-        <div class="v141-side-stack">
-          <section class="v141-panel v141-settings-card">
-            <h2>Paramètres de la partie</h2>
-            <button class="v141-setting-row" id="roomSettingsBtn" ${!user?.isHost ? "disabled" : ""}>
-              <span class="v141-setting-icon">⚡</span><span><small>Manches</small><strong>${state.rounds}</strong></span><b>›</b>
-            </button>
-            <button class="v141-setting-row" id="roomSettingsBtnTime" ${!user?.isHost ? "disabled" : ""}>
-              <span class="v141-setting-icon">◷</span><span><small>Temps par manche</small><strong>${formatDuration(state.duration)}</strong></span><b>›</b>
-            </button>
-            <button class="v141-setting-row" id="roomSettingsBtnDifficulty" ${!user?.isHost ? "disabled" : ""}>
-              <span class="v141-setting-icon">▥</span><span><small>Difficulté</small><strong>${state.categoryDifficulty === "hard" ? "Difficile" : state.categoryDifficulty === "medium" ? "Normal" : "Facile"}</strong></span><b>›</b>
-            </button>
-            <button class="v141-setting-row v143-category-setting" id="roomCategoriesCard" ${!user?.isHost ? "disabled" : ""}>
-              <span class="v141-setting-icon">🏷️</span><span><small>Catégories</small><strong>${state.categoryCount || state.categories?.length || 6}</strong></span><b>›</b>
-            </button>
-          </section>
-
-        </div>
+        <section class="v141-panel v141-settings-card v147-settings-card">
+          <h2>Paramètres de la partie</h2>
+          ${inlineControl("rounds", "Manches", state.rounds, "⚡")}
+          ${inlineControl("duration", "Temps par manche", formatDuration(state.duration), "◷")}
+          ${inlineControl("categoryDifficulty", "Difficulté", difficultyLabel, "▥")}
+          ${inlineControl("categoryCount", "Catégories", categoryCount, "🏷️")}
+        </section>
       </section>
 
-      ${user?.isHost ? `
-        <button class="v141-start" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>▶ <span>Lancer la partie</span></button>
-      ` : `<div class="v141-wait-host"><span class="spinner small-spinner"></span> En attente de l'hôte…</div>`}
-      <button class="v141-quit" id="leaveLobbyBottom">← Quitter le salon</button>
+      <div class="v147-actions">
+        ${user?.isHost ? `
+          <button class="v141-start v147-start" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>▶ <span>Lancer la partie</span></button>
+        ` : `<div class="v141-wait-host v147-wait-host"><span class="spinner small-spinner"></span> En attente de l'hôte…</div>`}
+        <button class="v141-quit v147-quit" id="leaveLobbyBottom">⇥ <span>Quitter le salon</span></button>
+      </div>
     </main>
   `);
 
@@ -723,23 +744,68 @@ function renderLobby() {
     renderHome();
   };
   document.getElementById("leaveLobbyBottom").onclick = leave;
+
   document.getElementById("copyCode").onclick = async () => {
     try { await navigator.clipboard.writeText(state.code); toast("Code copié !"); }
     catch { toast(`Code : ${state.code}`); }
   };
 
-  if (user?.isHost) {
-    const settingButtons = [
-      ["roomSettingsBtn", "rounds"],
-      ["roomSettingsBtnTime", "duration"],
-      ["roomSettingsBtnDifficulty", "categoryDifficulty"],
-      ["roomCategoriesCard", "categoryCount"]
-    ];
-    settingButtons.forEach(([id, setting]) => {
-      const el = document.getElementById(id);
-      if (el) el.onclick = () => openLobbySettingPopover(setting, el);
+  document.getElementById("inviteFriendsBtn")?.addEventListener("click", async () => {
+    const text = `Rejoins mon salon P’tit Bac avec le code ${state.code}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "P’tit Bac", text, url: window.location.origin });
+      } else {
+        await navigator.clipboard.writeText(`${text} — ${window.location.origin}`);
+        toast("Invitation copiée !");
+      }
+    } catch (err) {
+      if (err?.name !== "AbortError") toast(`Code : ${state.code}`);
+    }
+  });
+
+  const updateSetting = (setting, dir) => {
+    if (!user?.isHost) return;
+    const rounds = [1, 3, 5];
+    const durations = [30, 60, 90];
+    const difficulties = ["beginner", "medium", "hard"];
+    let nextRounds = Number(state.rounds || 1);
+    let nextDuration = Number(state.duration || 60);
+    let nextDifficulty = state.categoryDifficulty || "beginner";
+    let nextCategoryCount = categoryCount;
+
+    const cycle = (arr, current, direction) => {
+      let i = arr.indexOf(current);
+      if (i < 0) i = 0;
+      return arr[(i + direction + arr.length) % arr.length];
+    };
+
+    if (setting === "rounds") nextRounds = cycle(rounds, nextRounds, dir);
+    if (setting === "duration") nextDuration = cycle(durations, nextDuration, dir);
+    if (setting === "categoryDifficulty") nextDifficulty = cycle(difficulties, nextDifficulty, dir);
+    if (setting === "categoryCount") nextCategoryCount = Math.max(5, Math.min(10, nextCategoryCount + dir));
+
+    socket.emit("room:updateSettings", {
+      code: state.code,
+      playerId: session.playerId,
+      rounds: nextRounds,
+      duration: nextDuration,
+      categoryCount: nextCategoryCount,
+      categoryDifficulty: nextDifficulty
+    }, res => {
+      if (!res?.ok) return toast(res?.error || "Impossible de modifier ce paramètre.");
+      if (res.state) session.state = res.state;
+      render();
     });
-  }
+  };
+
+  document.querySelectorAll("[data-setting-step]").forEach(btn => {
+    btn.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      updateSetting(btn.dataset.settingStep, Number(btn.dataset.dir) || 1);
+    });
+  });
 
   if (user?.isHost) {
     const botBtn = document.getElementById("addBotBtn");

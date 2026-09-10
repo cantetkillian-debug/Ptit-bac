@@ -44,6 +44,12 @@ const OPENAI_VALIDATION_MODEL = process.env.OPENAI_VALIDATION_MODEL || "gpt-5-mi
 const OPENAI_VALIDATION_REVIEW_MODEL = process.env.OPENAI_VALIDATION_REVIEW_MODEL || OPENAI_VALIDATION_MODEL;
 const OPENAI_VALIDATION_WEB_SEARCH = String(process.env.OPENAI_VALIDATION_WEB_SEARCH || "false").toLowerCase() === "true";
 const AUTO_VALIDATION_TIMEOUT_MS = Math.max(8000, Number(process.env.AUTO_VALIDATION_TIMEOUT_MS) || 30000);
+// IA des joueurs test : moteur séparé de l'arbitre de correction.
+// Elle peut utiliser le même compte API, mais possède son propre modèle, prompt, timeout et logique.
+const BOT_AI_ENABLED = String(process.env.BOT_AI_ENABLED || "true").toLowerCase() !== "false";
+const OPENAI_BOT_MODEL = process.env.OPENAI_BOT_MODEL || "gpt-5-mini";
+const OPENAI_BOT_API_KEY = process.env.OPENAI_BOT_API_KEY || OPENAI_API_KEY;
+const BOT_AI_TIMEOUT_MS = Math.max(4000, Number(process.env.BOT_AI_TIMEOUT_MS) || 9000);
 const VALIDATION_CACHE_FILE = path.join(__dirname, "validation-cache-v2.json");
 const VALIDATION_LEARNING_FILE = path.join(__dirname, "validation-learning-v1.json");
 const VALIDATION_REPORTS_FILE = path.join(__dirname, "validation-reports-v1.json");
@@ -1653,51 +1659,199 @@ const BOT_ANSWER_BANK = {
   "Objet": ["Assiette","Bouteille","Chaise","Dé","Échelle","Fourchette","Gomme","Horloge","Interrupteur","Jumelles","Klaxon","Lampe","Marteau","Nappe","Ordinateur","Parapluie","Quille","Radio","Stylo","Table","Urne","Vase","Webcam","Xylophone","Yo-yo","Zip"],
   "Sport": ["Athlétisme","Basket","Cyclisme","Darts","Escalade","Football","Golf","Hockey","Iaïdo","Judo","Karaté","Lutte","Motocross","Natation","Orientation","Pétanque","Quad","Rugby","Surf","Tennis","Ultimate","Volley","Water-polo","Xare","Yoga","Zumba"],
   "Mot": ["Arbre","Bonjour","Chat","Danse","École","Fleur","Grand","Heure","Image","Jardin","Kilo","Livre","Maison","Nuage","Orange","Pierre","Quand","Route","Soleil","Table","Unique","Ville","Wagon","Xylophone","Yaourt","Zéro"],
-  "Vêtement": ["Anorak","Bonnet","Chemise","Débardeur","Écharpe","Foulard","Gilet","Haut","Imperméable","Jean","K-way","Legging","Manteau","Nœud papillon","Oversize","Pantalon","Queue-de-pie","Robe","Short","T-shirt","Uniforme","Veste","Windbreaker","X","Yoga pants","Zip hoodie"],
+  "Vêtement": ["Anorak","Bonnet","Chemise","Débardeur","Écharpe","Foulard","Gilet","Haut","Imperméable","Jean","K-way","Legging","Manteau","Nœud papillon","Oversize","Pantalon","Queue-de-pie","Robe","Short","T-shirt","Uniforme","Veste","Windbreaker","Yoga pants","Zip hoodie"],
   "Boisson": ["Aquarius","Badoit","Café","Dr Pepper","Eau","Fanta","Gini","Horchata","Ice tea","Jus","Kéfir","Limonade","Milkshake","Nectar","Oasis","Perrier","Quinquina","Red Bull","Sprite","Thé","Umeshu","Volvic","Whisky","Xérès","Yakult","Zumo"],
   "Application / Réseau social": ["Airbnb","BeReal","Canva","Discord","Etsy","Facebook","Google Maps","Hinge","Instagram","Just Eat","KakaoTalk","LinkedIn","Messenger","Netflix","Outlook","Pinterest","Qwant","Reddit","Snapchat","TikTok","Uber","Vinted","WhatsApp","X","YouTube","Zoom"],
   "Jeu vidéo": ["Among Us","Brawl Stars","Celeste","Doom","Elden Ring","Fortnite","Gran Turismo","Halo","It Takes Two","Journey","Kirby","Limbo","Minecraft","Nintendogs","Overwatch","Pokémon","Quake","Roblox","Subnautica","Terraria","Undertale","Valorant","Warframe","Xenoblade","Yakuza","Zelda"],
   "Personnage fictif": ["Aladdin","Batman","Cendrillon","Dobby","Elsa","Flash","Goku","Hulk","Iron Man","Joker","Kirby","Luffy","Mario","Naruto","Olaf","Pikachu","Quasimodo","Robin","Shrek","Thor","Ursula","Vegeta","Wolverine","Xena","Yoshi","Zorro"],
-  "Dessert": ["Affogato","Brownie","Crêpe","Donut","Éclair","Flan","Gâteau","Halva","Île flottante","Jalousie","Kouign-amann","Liégeois","Macaron","Nougat","Opéra","Profiterole","Quatre-quarts","Riz au lait","Sorbet","Tiramisu","Ube cake","Vacherin","Waffle","X","Yaourt","Zlabia"],
+  "Dessert": ["Affogato","Brownie","Crêpe","Donut","Éclair","Flan","Gâteau","Halva","Île flottante","Jalousie","Kouign-amann","Liégeois","Macaron","Nougat","Opéra","Profiterole","Quatre-quarts","Riz au lait","Sorbet","Tiramisu","Ube cake","Vacherin","Waffle","Yaourt","Zlabia"],
   "Artiste / Chanteur": ["Adele","Beyoncé","Coldplay","Drake","Eminem","Francis Cabrel","Gims","Hoshi","Indila","Jul","Kendji","Lomepal","Mylène Farmer","Ninho","Orelsan","PNL","Queen","Rihanna","Soprano","Tina Turner","Usher","Vianney","Whitney Houston","Xzibit","Yseult","Zaz"],
   "Célébrité": ["Adele","Brad Pitt","Cristiano Ronaldo","Dua Lipa","Emma Watson","Florence Foresti","Gad Elmaleh","Hugh Jackman","Inoxtag","Jul","Kylian Mbappé","Lady Gaga","Marion Cotillard","Neymar","Omar Sy","Pierre Niney","Quentin Tarantino","Rihanna","Soprano","Taylor Swift","Usher","Vianney","Will Smith","Xavier Dolan","Yannick Noah","Zinedine Zidane"]
 };
 
-function makeBotAnswer(category, letter) {
+const BOT_PERSONAS = [
+  { id: "rapide", label: "rapide", missRate: .16, riskyRate: .07, pace: .82, instruction: "Tu réponds vite, avec des réponses simples et parfois une case laissée vide." },
+  { id: "classique", label: "classique", missRate: .09, riskyRate: .04, pace: 1.0, instruction: "Tu joues de façon naturelle, avec des réponses assez évidentes mais variées." },
+  { id: "creatif", label: "créatif", missRate: .07, riskyRate: .09, pace: 1.12, instruction: "Tu cherches des réponses moins évidentes mais qui restent défendables." },
+  { id: "prudent", label: "prudent", missRate: .13, riskyRate: .02, pace: 1.18, instruction: "Tu préfères laisser vide plutôt que d'inventer une réponse douteuse." },
+  { id: "fort", label: "fort", missRate: .04, riskyRate: .02, pace: .95, instruction: "Tu connais beaucoup de mots et trouves souvent une bonne réponse, sans être parfait." }
+];
+
+function botPersonaFor(bot, botIndex = 0) {
+  if (bot.botPersona) return BOT_PERSONAS.find(p => p.id === bot.botPersona) || BOT_PERSONAS[botIndex % BOT_PERSONAS.length];
+  const persona = BOT_PERSONAS[Math.floor(Math.random() * BOT_PERSONAS.length)];
+  bot.botPersona = persona.id;
+  return persona;
+}
+
+function normalizeInitialLetter(value) {
+  return String(value || "").normalize("NFD").replace(/\p{Diacritic}/gu, "").charAt(0).toUpperCase();
+}
+
+function localBotAnswer(category, letter, usedAnswers = new Set()) {
   const pool = BOT_ANSWER_BANK[category] || [];
-  const wanted = String(letter || "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toUpperCase();
-  const match = pool.find(answer => normalizeAnswer(answer).charAt(0).toUpperCase() === wanted);
-  return match || "";
+  const wanted = normalizeInitialLetter(letter);
+  const choices = pool.filter(answer => normalizeInitialLetter(answer) === wanted && !usedAnswers.has(normalizeAnswer(answer)));
+  if (!choices.length) return "";
+  return choices[Math.floor(Math.random() * choices.length)];
 }
 
-function botThinkDelay(room, botIndex, answerIndex, answerCount) {
+function botThinkDelay(room, botIndex, answerIndex, answerCount, persona) {
   const totalMs = Math.max(10000, Number(room.duration || 60) * 1000);
-  const start = 1600 + botIndex * 500 + Math.floor(Math.random() * 1300);
-  const usable = Math.max(4500, totalMs * (0.66 + Math.random() * 0.16));
+  const pace = Number(persona?.pace || 1);
+  const start = (1300 + botIndex * 340 + Math.floor(Math.random() * 1700)) * pace;
+  const usable = Math.max(4200, totalMs * (0.58 + Math.random() * 0.25));
   const step = usable / Math.max(1, answerCount);
-  return Math.min(totalMs - 1200, Math.round(start + answerIndex * step + Math.random() * Math.min(2300, step * .75)));
+  return Math.min(totalMs - 1100, Math.round(start + answerIndex * step + Math.random() * Math.min(2600, step * .9)));
 }
 
-function botShouldAnswer(category, botIndex) {
-  // Les bots de test ne sont volontairement pas parfaits : ils peuvent laisser 5 à 18 % de cases vides.
-  const missRate = Math.min(.18, .05 + (botIndex % 3) * .045);
-  return Math.random() >= missRate;
+function extractResponseText(data) {
+  if (typeof data?.output_text === "string" && data.output_text.trim()) return data.output_text.trim();
+  for (const item of data?.output || []) {
+    for (const content of item?.content || []) {
+      if (typeof content?.text === "string" && content.text.trim()) return content.text.trim();
+    }
+  }
+  return "";
 }
 
-function playBots(room) {
-  const bots = room.players.filter(p => p.isBot);
-  if (!bots.length) return;
+function botAnswerSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      bots: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            id: { type: "string" },
+            answers: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  category: { type: "string" },
+                  answer: { type: "string" }
+                },
+                required: ["category", "answer"]
+              }
+            }
+          },
+          required: ["id", "answers"]
+        }
+      }
+    },
+    required: ["bots"]
+  };
+}
 
-  const roundIndex = room.roundIndex;
-  const letter = room.letters[roundIndex];
+async function generateBotPlansWithAI(room, bots, roundIndex, letter) {
+  if (!BOT_AI_ENABLED || !OPENAI_BOT_API_KEY || !bots.length) return null;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), BOT_AI_TIMEOUT_MS);
+  try {
+    const botDescriptions = bots.map((bot, index) => {
+      const persona = botPersonaFor(bot, index);
+      return { id: bot.id, name: bot.name, persona: persona.label, instruction: persona.instruction };
+    });
+    const prompt = `Tu incarnes plusieurs joueurs DISTINCTS d'une partie de P'tit Bac. Tu n'es PAS l'arbitre et tu ne dois jamais évaluer les réponses : ton seul rôle est de proposer ce que chaque joueur taperait pendant la manche.\n\nLettre: ${letter}\nCatégories: ${JSON.stringify(room.categories)}\nJoueurs simulés: ${JSON.stringify(botDescriptions)}\n\nRègles de génération:\n- Chaque réponse non vide doit commencer par la lettre ${letter} (accents tolérés).\n- Utilise de vrais mots, noms, marques, lieux ou références existantes adaptées à la catégorie. N'invente pas de faux mots.\n- Les joueurs doivent avoir des réponses DIFFÉRENTES entre eux dès qu'une alternative raisonnable existe. Évite absolument de copier la même grille d'un joueur à l'autre.\n- Un joueur peut laisser quelques réponses vides.\n- Les personnalités doivent se ressentir légèrement : certains choisissent des évidences, d'autres des réponses plus originales.\n- Ne cherche pas à provoquer volontairement des doublons. Un doublon occasionnel reste possible, mais ne doit pas être systématique.\n- Retourne exactement une entrée par catégorie et par joueur, dans le même ordre que les catégories.\n- Ne fais aucun commentaire et n'ajoute aucun verdict de validité.`;
 
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${OPENAI_BOT_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: OPENAI_BOT_MODEL,
+        store: false,
+        input: prompt,
+        max_output_tokens: Math.max(800, Math.min(4500, bots.length * room.categories.length * 55)),
+        text: { format: { type: "json_schema", name: "ptitbac_bot_answers", strict: true, schema: botAnswerSchema() } }
+      }),
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error(`Bot AI ${response.status}: ${(await response.text()).slice(0, 180)}`);
+    const data = await response.json();
+    const text = extractResponseText(data);
+    if (!text) throw new Error("Réponse vide de l'IA des joueurs test");
+    const parsed = JSON.parse(text);
+    const plans = new Map();
+    for (const botResult of parsed?.bots || []) {
+      const bot = bots.find(b => b.id === botResult?.id);
+      if (!bot) continue;
+      const answers = {};
+      for (const entry of botResult.answers || []) {
+        if (!room.categories.includes(entry.category)) continue;
+        const answer = String(entry.answer || "").trim().slice(0, 80);
+        // Garde-fou minimal du moteur bot seulement : pas de verdict sémantique ici.
+        // L'arbitre de correction reste l'unique entité qui décide si la réponse vaut un point.
+        if (answer && normalizeInitialLetter(answer) !== normalizeInitialLetter(letter)) continue;
+        answers[entry.category] = answer;
+      }
+      plans.set(bot.id, answers);
+    }
+    return plans.size ? plans : null;
+  } catch (err) {
+    console.warn("IA joueurs test indisponible, utilisation du générateur local:", err?.message || err);
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function buildLocalBotPlans(room, bots, letter) {
+  const plans = new Map();
+  const usedByCategory = new Map(room.categories.map(category => [category, new Set()]));
+  bots.forEach((bot, botIndex) => {
+    const persona = botPersonaFor(bot, botIndex);
+    const answers = {};
+    room.categories.forEach(category => {
+      if (Math.random() < persona.missRate) { answers[category] = ""; return; }
+      const used = usedByCategory.get(category);
+      let answer = localBotAnswer(category, letter, used);
+      // Très rarement, un joueur de profil plus risqué peut échouer sur une catégorie non couverte.
+      if (!answer && Math.random() < persona.riskyRate) answer = "";
+      answers[category] = answer;
+      if (answer) used.add(normalizeAnswer(answer));
+    });
+    plans.set(bot.id, answers);
+  });
+  return plans;
+}
+
+function diversifyBotPlans(room, bots, plans, letter) {
+  // Même si l'IA propose accidentellement la même réponse à plusieurs joueurs,
+  // on tente une alternative locale avant de laisser un doublon.
+  for (const category of room.categories) {
+    const seen = new Set();
+    bots.forEach((bot, botIndex) => {
+      const answers = plans.get(bot.id) || {};
+      let answer = String(answers[category] || "").trim();
+      const key = normalizeAnswer(answer);
+      if (answer && seen.has(key)) {
+        const alternative = localBotAnswer(category, letter, seen);
+        if (alternative) answer = alternative;
+      }
+      answers[category] = answer;
+      plans.set(bot.id, answers);
+      if (answer) seen.add(normalizeAnswer(answer));
+    });
+  }
+  return plans;
+}
+
+function scheduleBotPlans(room, bots, roundIndex, plans) {
   bots.forEach((bot, botIndex) => {
     if (!bot.answers[roundIndex]) bot.answers[roundIndex] = {};
     const categories = [...room.categories];
+    const persona = botPersonaFor(bot, botIndex);
     let lastDelay = 0;
 
-    categories.forEach((category, answerIndex) => {
-      const delay = botThinkDelay(room, botIndex, answerIndex, categories.length);
+    // Mélange léger de l'ordre de réflexion pour que tous les joueurs ne remplissent pas les mêmes cases au même moment.
+    const order = categories.map((category, idx) => ({ category, idx })).sort(() => Math.random() - .5);
+    order.forEach((entry, sequenceIndex) => {
+      const delay = botThinkDelay(room, botIndex, sequenceIndex, categories.length, persona);
       lastDelay = Math.max(lastDelay, delay);
       setTimeout(() => {
         const current = rooms.get(room.code);
@@ -1705,16 +1859,13 @@ function playBots(room) {
         const currentBot = current.players.find(p => p.id === bot.id);
         if (!currentBot || currentBot.submitted) return;
         if (!currentBot.answers[roundIndex]) currentBot.answers[roundIndex] = {};
-
-        if (botShouldAnswer(category, botIndex)) {
-          const answer = makeBotAnswer(category, letter);
-          if (answer) currentBot.answers[roundIndex][category] = answer;
-        }
+        const answer = String(plans.get(bot.id)?.[entry.category] || "").trim();
+        if (answer) currentBot.answers[roundIndex][entry.category] = answer;
         emitRoom(current);
       }, delay);
     });
 
-    const submitDelay = Math.min(Math.max(3500, Number(room.duration || 60) * 1000 - 650), lastDelay + 900 + Math.floor(Math.random() * 1800));
+    const submitDelay = Math.min(Math.max(3500, Number(room.duration || 60) * 1000 - 650), lastDelay + 900 + Math.floor(Math.random() * 2200));
     setTimeout(() => {
       const current = rooms.get(room.code);
       if (!current || current.phase !== "round" || current.roundIndex !== roundIndex) return;
@@ -1724,6 +1875,27 @@ function playBots(room) {
       emitRoom(current);
       if (current.players.every(p => p.submitted)) endRound(current);
     }, submitDelay);
+  });
+}
+
+function playBots(room) {
+  const bots = room.players.filter(p => p.isBot);
+  if (!bots.length) return;
+  const roundIndex = room.roundIndex;
+  const letter = room.letters[roundIndex];
+
+  // Prépare les idées en interne, puis les révèle progressivement comme un humain qui réfléchit.
+  // Le moteur d'arbitrage OpenAI n'est jamais appelé ici.
+  generateBotPlansWithAI(room, bots, roundIndex, letter).then(aiPlans => {
+    const current = rooms.get(room.code);
+    if (!current || current.phase !== "round" || current.roundIndex !== roundIndex) return;
+    const plans = diversifyBotPlans(current, bots, aiPlans || buildLocalBotPlans(current, bots, letter), letter);
+    scheduleBotPlans(current, bots, roundIndex, plans);
+  }).catch(err => {
+    console.warn("Erreur moteur joueurs test:", err?.message || err);
+    const current = rooms.get(room.code);
+    if (!current || current.phase !== "round" || current.roundIndex !== roundIndex) return;
+    scheduleBotPlans(current, bots, roundIndex, buildLocalBotPlans(current, bots, letter));
   });
 }
 
@@ -1918,6 +2090,31 @@ io.on("connection", socket => {
     emitRoom(room);
   });
 
+  const TEST_PLAYER_NAMES = [
+    "Léa", "Lucas", "Emma", "Hugo", "Inès", "Noah", "Lina", "Tom", "Jade", "Louis",
+    "Mila", "Adam", "Zoé", "Nolan", "Lou", "Ethan", "Nina", "Sacha", "Aya", "Maël",
+    "Louna", "Mathis", "Chloé", "Enzo", "Léna", "Gabriel", "Maya", "Nathan", "Eva", "Théo",
+    "Sarah", "Axel", "Romane", "Maxime", "Clara", "Arthur", "Manon", "Léo", "Yasmine", "Tiago"
+  ];
+  const TEST_PLAYER_AVATARS = [
+    "🧠", "🐱", "🐼", "🦊", "🐸", "🐙", "🐧", "🐯", "🦁", "🐵",
+    "👾", "🎮", "⚡", "🌙", "⭐", "🍓", "🍉", "🍕", "🚀", "🎧",
+    "⚽", "🏀", "🎨", "🔥", "🌈", "💎", "🦋", "🐺", "🐨", "🐰"
+  ];
+
+  function randomTestPlayerIdentity(room) {
+    const usedNames = new Set(room.players.map(p => normalizeAnswer(p.name)));
+    const availableNames = TEST_PLAYER_NAMES.filter(name => !usedNames.has(normalizeAnswer(name)));
+    const namePool = availableNames.length ? availableNames : TEST_PLAYER_NAMES;
+    const name = namePool[Math.floor(Math.random() * namePool.length)];
+
+    const usedAvatars = new Set(room.players.map(p => String(p.avatar || "")));
+    const availableAvatars = TEST_PLAYER_AVATARS.filter(avatar => !usedAvatars.has(avatar));
+    const avatarPool = availableAvatars.length ? availableAvatars : TEST_PLAYER_AVATARS;
+    const avatar = avatarPool[Math.floor(Math.random() * avatarPool.length)];
+    return { name, avatar };
+  }
+
   socket.on("room:addBot", payload => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "lobby") return;
@@ -1926,20 +2123,18 @@ io.on("connection", socket => {
       return socket.emit("toast", "Le salon est complet (12 joueurs maximum).");
     }
 
-    const botNumber = Math.max(0, ...room.players.filter(p => p.isBot).map(p => {
-      const m = String(p.name || "").match(/(\d+)$/);
-      return m ? Number(m[1]) : 0;
-    })) + 1;
+    const identity = randomTestPlayerIdentity(room);
     const bot = {
       id: id(),
-      name: `Bot ${botNumber}`,
+      name: identity.name,
       connected: true,
       socketId: null,
       score: 0,
       isHost: false,
       isBot: true,
       walletToken: null,
-      avatar: "🤖",
+      avatar: identity.avatar,
+      botPersona: BOT_PERSONAS[Math.floor(Math.random() * BOT_PERSONAS.length)].id,
       submitted: false,
       answers: {}
     };
@@ -2205,6 +2400,7 @@ initWalletPersistence()
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`Petit Bac V${BUILD_VERSION} lancé sur http://localhost:${PORT}`);
       console.log(`Validation IA: ${OPENAI_API_KEY ? `configurée (${OPENAI_VALIDATION_MODEL})` : "non configurée"}`);
+      console.log(`IA joueurs test: ${BOT_AI_ENABLED && OPENAI_BOT_API_KEY ? `activée (${OPENAI_BOT_MODEL})` : "générateur local"}`);
       console.log(`Stockage portefeuille: ${walletStorageMode}`);
       console.log(`Mémoire IA: ${pgPool ? "PostgreSQL" : "JSON local"} (${learnedAnswers.size} réponse(s) apprise(s))`);
       console.log(`Admin pièces: ${ADMIN_COIN_CODE ? "activé par variable d’environnement" : "désactivé"}`);
