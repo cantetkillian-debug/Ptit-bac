@@ -2801,3 +2801,160 @@ body {
   .play-answer-row{grid-template-columns:120px 1fr}
   .play-answer-label strong{font-size:.84rem}
 }
+
+/* =========================================================
+   LETTER WHEEL V1.37 — premium wheel polish
+   ========================================================= */
+.letter-pick-v135{
+  overflow:hidden;
+  background:
+    radial-gradient(circle at -7% 6%,rgba(166,127,255,.24),transparent 19rem),
+    radial-gradient(circle at 105% 24%,rgba(255,189,143,.20),transparent 18rem),
+    radial-gradient(circle at 52% 76%,rgba(194,151,255,.16),transparent 24rem),
+    linear-gradient(155deg,#f8f3ff 0%,#fff8f4 52%,#f4ebff 100%);
+}
+.v135-letter-header{min-height:104px;align-items:center}
+.v135-letter-header .letter-pick-logo{width:136px;height:88px}
+.v135-letter-back{
+  width:auto;min-width:136px;height:62px;padding:6px 16px 6px 8px;border-radius:22px;
+  display:flex;align-items:center;justify-content:flex-start;gap:9px;
+  font-size:1rem;line-height:1.1;text-align:left;color:#21104f;
+  box-shadow:0 10px 26px rgba(71,43,132,.08),inset 0 0 0 1px rgba(117,92,178,.06);
+}
+.v137-back-arrow{width:45px;height:45px;border-radius:16px;background:#f9f7ff;display:grid;place-items:center;font-size:2.2rem;line-height:1}
+.v137-back-label{font-size:.88rem;font-weight:900;line-height:1.06;white-space:nowrap}
+.v135-letter-heading{margin:0 auto 0}
+.v135-round-pill{margin-bottom:10px!important;background:rgba(228,218,255,.78);color:#6756a4!important}
+.v135-letter-heading h1{font-size:clamp(2.2rem,8.7vw,3rem);letter-spacing:-.035em;margin-bottom:7px}
+.v135-letter-heading>p:last-child{font-size:.96rem;color:#746a99}
+
+/* Wheel geometry */
+.letter-pick-v135 .letter-wheel-zone{
+  width:min(90vw,500px);margin:4px auto 4px;
+  filter:drop-shadow(0 18px 26px rgba(79,43,177,.12));
+}
+.letter-pick-v135 .letter-wheel-shell{
+  inset:5.7%;padding:12px;
+  background:linear-gradient(145deg,#ffffff,#f3edff);
+  box-shadow:
+    0 22px 46px rgba(73,45,151,.14),
+    0 0 0 3px rgba(255,255,255,.72),
+    inset 0 0 0 1px rgba(104,75,184,.12);
+}
+.letter-pick-v135 .letter-wheel-shell::before{
+  content:"";position:absolute;inset:5px;border-radius:50%;pointer-events:none;
+  border:1px solid rgba(109,76,205,.16);
+}
+.letter-pick-v135 .letter-wheel{
+  overflow:visible;
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.26),
+    inset 0 0 28px rgba(61,24,155,.18),
+    0 0 22px rgba(118,74,234,.14);
+}
+.letter-pick-v135 .letter-wheel::before{
+  inset:18%;
+  background:radial-gradient(circle,rgba(255,255,255,.13),rgba(255,255,255,.02) 72%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.13);
+}
+.letter-pick-v135 .letter-wheel::after{
+  inset:-1.5%;
+  background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.95) 0deg .85deg,transparent .85deg 13.846deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 96%,#000 96% 100%);
+  mask:radial-gradient(circle,transparent 0 96%,#000 96% 100%);
+  opacity:.8;
+}
+.letter-pick-v135 .letter-wheel-label{
+  width:38px;height:38px;margin:-19px;
+  transform:rotate(var(--letter-angle)) translateY(-158px) rotate(calc(var(--letter-angle) * -1));
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:1.06rem;font-weight:950;letter-spacing:0;text-rendering:geometricPrecision;
+  text-shadow:0 2px 5px rgba(28,9,77,.18);
+}
+.letter-pick-v135 .letter-wheel-glyph{
+  width:100%;height:100%;display:grid;place-items:center;line-height:1;
+  backface-visibility:hidden;-webkit-font-smoothing:antialiased;
+}
+.letter-pick-v135 .letter-wheel-center{
+  width:39%;height:39%;
+  background:linear-gradient(145deg,#fff,#f6f1ff);
+  box-shadow:
+    0 0 0 9px rgba(255,255,255,.58),
+    0 0 0 11px rgba(114,78,221,.14),
+    0 12px 28px rgba(52,26,120,.14);
+}
+.v135-wheel-crown{
+  font-size:3.45rem;color:#6840dd;
+  transform:translateY(-1px);
+  filter:drop-shadow(0 5px 7px rgba(57,28,128,.12));
+}
+
+/* Clean pointer: no square/yellow block */
+.letter-pick-v135 .letter-wheel-pointer{
+  top:0;width:58px;height:62px;filter:drop-shadow(0 8px 9px rgba(75,37,176,.22));
+}
+.letter-pick-v135 .letter-wheel-pointer::before{
+  content:"";position:absolute;left:50%;top:2px;transform:translateX(-50%);
+  width:54px;height:48px;border-radius:18px 18px 14px 14px;
+  background:linear-gradient(155deg,#8b5cff,#5930da);
+  box-shadow:0 0 0 4px rgba(255,255,255,.90),0 0 0 7px rgba(129,86,243,.16),0 8px 18px rgba(78,41,183,.26);
+  clip-path:polygon(50% 100%,4% 12%,12% 2%,88% 2%,96% 12%);
+}
+.letter-pick-v135 .letter-wheel-pointer::after{
+  content:"";position:absolute;left:50%;top:14px;transform:translateX(-50%);
+  width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:17px solid #fff;
+  filter:drop-shadow(0 1px 1px rgba(48,22,119,.16));
+}
+.letter-pick-v135 .letter-wheel-pointer span{display:none}
+
+/* Result card: selected letter perfectly centered */
+.v137-letter-result{
+  width:min(100%,560px);min-height:108px;margin:8px auto 14px;padding:14px 22px;
+  display:grid;grid-template-columns:82px 1px minmax(0,1fr);gap:22px;align-items:center;
+  background:rgba(255,255,255,.82);border:1px solid rgba(110,83,166,.08);border-radius:28px;
+  box-shadow:0 12px 30px rgba(63,42,111,.055);
+}
+.v137-letter-result::after{content:"";grid-column:2;grid-row:1;width:1px;height:66px;background:rgba(116,91,177,.18)}
+.v137-letter-result .v135-result-letter{
+  grid-column:1;grid-row:1;width:78px;height:78px;border-radius:23px;margin:0;
+  background:linear-gradient(145deg,#f0eaff,#e9e1ff);font-size:2.75rem;
+}
+.v137-result-copy{
+  grid-column:3;grid-row:1;min-height:78px;display:grid!important;grid-template-rows:auto 1fr;
+  align-items:center;justify-items:start;text-align:left;
+}
+.v137-result-copy span{align-self:end;font-size:.92rem!important;line-height:1.1;color:#857aa4!important}
+.v137-result-copy strong{
+  align-self:start;justify-self:start;width:auto!important;min-width:0!important;height:auto!important;margin:4px 0 0!important;
+  padding:0!important;background:none!important;border-radius:0!important;color:#17113d!important;
+  font-size:2.35rem!important;line-height:1!important;display:block!important;
+}
+
+.v135-letter-actions{width:min(100%,560px);gap:11px;margin-top:2px}
+.letter-reroll-btn{min-height:60px;border-radius:22px;background:rgba(255,255,255,.86)}
+.v135-confirm-letter{min-height:70px!important;border-radius:24px!important;background:linear-gradient(135deg,#7046f2,#5d2ee1)!important}
+
+@media(max-width:560px){
+  .letter-pick-v135{padding-left:12px;padding-right:12px}
+  .v135-letter-header{min-height:86px}
+  .v135-letter-header .letter-pick-logo{width:116px;height:74px}
+  .v135-letter-back{min-width:52px;width:52px;height:52px;padding:0;border-radius:18px;justify-content:center}
+  .v137-back-arrow{width:auto;height:auto;background:none;font-size:2.15rem}
+  .v137-back-label{display:none}
+  .letter-pick-v135 .letter-wheel-zone{width:min(94vw,440px)}
+  .letter-pick-v135 .letter-wheel-label{
+    transform:rotate(var(--letter-angle)) translateY(-35.7vw) rotate(calc(var(--letter-angle) * -1));
+    font-size:.93rem;
+  }
+  .v137-letter-result{grid-template-columns:66px 1px minmax(0,1fr);gap:16px;min-height:92px;padding:11px 16px;border-radius:24px}
+  .v137-letter-result .v135-result-letter{width:64px;height:64px;border-radius:19px;font-size:2.35rem}
+  .v137-letter-result::after{height:54px}
+  .v137-result-copy{min-height:64px}
+  .v137-result-copy span{font-size:.8rem!important}
+  .v137-result-copy strong{font-size:2rem!important}
+}
+@media(max-width:390px){
+  .letter-pick-v135 .letter-wheel-label{font-size:.82rem}
+  .v135-letter-heading>p:last-child{font-size:.84rem}
+  .v137-letter-result{gap:12px;padding-left:12px;padding-right:12px}
+}

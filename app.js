@@ -974,7 +974,7 @@ function renderLetterSelection() {
       <div class="letter-pick-spark spark-b">✦</div>
 
       <header class="letter-pick-header v135-letter-header">
-        <button class="v135-letter-back" id="leaveLetterBtn" type="button" aria-label="Quitter la partie">‹</button>
+        <button class="v135-letter-back" id="leaveLetterBtn" type="button" aria-label="Quitter la partie"><span class="v137-back-arrow">‹</span><span class="v137-back-label">Quitter<br>la partie</span></button>
         <img src="petit-bac-logo.png" class="letter-pick-logo" alt="P’tit Bac">
         ${walletBadge("letter-pick-wallet")}
       </header>
@@ -982,7 +982,7 @@ function renderLetterSelection() {
       <section class="letter-pick-heading v135-letter-heading">
         <p class="v135-round-pill">Manche ${nextRound}/${state.rounds}</p>
         <h1>Tirage de la <span>lettre</span></h1>
-        <p>${isChooser ? (selectedLetter ? "La lettre est prête !" : "Appuie directement sur la roue !") : `${escapeHtml(chooser?.name || "Un joueur")} lance la roue.`}</p>
+        <p>${isChooser ? (selectedLetter ? "La lettre est prête !" : "Appuie sur la roue pour la faire tourner !") : `${escapeHtml(chooser?.name || "Un joueur")} lance la roue.`}</p>
       </section>
 
       <section class="letter-wheel-zone ${isChooser && !selectedLetter ? "is-tappable" : ""}" id="letterWheelTapZone" role="${isChooser && !selectedLetter ? "button" : "presentation"}" ${isChooser && !selectedLetter ? 'tabindex="0" aria-label="Lancer la roue"' : ''}>
@@ -996,9 +996,9 @@ function renderLetterSelection() {
       </section>
 
       ${selectedLetter ? `
-        <div class="letter-result-card v135-letter-result">
+        <div class="letter-result-card v135-letter-result v137-letter-result">
           <div class="v135-result-letter">${escapeHtml(selectedLetter)}</div>
-          <div><span>Lettre sélectionnée</span><strong>${escapeHtml(selectedLetter)}</strong></div>
+          <div class="v137-result-copy"><span>Lettre sélectionnée</span><strong>${escapeHtml(selectedLetter)}</strong></div>
         </div>
       ` : `
         <div class="v135-letter-status ${isChooser ? "ready" : "waiting"}">
