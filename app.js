@@ -1,3 +1,4 @@
+const CLIENT_BUILD = "1.42";
 const socket = io();
 const app = document.getElementById("app");
 const toastEl = document.getElementById("toast");
@@ -15,8 +16,8 @@ const session = {
 
 const GAME_COST = 5;
 const DEFAULT_COINS = 25;
-const ADMIN_COIN_CODE = "PTITBAC-ADMIN"; // mode test local, pas une sécurité serveur
 const PROFILE_ICONS = ["🐼","🦊","🐯","🐸","🦁","🐨","🐙","🦄","🤖","😎","🧠","⭐"];
+const LETTER_WHEEL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 function getProfile() {
   return {
@@ -125,9 +126,18 @@ function escapeHtml(value = "") {
 }
 
 const CATEGORY_ICONS = {
-  "Prénom": "👤", "Animal": "🐾", "Lieu": "📍", "Métier": "💼",
-  "Nourriture": "🍽️", "Marque": "🏷️", "Film": "🎬", "Jeu vidéo": "🎮",
-  "Personnage fictif": "🦸", "Fruit / Légume": "🍏", "Objet": "🧊", "Sport": "🏆"
+  "Prénom":"👤", "Animal":"🐾", "Lieu":"📍", "Métier":"💼", "Nourriture":"🍽️",
+  "Marque":"🏷️", "Fruit / Légume":"🍏", "Objet":"🧊", "Sport":"🏆", "Mot":"🔤",
+  "Vêtement":"👕", "Cadeau":"🎁", "Chose orange":"🟠", "Chose verte":"🟢",
+  "Chose jaune":"🟡", "Cuisine":"🍳", "Maison":"🏠", "Salle de bain":"🚿",
+  "Animal marin":"🐠", "Petit-déjeuner":"🥐", "Cinéma":"🎬", "Jeu vidéo":"🎮",
+  "Personnage fictif":"🦸", "Dessert":"🍰", "Mobile":"📱",
+  "Application / Réseau social":"📲", "Artiste / Chanteur":"🎤",
+  "Chose dans une chambre":"🛏️", "Chose au supermarché":"🛒", "Vacances":"🧳",
+  "Restaurant":"🍴", "Célébrité":"⭐", "Chose du frigo":"🧊",
+  "Mot de 4 lettres":"🔡", "Chose qu’on achète sur Internet":"🛍️",
+  "Chose qui fait peur":"😱", "Chose chère":"💰", "Chose à l’école":"🏫",
+  "Plage":"🏖️", "Mode / Beauté":"💄", "Couleur":"🎨", "Ciel":"☁️", "Mythes":"🏛️"
 };
 
 function categoryIcon(category) {
@@ -147,138 +157,118 @@ function setScreen(html) {
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
+
+function uiIcon(name, extraClass = "") {
+  const icons = {
+    settings: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.1 13.2c.05-.4.05-.8 0-1.2l2-1.55-2-3.45-2.45.98a7.4 7.4 0 0 0-1.05-.6L15.25 4h-4.5l-.35 3.38c-.37.17-.72.37-1.05.6L6.9 7l-2 3.45L6.9 12a6.7 6.7 0 0 0 0 1.2l-2 1.55 2 3.45 2.45-.98c.33.23.68.43 1.05.6l.35 3.38h4.5l.35-3.38c.37-.17.72-.37 1.05-.6l2.45.98 2-3.45-2-1.55Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`,
+    plus: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+    shop: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8.5h14l-1 11H6l-1-11Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 9V7a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+    gift: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4V10Zm-1-4h18v4H3V6Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v14M12 6c-1.3 0-4.2-.4-4.2-2.2C7.8 2.6 9 2 10 2c1.4 0 2 1.1 2 4Zm0 0c1.3 0 4.2-.4 4.2-2.2C16.2 2.6 15 2 14 2c-1.4 0-2 1.1-2 4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+    users: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M15.7 14.7a4.7 4.7 0 0 1 4.8 4.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+    bulb: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 15.5c-1.7-1.2-2.7-3-2.7-5a6.2 6.2 0 1 1 12.4 0c0 2-1 3.8-2.7 5-.7.5-1 1-1 1.7h-5c0-.7-.3-1.2-1-1.7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9.5 20h5M10 17.3h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+    home: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9h-5v-6H9v6H4v-9Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
+    game: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5.5 5.5 0 0 1 5.1 7.55l-.9 2.2a2.8 2.8 0 0 1-4.45 1.03L14.5 17h-5l-1.75 1.78a2.8 2.8 0 0 1-4.45-1.03l-.9-2.2A5.5 5.5 0 0 1 7.5 8Z" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M7 11v4M5 13h4M16.5 12.2h.01M18.6 14.1h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+    trophy: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v3.5c0 3.7-1.7 6.2-4 6.2s-4-2.5-4-6.2V4Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 6H4v1.5c0 3 1.7 4.6 4.5 4.6M16 6h4v1.5c0 3-1.7 4.6-4.5 4.6M12 14v4M8 20h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    chevron: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+  };
+  return `<span class="ui-icon ${extraClass}">${icons[name] || icons.chevron}</span>`;
+}
+
+function homeCoin(sizeClass = "") {
+  return `<span class="home-coin ${sizeClass}" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" opacity=".18"/><path d="M8.1 13.7h7.8M8.7 10.6l1.8 1.4 1.5-3 1.5 3 1.8-1.4-.8 5H9.5l-.8-5Z" fill="currentColor" stroke="currentColor" stroke-width=".7" stroke-linejoin="round"/></svg></span>`;
+}
+
 function renderHome() {
   if (session.state) return render();
   const profile = getProfile();
   const coins = getCoins();
   const decorativePool = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
   const decorativeLetters = [];
-  while (decorativeLetters.length < 2) {
-    const i = Math.floor(Math.random() * decorativePool.length);
-    decorativeLetters.push(decorativePool.splice(i, 1)[0]);
-  }
+  while (decorativeLetters.length < 2) decorativeLetters.push(decorativePool.splice(Math.floor(Math.random() * decorativePool.length), 1)[0]);
 
   setScreen(`
-    <main class="screen home-mix-screen">
-      <div class="home-mix-glow home-mix-glow-a"></div>
-      <div class="home-mix-glow home-mix-glow-b"></div>
-      <div class="home-mix-letter home-mix-letter-left">${decorativeLetters[0]}</div>
-      <div class="home-mix-letter home-mix-letter-right">${decorativeLetters[1]}</div>
-
-      <header class="home-mix-topbar">
-        <button class="home-mix-icon-btn" id="settingsBtn" aria-label="Réglages">⚙</button>
-        <button class="home-mix-wallet" id="topShopBtn" aria-label="Ouvrir la boutique">
-          <span class="home-mix-coin">♛</span>
-          <strong>${coins}</strong>
-          <span class="home-mix-wallet-plus">＋</span>
-        </button>
-      </header>
-
-      <section class="home-mix-hero">
-        <img src="petit-bac-logo.png" class="home-mix-logo" alt="P’tit Bac">
-        <p>Le jeu de mots qui rassemble<br>tout le monde !</p>
-        <span class="home-mix-underline"></span>
+    <main class="screen home-v129 home-v130">
+      <section class="home-v129-hero home-v130-hero">
+        <div class="home-v129-glow home-v129-glow-a"></div><div class="home-v129-glow home-v129-glow-b"></div>
+        <div class="home-v129-letter home-v129-letter-left">${decorativeLetters[0]}</div>
+        <div class="home-v129-letter home-v129-letter-right">${decorativeLetters[1]}</div>
+        <header class="home-v129-topbar">
+          <button class="home-v130-profile-top" id="profileBtn"><span class="home-v130-profile-avatar">${escapeHtml(profile.icon)}</span><strong>Mon profil</strong>${uiIcon("chevron")}</button>
+          <button class="home-v129-wallet" id="topShopBtn" aria-label="Ouvrir la boutique">${homeCoin("home-coin-main")}<strong>${coins}</strong><span class="home-v129-wallet-plus">${uiIcon("plus")}</span></button>
+        </header>
+        <div class="home-v129-brand home-v130-brand"><img src="petit-bac-logo.png" class="home-v129-logo" alt="P’tit Bac"><p>Le jeu de mots qui rassemble<br>tout le monde !</p><span class="home-v129-underline"></span></div>
       </section>
 
-      <section class="home-mix-shortcuts">
-        <button class="home-mix-card shortcut-card" id="profileBtn">
-          <span class="home-mix-round-icon profile-icon">${escapeHtml(profile.icon)}</span>
-          <span class="home-mix-card-copy"><strong>Mon<br>profil</strong></span>
-          <span class="home-mix-arrow">›</span>
-        </button>
-
-        <button class="home-mix-card shortcut-card shop-card" id="shopBtn">
-          <span class="home-mix-round-icon shop-icon">🛍️</span>
-          <span class="home-mix-card-copy"><strong>Boutique</strong><small>Pièces et avantages</small></span>
-          <span class="home-mix-arrow">›</span>
-        </button>
+      <section class="home-v129-content home-v130-content">
+        <section class="home-v129-actions home-v130-actions">
+          <button class="home-v129-action primary home-v130-play" id="quickPlayBtn" ${coins < GAME_COST ? 'disabled' : ''}>
+            <span class="home-v129-action-symbol">⚡</span><span class="home-v129-action-copy"><strong>Jouer</strong><small>Lance une partie rapide</small></span>
+            <span class="home-v129-cost">${homeCoin("home-coin-xs")}<b>${GAME_COST}</b></span>${uiIcon("chevron", "home-v129-action-arrow")}
+          </button>
+          <button class="home-v129-action secondary home-v130-create" id="createBtn">
+            <span class="home-v129-action-symbol soft">${uiIcon("plus")}</span><span class="home-v129-action-copy"><strong>Créer un salon</strong><small>Invite tes amis et personnalise ta partie</small></span>${uiIcon("chevron", "home-v129-action-arrow")}
+          </button>
+          <div class="home-v130-join-card">
+            <span class="home-v129-action-symbol soft">${uiIcon("users")}</span>
+            <div class="home-v130-join-main"><strong>Rejoindre un salon</strong><div class="home-v130-code-row"><input id="homeRoomCode" maxlength="5" autocapitalize="characters" placeholder="Entrez le code du salon..." /><button id="joinBtn" aria-label="Rejoindre">${uiIcon("chevron")}</button></div></div>
+          </div>
+        </section>
+        ${coins < GAME_COST ? `<p class="home-v129-no-coins">Il te faut ${GAME_COST} pièces pour lancer une partie rapide.</p>` : ''}
+        <div class="home-v130-spacer"></div>
+        <button class="home-v130-howto" id="howToBtn">${uiIcon("bulb")}<span>Comment jouer ?</span></button>
+        <footer class="home-v129-beta home-v130-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
       </section>
 
-      <button class="home-mix-wide-card" id="rewardsBtn">
-        <span class="home-mix-square-icon">🎁</span>
-        <span><strong>Récompenses</strong><small>Bientôt disponible !</small></span>
-        <span class="home-mix-arrow">›</span>
-      </button>
-
-      <section class="home-mix-actions">
-        <button class="home-mix-action primary" id="createBtn" ${coins < GAME_COST ? 'disabled' : ''}>
-          <span class="home-mix-action-icon">＋</span>
-          <span class="home-mix-action-copy"><strong>Créer une partie</strong><small>Lance ton salon et défie tes amis !</small></span>
-          <span class="home-mix-cost"><span class="home-mix-cost-coin">♛</span>${GAME_COST}</span>
-          <span class="home-mix-action-arrow">›</span>
-        </button>
-
-        <button class="home-mix-action secondary" id="joinBtn" ${coins < GAME_COST ? 'disabled' : ''}>
-          <span class="home-mix-action-icon">👥</span>
-          <span class="home-mix-action-copy"><strong>Rejoindre une partie</strong><small>Entre un code et rejoins la partie !</small></span>
-          <span class="home-mix-cost"><span class="home-mix-cost-coin">♛</span>${GAME_COST}</span>
-          <span class="home-mix-action-arrow">›</span>
-        </button>
-      </section>
-
-      ${coins < GAME_COST ? `<p class="home-mix-no-coins">Il te faut ${GAME_COST} pièces pour jouer.</p>` : ''}
-
-      <button class="home-mix-wide-card home-mix-howto" id="howToBtn">
-        <span class="home-mix-square-icon howto-icon">💡</span>
-        <span><strong>Comment jouer ?</strong><small>Règles simples et rapides</small></span>
-        <span class="home-mix-arrow">›</span>
-      </button>
-
-      <nav class="home-mix-nav" aria-label="Navigation principale">
-        <button class="active" data-nav="home"><span>⌂</span><small>Accueil</small></button>
-        <button data-nav="rooms"><span>🎮</span><small>Salons</small></button>
-        <button data-nav="ranking"><span>🏆</span><small>Classement</small></button>
-        <button data-nav="friends"><span>👥</span><small>Amis</small></button>
+      <nav class="home-v129-nav" aria-label="Navigation principale">
+        <button class="active" data-nav="home">${uiIcon("home")}<small>Accueil</small></button>
+        <button data-nav="rewards">${uiIcon("gift")}<small>Récompenses</small></button>
+        <button data-nav="friends">${uiIcon("users")}<small>Amis</small></button>
+        <button data-nav="shop">${uiIcon("shop")}<small>Boutique</small></button>
       </nav>
+    </main>`);
 
-      <footer class="home-mix-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
-    </main>
-  `);
-
-  document.getElementById("createBtn").onclick = () => {
-    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
-    renderNameForm("create");
-  };
-  document.getElementById("joinBtn").onclick = () => {
-    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
-    renderJoinForm();
+  const ensureProfile = () => {
+    const p = getProfile();
+    if (!String(p.name || "").trim()) { toast("Choisis d’abord ton pseudo."); renderProfile(); return null; }
+    return p;
   };
   document.getElementById("profileBtn").onclick = renderProfile;
-  document.getElementById("shopBtn").onclick = renderShop;
   document.getElementById("topShopBtn").onclick = renderShop;
-  document.getElementById("settingsBtn").onclick = () => toast("Réglages bientôt disponibles.");
-  document.getElementById("rewardsBtn").onclick = () => toast("Récompenses bientôt disponibles.");
-  document.getElementById("howToBtn").onclick = renderHowTo;
-  document.querySelectorAll('[data-nav]').forEach(btn => {
-    btn.onclick = () => {
-      const target = btn.dataset.nav;
-      if (target === 'home') return;
-      toast(target === 'rooms' ? 'Salons bientôt disponibles.' : target === 'ranking' ? 'Classement bientôt disponible.' : 'Amis bientôt disponibles.');
-    };
-  });
-
-  const betaTrigger = document.getElementById("betaAdminTrigger");
-  let adminTapCount = 0;
-  let adminTapTimer = null;
-  betaTrigger.onclick = () => {
-    adminTapCount += 1;
-    clearTimeout(adminTapTimer);
-    adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 2200);
-    if (adminTapCount >= 7) {
-      adminTapCount = 0;
-      clearTimeout(adminTapTimer);
-      openAdminCoinAccess();
-    }
+  document.getElementById("quickPlayBtn").onclick = () => {
+    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
+    toast("Les parties rapides en ligne arrivent bientôt !");
   };
+  document.getElementById("createBtn").onclick = () => {
+    const p = ensureProfile(); if (!p) return;
+    socket.emit("room:create", { name:p.name.trim(), rounds:1, categoryCount:6, categoryDifficulty:"beginner", duration:60, avatar:p.icon, walletToken:session.walletToken }, res => {
+      if (!res?.ok) return toast(res?.error || "Impossible de créer le salon.");
+      if (res.walletToken) setWalletState(res.walletToken, res.balance);
+      saveSession(res.code, res.playerId); session.state=res.state; render();
+    });
+  };
+  const codeInput = document.getElementById("homeRoomCode");
+  codeInput.oninput = () => codeInput.value = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,5);
+  document.getElementById("joinBtn").onclick = () => {
+    const p = ensureProfile(); if (!p) return;
+    const code=codeInput.value.trim(); if (code.length !== 5) return toast("Entre le code à 5 caractères du salon.");
+    socket.emit("room:join", { code, name:p.name.trim(), avatar:p.icon, walletToken:session.walletToken }, res => {
+      if (!res?.ok) return toast(res?.error || "Impossible de rejoindre.");
+      if (res.walletToken) setWalletState(res.walletToken, res.balance);
+      saveSession(res.code,res.playerId); session.state=res.state; render();
+    });
+  };
+  document.getElementById("howToBtn").onclick = renderHowTo;
+  document.querySelectorAll('[data-nav]').forEach(btn => btn.onclick = () => {
+    const t=btn.dataset.nav; if(t==='home') return; if(t==='shop') return renderShop();
+    toast(t==='rewards' ? 'Récompenses bientôt disponibles.' : 'Amis bientôt disponibles.');
+  });
+  const betaTrigger=document.getElementById("betaAdminTrigger"); let adminTapCount=0,adminTapTimer=null;
+  betaTrigger.onclick=()=>{adminTapCount++;clearTimeout(adminTapTimer);adminTapTimer=setTimeout(()=>adminTapCount=0,2200);if(adminTapCount>=7){adminTapCount=0;clearTimeout(adminTapTimer);openAdminCoinAccess();}};
 }
 
 function openAdminCoinAccess() {
   const code = window.prompt("Code administrateur");
   if (code === null) return;
-  if (code.trim() !== ADMIN_COIN_CODE) {
-    toast("Code administrateur incorrect.");
-    return;
-  }
   session.adminCoinCode = code.trim();
   renderAdminCoins();
 }
@@ -465,7 +455,7 @@ function renderCategoriesInfo() {
     <main class="screen utility-screen">
       <button class="utility-back" id="backHome">←</button>
       <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
-      <div class="utility-heading"><h1>12 catégories</h1><p>Six catégories sont tirées au hasard au début de chaque partie.</p></div>
+      <div class="utility-heading"><h1>43 catégories</h1><p>Les catégories sont classées en trois niveaux de difficulté et tirées selon les réglages du salon.</p></div>
       <section class="utility-card category-info-grid">
         ${categories.map(c => `<div><span>${categoryIcon(c)}</span><strong>${escapeHtml(c)}</strong></div>`).join('')}
       </section>
@@ -532,6 +522,7 @@ function renderNameForm(mode) {
           <div class="choice-grid time-grid" id="timeChoices">
             <button type="button" class="choice-btn time-choice selected" data-value="30"><span class="choice-icon lightning">⚡</span><span>30 secondes</span></button>
             <button type="button" class="choice-btn time-choice" data-value="60"><span class="choice-icon clock">◴</span><span>60 secondes</span></button>
+            <button type="button" class="choice-btn time-choice" data-value="90"><span class="choice-icon clock">◴</span><span>1 min 30</span></button>
           </div>
         </fieldset>
 
@@ -628,6 +619,8 @@ function render() {
 
   switch (session.state.phase) {
     case "lobby": return renderLobby();
+    case "category_selection": return renderCategorySelection();
+    case "letter_selection": return renderLetterSelection();
     case "round": return me()?.submitted ? renderRoundWaiting() : renderRound();
     case "validation": return renderValidation();
     case "scoreboard": return renderScoreboard();
@@ -645,206 +638,446 @@ function statIcon(type) {
   return icons[type] || "";
 }
 
+function formatDuration(seconds) {
+  const value = Number(seconds) || 0;
+  if (value === 90) return "1m30";
+  if (value === 60) return "60s";
+  return `${value}s`;
+}
+
 function renderLobby() {
   clearInterval(session.timerHandle);
   session.localAnswers = {};
   const state = session.state;
   const user = me();
   const botCount = state.players.filter(p => p.isBot).length;
-  const canAddBot = !!user?.isHost && state.players.length < 12;
-  const difficultyLabel = { easy: "Facile", normal: "Normal", hard: "Difficile" }[state.botDifficulty || "normal"] || "Normal";
-  const durationLabel = state.duration === 90 ? "1 min 30" : state.duration === 60 ? "60 secondes" : "30 secondes";
 
   const players = state.players.map((p, index) => {
     const canKick = user?.isHost && !p.isHost && p.id !== session.playerId;
-    const botSub = p.isBot ? `${difficultyLabel}` : (p.isHost ? "Hôte du salon" : "Joueur");
     return `
-      <div class="neon-player-row ${p.isBot ? "is-bot" : ""}">
-        ${avatarMarkup(p, index, "neon-player-avatar")}
-        <div class="neon-player-copy">
-          <div class="neon-player-name">
-            ${escapeHtml(p.name)}
-            ${p.isHost ? `<span class="neon-host-pill">Hôte</span>` : ""}
-            ${p.id === session.playerId ? `<span class="neon-you-pill">Toi</span>` : ""}
-          </div>
-          <div class="neon-player-sub">${escapeHtml(botSub)}</div>
+      <div class="v141-lobby-player ${p.isBot ? "is-bot" : ""}">
+        ${avatarMarkup(p, index)}
+        <div class="v141-lobby-player-main">
+          <div class="v141-lobby-player-name">${escapeHtml(p.name)} ${p.isHost ? `<span class="v141-host-pill">Hôte</span>` : ""}</div>
+          <div class="v141-lobby-player-sub">${p.isBot ? "Bot test · répond progressivement" : (p.connected ? "Prêt" : "Déconnecté")}</div>
         </div>
-        <div class="neon-ready"><span></span>Prêt</div>
-        ${canKick ? `<button class="neon-kick" data-kick-id="${p.id}" aria-label="Retirer ${escapeHtml(p.name)}">×</button>` : ""}
+        <span class="v141-lobby-status ${p.connected || p.isBot ? "ready" : "off"}">${p.connected || p.isBot ? "● Prêt" : "● Hors ligne"}</span>
+        ${canKick ? `<button class="v141-kick" data-kick-id="${p.id}" aria-label="Retirer ${escapeHtml(p.name)}">×</button>` : ""}
       </div>
     `;
   }).join("");
 
   setScreen(`
-    <main class="screen neon-lobby-screen">
-      <div class="neon-lobby-glow glow-a"></div>
-      <div class="neon-lobby-glow glow-b"></div>
-      <div class="neon-lobby-glow glow-c"></div>
-
-      <header class="neon-lobby-topbar">
-        <button class="neon-back" id="leaveLobbyBtn" aria-label="Quitter le salon">←</button>
-        <div class="neon-room-center">
-          <span class="neon-room-label">Salon</span>
-          <button class="neon-code-pill" id="copyCode" aria-label="Copier le code du salon">
-            <strong>${escapeHtml(state.code)}</strong>
-            <span class="neon-copy-icon">⧉</span>
-          </button>
+    <main class="screen v141-lobby-screen">
+      <div class="v141-glow v141-glow-a"></div><div class="v141-glow v141-glow-b"></div>
+      <header class="v141-lobby-top">
+        <button class="v141-back" id="leaveLobbyBtn" aria-label="Quitter le salon">←</button>
+        <div class="v141-room-head">
+          <div class="v141-room-label">Salon</div>
+          <button class="v141-code" id="copyCode">${escapeHtml(state.code)} <span>⧉</span></button>
         </div>
-        <div class="neon-player-count">
-          <strong>${state.players.length}/12</strong>
-          <span>Joueurs</span>
-        </div>
+        <div class="v141-player-count"><strong>${state.players.length}/12</strong><span>Joueurs</span></div>
       </header>
 
-      <div class="neon-lobby-grid">
-        <section class="neon-panel neon-players-panel">
-          <div class="neon-panel-title">
-            <h2>Joueurs <span>(${state.players.length}/12)</span></h2>
-          </div>
-
-          <div class="neon-player-list">${players}</div>
-
+      <section class="v141-lobby-grid">
+        <div class="v141-panel v141-players-panel">
+          <div class="v141-panel-title"><h2>Joueurs <span>(${state.players.length}/12)</span></h2></div>
+          <div class="v141-lobby-player-list">${players}</div>
           ${user?.isHost ? `
-            <button class="neon-add-bot" id="addBotBtn" ${canAddBot ? "" : "disabled"}>
-              <span class="neon-add-circle">＋</span>
-              <span class="neon-add-copy">
-                <strong>${canAddBot ? "Ajouter un bot" : "Salon complet"}</strong>
-                <small>${canAddBot ? "Pour tester une partie" : "12 joueurs maximum"}</small>
-              </span>
-              ${canAddBot ? `<span class="neon-add-arrow">⌄</span>` : ""}
+            <button class="v141-add-bot" id="addBotBtn" ${state.players.length >= 12 ? "disabled" : ""}>
+              <span class="v141-add-circle">＋</span><strong>Ajouter un bot</strong><small>${botCount ? `${botCount} bot${botCount > 1 ? "s" : ""} présent${botCount > 1 ? "s" : ""}` : "Pour tester une partie"}</small>
             </button>
           ` : ""}
+        </div>
 
-          ${state.players.length < 12 ? `
-            <div class="neon-wait-slot">
-              <span class="neon-wait-plus">＋</span>
-              <span>En attente d’un joueur…</span>
-            </div>
-          ` : ""}
-        </section>
-
-        <section class="neon-side-column">
-          <div class="neon-panel neon-settings-panel">
+        <div class="v141-side-stack">
+          <section class="v141-panel v141-settings-card">
             <h2>Paramètres de la partie</h2>
-
-            <button class="neon-setting-row" id="roundSetting" ${user?.isHost ? "" : "disabled"}>
-              <span class="neon-setting-icon lightning">ϟ</span>
-              <span class="neon-setting-copy"><small>Manches</small><strong>${state.rounds}</strong></span>
-              <span class="neon-chevron">⌄</span>
+            <button class="v141-setting-row" id="roomSettingsBtn" ${!user?.isHost ? "disabled" : ""}>
+              <span class="v141-setting-icon">⚡</span><span><small>Manches</small><strong>${state.rounds}</strong></span><b>›</b>
             </button>
-
-            <button class="neon-setting-row" id="timeSetting" ${user?.isHost ? "" : "disabled"}>
-              <span class="neon-setting-icon clock">◷</span>
-              <span class="neon-setting-copy"><small>Temps par manche</small><strong>${durationLabel}</strong></span>
-              <span class="neon-chevron">⌄</span>
+            <button class="v141-setting-row" id="roomSettingsBtnTime" ${!user?.isHost ? "disabled" : ""}>
+              <span class="v141-setting-icon">◷</span><span><small>Temps par manche</small><strong>${formatDuration(state.duration)}</strong></span><b>›</b>
             </button>
-
-            <button class="neon-setting-row" id="botDifficultySetting" ${user?.isHost ? "" : "disabled"}>
-              <span class="neon-setting-icon bars">▥</span>
-              <span class="neon-setting-copy"><small>Difficulté des bots</small><strong>${difficultyLabel}</strong></span>
-              <span class="neon-chevron">⌄</span>
+            <button class="v141-setting-row" id="roomSettingsBtnDifficulty" ${!user?.isHost ? "disabled" : ""}>
+              <span class="v141-setting-icon">▥</span><span><small>Difficulté</small><strong>${state.categoryDifficulty === "hard" ? "Difficile" : state.categoryDifficulty === "medium" ? "Moyen" : "Débutant"}</strong></span><b>›</b>
             </button>
-          </div>
+          </section>
 
-          <button class="neon-menu-card" id="categoriesLobbyBtn">
-            <span class="neon-menu-icon tag">◇</span>
-            <span><strong>Catégories</strong><small>${state.categories.length} sélectionnées</small></span>
-            <b>›</b>
-          </button>
+          <button class="v141-panel v141-nav-card" id="roomCategoriesCard"><span>🏷️</span><span><strong>Catégories</strong><small>${state.categoryCount || state.categories?.length || 6} sélectionnées</small></span><b>›</b></button>
+          <button class="v141-panel v141-nav-card" id="roomRulesCard"><span>▣</span><span><strong>Règles</strong><small>Voir les règles</small></span><b>›</b></button>
+          <div class="v141-panel v141-bot-note"><span>ⓘ</span><p>Les bots jouent comme de vrais joueurs : leurs réponses apparaissent progressivement pendant la manche.</p></div>
+        </div>
+      </section>
 
-          <button class="neon-menu-card" id="rulesLobbyBtn">
-            <span class="neon-menu-icon book">▭</span>
-            <span><strong>Règles</strong><small>Voir les règles</small></span>
-            <b>›</b>
-          </button>
-
-          <div class="neon-bot-note">
-            <span>ⓘ</span>
-            <p>Les bots jouent comme de vrais joueurs : leurs réponses apparaissent progressivement pendant la manche.</p>
-          </div>
-        </section>
-      </div>
-
-      <div class="neon-lobby-actions">
-        ${user?.isHost ? `
-          <button class="neon-start" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>
-            <span>▶</span> Lancer la partie
-          </button>
-        ` : `
-          <div class="neon-wait-host"><span class="spinner small-spinner"></span><strong>En attente de l’hôte</strong></div>
-        `}
-        <button class="neon-quit" id="leaveLobbyBottomBtn">← <span>Quitter le salon</span></button>
-      </div>
+      ${user?.isHost ? `
+        <button class="v141-start" id="startBtn" ${state.players.length < 2 ? "disabled" : ""}>▶ <span>Lancer la partie</span></button>
+      ` : `<div class="v141-wait-host"><span class="spinner small-spinner"></span> En attente de l'hôte…</div>`}
+      <button class="v141-quit" id="leaveLobbyBottom">← Quitter le salon</button>
     </main>
   `);
 
-  const copyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(state.code);
-      toast("Code copié !");
-    } catch {
-      toast(`Code : ${state.code}`);
-    }
-  };
-  document.getElementById("copyCode").onclick = copyCode;
-
-  const leaveLobby = () => {
+  const leave = () => {
     socket.emit("room:leave", { code: state.code, playerId: session.playerId });
     clearSession();
     renderHome();
   };
-  document.getElementById("leaveLobbyBtn").onclick = leaveLobby;
-  document.getElementById("leaveLobbyBottomBtn").onclick = leaveLobby;
-
-  document.getElementById("categoriesLobbyBtn").onclick = () => {
-    toast(`${state.categories.length} catégories seront utilisées dans cette partie.`);
+  document.getElementById("leaveLobbyBtn").onclick = leave;
+  document.getElementById("leaveLobbyBottom").onclick = leave;
+  document.getElementById("copyCode").onclick = async () => {
+    try { await navigator.clipboard.writeText(state.code); toast("Code copié !"); }
+    catch { toast(`Code : ${state.code}`); }
   };
-  document.getElementById("rulesLobbyBtn").onclick = renderHowTo;
+
+  const openSettings = () => user?.isHost && renderRoomSettings();
+  ["roomSettingsBtn","roomSettingsBtnTime","roomSettingsBtnDifficulty"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.onclick = openSettings;
+  });
+  const categoriesCard = document.getElementById("roomCategoriesCard");
+  if (categoriesCard) categoriesCard.onclick = openSettings;
+  const rulesCard = document.getElementById("roomRulesCard");
+  if (rulesCard) rulesCard.onclick = renderHowTo;
 
   if (user?.isHost) {
-    document.getElementById("addBotBtn")?.addEventListener("click", e => {
-      e.currentTarget.disabled = true;
+    const botBtn = document.getElementById("addBotBtn");
+    if (botBtn) botBtn.onclick = () => {
+      if (state.players.length >= 12) return toast("Salon complet.");
       socket.emit("room:addBot", { code: state.code, playerId: session.playerId });
+    };
+    const startBtn = document.getElementById("startBtn");
+    if (startBtn) startBtn.onclick = () => socket.emit("game:start", { code: state.code, playerId: session.playerId });
+    document.querySelectorAll("[data-kick-id]").forEach(btn => {
+      btn.onclick = () => socket.emit("room:kick", { code: state.code, playerId: session.playerId, targetPlayerId: btn.dataset.kickId });
     });
+  }
+}
 
-    const updateSetting = patch => socket.emit("room:updateSettings", {
+function renderRoomSettings() {
+  const state = session.state;
+  const user = me();
+  if (!state || !user?.isHost || state.phase !== "lobby") return;
+
+  const overlay = document.createElement("div");
+  overlay.className = "room-settings-overlay";
+  overlay.innerHTML = `
+    <section class="room-settings-sheet" role="dialog" aria-modal="true" aria-label="Paramètres de la partie">
+      <div class="room-settings-handle"></div>
+      <div class="room-settings-head">
+        <div><p class="ref-eyebrow">Salon</p><h2>Paramètres de la partie</h2></div>
+        <button class="room-settings-close" id="closeRoomSettings" aria-label="Fermer">×</button>
+      </div>
+
+      <fieldset class="room-settings-group">
+        <legend>Nombre de manches</legend>
+        <div class="room-settings-options">
+          ${[1,3,5].map(v => `<button type="button" data-setting="rounds" data-value="${v}" class="room-setting-choice ${state.rounds === v ? "selected" : ""}">${v}</button>`).join("")}
+        </div>
+      </fieldset>
+
+      <fieldset class="room-settings-group">
+        <legend>Nombre de catégories</legend>
+        <div class="room-settings-options room-settings-five">
+          ${[6,7,8,9,10].map(v => `<button type="button" data-setting="categoryCount" data-value="${v}" class="room-setting-choice ${(state.categoryCount || state.categories.length) === v ? "selected" : ""}">${v}</button>`).join("")}
+        </div>
+      </fieldset>
+
+      <fieldset class="room-settings-group">
+        <legend>Temps par manche</legend>
+        <div class="room-settings-options">
+          ${[[30,"30s"],[60,"60s"],[90,"1m30"]].map(([v,label]) => `<button type="button" data-setting="duration" data-value="${v}" class="room-setting-choice ${state.duration === v ? "selected" : ""}">${label}</button>`).join("")}
+        </div>
+      </fieldset>
+
+      <fieldset class="room-settings-group">
+        <legend>Difficulté des catégories</legend>
+        <div class="room-settings-options difficulty-options">
+          ${[["beginner","🟢 Débutant"],["medium","🟡 Moyen"],["hard","🔴 Difficile"]].map(([v,label]) => `<button type="button" data-setting="categoryDifficulty" data-value="${v}" class="room-setting-choice difficulty-choice ${(state.categoryDifficulty || "beginner") === v ? "selected" : ""}">${label}</button>`).join("")}
+        </div>
+        <p class="room-settings-note">Moyen : 30% débutant / 70% moyen · Difficile : 20% / 30% / 50%</p>
+      </fieldset>
+
+      <button class="btn btn-primary room-settings-save" id="saveRoomSettings">Enregistrer</button>
+    </section>
+  `;
+  document.body.appendChild(overlay);
+
+  const values = {
+    rounds: state.rounds,
+    categoryCount: state.categoryCount || state.categories.length || 6,
+    duration: state.duration,
+    categoryDifficulty: state.categoryDifficulty || "beginner"
+  };
+
+  overlay.querySelectorAll("[data-setting]").forEach(btn => {
+    btn.onclick = () => {
+      const setting = btn.dataset.setting;
+      values[setting] = setting === "categoryDifficulty" ? btn.dataset.value : Number(btn.dataset.value);
+      overlay.querySelectorAll(`[data-setting="${setting}"]`).forEach(item => item.classList.toggle("selected", item === btn));
+    };
+  });
+
+  const close = () => overlay.remove();
+  document.getElementById("closeRoomSettings").onclick = close;
+  overlay.onclick = e => { if (e.target === overlay) close(); };
+  document.getElementById("saveRoomSettings").onclick = () => {
+    const saveBtn = document.getElementById("saveRoomSettings");
+    saveBtn.disabled = true;
+    socket.emit("room:updateSettings", {
       code: state.code,
       playerId: session.playerId,
-      rounds: state.rounds,
-      duration: state.duration,
-      botDifficulty: state.botDifficulty || "normal",
-      ...patch
+      rounds: values.rounds,
+      categoryCount: values.categoryCount,
+      categoryDifficulty: values.categoryDifficulty,
+      duration: values.duration
+    }, res => {
+      if (!res?.ok) {
+        saveBtn.disabled = false;
+        return toast(res?.error || "Impossible de modifier les paramètres.");
+      }
+      if (res.state) session.state = res.state;
+      close();
+      toast("Paramètres mis à jour.");
+      render();
     });
+  };
+}
 
-    document.getElementById("roundSetting")?.addEventListener("click", () => {
-      const values = [1, 3, 5];
-      const current = values.indexOf(Number(state.rounds));
-      updateSetting({ rounds: values[(current + 1) % values.length] });
-    });
+function difficultyLabel(value) {
+  return value === "hard" ? "Difficile" : value === "medium" ? "Moyen" : "Débutant";
+}
 
-    document.getElementById("timeSetting")?.addEventListener("click", () => {
-      const values = [30, 60, 90];
-      const current = values.indexOf(Number(state.duration));
-      updateSetting({ duration: values[(current + 1) % values.length] });
-    });
+function renderCategorySelection() {
+  clearInterval(session.timerHandle);
+  const state = session.state;
+  const user = me();
+  const categories = state.categories || [];
+  const categoryRerollCost = Number(state.categoryRerollCost || 10);
 
-    document.getElementById("botDifficultySetting")?.addEventListener("click", () => {
-      const values = ["easy", "normal", "hard"];
-      const current = values.indexOf(state.botDifficulty || "normal");
-      updateSetting({ botDifficulty: values[(current + 1) % values.length] });
-    });
+  setScreen(`
+    <main class="screen category-pick-screen">
+      <div class="category-pick-blob category-pick-blob-a"></div>
+      <div class="category-pick-blob category-pick-blob-b"></div>
 
-    document.getElementById("startBtn")?.addEventListener("click", () => {
-      socket.emit("game:start", { code: state.code, playerId: session.playerId });
-    });
+      <header class="category-pick-header">
+        ${user?.isHost ? `<button class="pregame-return-btn" id="returnLobbyCategoriesBtn" type="button" aria-label="Retour au salon">‹ <span>Retour au salon</span></button>` : `<span class="pregame-return-spacer"></span>`}
+        <img src="petit-bac-logo.png" class="category-pick-logo" alt="P’tit Bac">
+        ${walletBadge("category-pick-wallet")}
+      </header>
 
-    document.querySelectorAll("[data-kick-id]").forEach(btn => {
-      btn.onclick = () => socket.emit("room:kick", {
-        code: state.code,
-        playerId: session.playerId,
-        targetPlayerId: btn.dataset.kickId
-      });
-    });
+      <section class="category-pick-heading">
+        <p class="ref-eyebrow">Sélection des catégories</p>
+        <h1>Voici votre tirage !</h1>
+        <p>${categories.length} catégories · Niveau ${difficultyLabel(state.categoryDifficulty)}</p>
+      </section>
+
+      <section class="category-pick-grid" aria-label="Catégories tirées">
+        ${categories.map((category, index) => `
+          <article class="category-pick-card" style="--pick-index:${index}">
+            <span class="category-pick-icon">${categoryIcon(category)}</span>
+            <strong>${escapeHtml(category)}</strong>
+          </article>
+        `).join("")}
+      </section>
+
+      ${user?.isHost ? `
+        <section class="category-pick-actions">
+          <button class="category-reroll-btn" id="rerollCategoriesBtn" ${getCoins() < categoryRerollCost ? "disabled" : ""}>
+            <span>↻ Relancer le tirage</span>
+            <span class="letter-reroll-cost">${gameCoin("game-coin-tiny")}<b>${categoryRerollCost}</b></span>
+          </button>
+          ${getCoins() < categoryRerollCost ? `<p class="letter-cost-note">Il te faut ${categoryRerollCost} pièces pour relancer les catégories.</p>` : ""}
+          <button class="btn btn-primary category-confirm-btn" id="confirmCategoriesBtn">Continuer vers la lettre →</button>
+        </section>
+      ` : `
+        <div class="category-pick-wait">
+          <div class="spinner small-spinner"></div>
+          <div><strong>En attente de l’hôte</strong><span>L’hôte valide le tirage des catégories.</span></div>
+        </div>
+      `}
+    </main>
+  `);
+
+  document.getElementById("returnLobbyCategoriesBtn")?.addEventListener("click", () => {
+    if (!confirm("Retourner au salon ? Les 5 pièces de participation seront remboursées.")) return;
+    socket.emit("game:returnLobby", { code: state.code, playerId: session.playerId });
+  });
+
+  if (user?.isHost) {
+    const rerollBtn = document.getElementById("rerollCategoriesBtn");
+    const confirmBtn = document.getElementById("confirmCategoriesBtn");
+    rerollBtn.onclick = () => {
+      rerollBtn.disabled = true;
+      confirmBtn.disabled = true;
+      socket.emit("game:rerollCategories", { code: state.code, playerId: session.playerId });
+    };
+    confirmBtn.onclick = () => {
+      rerollBtn.disabled = true;
+      confirmBtn.disabled = true;
+      socket.emit("game:confirmCategories", { code: state.code, playerId: session.playerId });
+    };
+  }
+}
+
+
+function renderLetterSelection() {
+  clearInterval(session.timerHandle);
+  const state = session.state;
+  const user = me();
+  const chooser = state.players.find(p => p.id === state.letterChooserPlayerId);
+  const isChooser = user?.id === state.letterChooserPlayerId;
+  const selectedLetter = state.pendingLetter || "";
+  const rerollCost = Number(state.letterRerollCost || 10);
+  const nextRound = state.roundIndex + 2;
+  const segmentAngle = 360 / LETTER_WHEEL.length;
+
+  const wheelLabels = LETTER_WHEEL.map((letter, index) => {
+    const angle = index * segmentAngle;
+    return `<span class="letter-wheel-label" style="--letter-angle:${angle}deg"><b class="letter-wheel-glyph">${letter}</b></span>`;
+  }).join("");
+
+  const wheelStops = LETTER_WHEEL.map((_, index) => {
+    const start = index * segmentAngle;
+    const end = (index + 1) * segmentAngle;
+    const color = index % 2 === 0 ? "#5830c8" : "#7147ed";
+    return `${color} ${start}deg ${end}deg`;
+  }).join(",");
+
+  setScreen(`
+    <main class="screen letter-pick-screen letter-pick-v135">
+      <div class="letter-pick-blob letter-pick-blob-a"></div>
+      <div class="letter-pick-blob letter-pick-blob-b"></div>
+      <div class="letter-pick-spark spark-a">✦</div>
+      <div class="letter-pick-spark spark-b">✦</div>
+
+      <header class="letter-pick-header v135-letter-header">
+        ${user?.isHost
+          ? `<button class="v135-letter-back pregame-letter-return" id="returnLobbyLetterBtn" type="button" aria-label="Retour au salon"><span class="v137-back-arrow">‹</span><span class="v137-back-label">Retour<br>au salon</span></button>`
+          : `<button class="v135-letter-back" id="leaveLetterBtn" type="button" aria-label="Quitter la partie"><span class="v137-back-arrow">‹</span><span class="v137-back-label">Quitter<br>la partie</span></button>`}
+        <img src="petit-bac-logo.png" class="letter-pick-logo" alt="P’tit Bac">
+        ${walletBadge("letter-pick-wallet")}
+      </header>
+
+      <section class="letter-pick-heading v135-letter-heading">
+        <p class="v135-round-pill">Manche ${nextRound}/${state.rounds}</p>
+        <h1>Tirage de la <span>lettre</span></h1>
+        <p>${isChooser ? (selectedLetter ? "La lettre est prête !" : "Appuie sur la roue pour la faire tourner !") : `${escapeHtml(chooser?.name || "Un joueur")} lance la roue.`}</p>
+      </section>
+
+      <section class="letter-wheel-zone ${isChooser && !selectedLetter ? "is-tappable" : ""}" id="letterWheelTapZone" role="${isChooser && !selectedLetter ? "button" : "presentation"}" ${isChooser && !selectedLetter ? 'tabindex="0" aria-label="Lancer la roue"' : ''}>
+        <div class="letter-wheel-pointer"><span></span></div>
+        <div class="letter-wheel-shell">
+          <div class="letter-wheel" id="letterWheel" style="background:conic-gradient(${wheelStops})">
+            ${wheelLabels}
+            <div class="letter-wheel-center"><span class="v135-wheel-crown">♛</span></div>
+          </div>
+        </div>
+      </section>
+
+      ${selectedLetter ? `
+        <div class="letter-result-card v135-letter-result v137-letter-result">
+          <div class="v135-result-letter">${escapeHtml(selectedLetter)}</div>
+          <div class="v137-result-copy"><span>Lettre sélectionnée</span><strong>${escapeHtml(selectedLetter)}</strong></div>
+        </div>
+      ` : `
+        <div class="v135-letter-status ${isChooser ? "ready" : "waiting"}">
+          <span>${isChooser ? "La roue est prête" : `En attente de ${escapeHtml(chooser?.name || "ce joueur")}`}</span>
+        </div>
+      `}
+
+      ${isChooser ? `
+        <section class="letter-pick-actions v135-letter-actions">
+          ${selectedLetter ? `
+            <button class="letter-reroll-btn" id="rerollLetterBtn" ${getCoins() < rerollCost ? "disabled" : ""}>
+              <span>↻ Relancer</span>
+              <span class="letter-reroll-cost">${gameCoin("game-coin-tiny")}<b>${rerollCost}</b></span>
+            </button>
+            <button class="btn btn-primary letter-confirm-btn v135-confirm-letter" id="confirmLetterBtn">
+              <span>Valider la lettre</span><strong>${escapeHtml(selectedLetter)}</strong><span class="v135-confirm-arrow">›</span>
+            </button>
+            ${getCoins() < rerollCost ? `<p class="letter-cost-note">Il te faut ${rerollCost} pièces pour relancer.</p>` : ""}
+          ` : ``}
+        </section>
+      ` : `
+        <div class="letter-pick-wait v135-letter-wait">
+          <div class="spinner small-spinner"></div>
+          <div><strong>${selectedLetter ? `Lettre ${escapeHtml(selectedLetter)}` : "Tirage en cours"}</strong><span>${selectedLetter ? `En attente de ${escapeHtml(chooser?.name || "ce joueur")} pour confirmer.` : `La roue va bientôt tourner.`}</span></div>
+        </div>
+      `}
+    </main>
+  `);
+
+  document.getElementById("returnLobbyLetterBtn")?.addEventListener("click", () => {
+    if (!confirm("Retourner au salon ? Les 5 pièces de participation seront remboursées.")) return;
+    socket.emit("game:returnLobby", { code: state.code, playerId: session.playerId });
+  });
+
+  document.getElementById("leaveLetterBtn")?.addEventListener("click", () => {
+    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+    session.state = null;
+    session.code = null;
+    renderHome();
+  });
+
+  const wheel = document.getElementById("letterWheel");
+  if (wheel && selectedLetter) {
+    const targetIndex = Math.max(0, LETTER_WHEEL.indexOf(selectedLetter));
+    const targetAngle = -(targetIndex * segmentAngle);
+    const turns = 5 + ((Number(state.letterSpinVersion || 0) % 3));
+    const finalRotation = turns * 360 + targetAngle;
+    wheel.style.setProperty("--wheel-final-rotation", `${finalRotation}deg`);
+    wheel.style.setProperty("--wheel-counter-rotation", `${-finalRotation}deg`);
+    requestAnimationFrame(() => wheel.classList.add("is-spinning"));
+
+    const rerollBtn = document.getElementById("rerollLetterBtn");
+    const confirmBtn = document.getElementById("confirmLetterBtn");
+    if (rerollBtn) rerollBtn.disabled = true;
+    if (confirmBtn) confirmBtn.disabled = true;
+    setTimeout(() => {
+      if (rerollBtn) rerollBtn.disabled = getCoins() < rerollCost;
+      if (confirmBtn) confirmBtn.disabled = false;
+    }, 2900);
+  }
+
+  if (!isChooser) return;
+
+  const triggerSpin = () => {
+    if (selectedLetter) return;
+    const zone = document.getElementById("letterWheelTapZone");
+    if (zone?.classList.contains("is-spinning-request")) return;
+    zone?.classList.add("is-spinning-request");
+    socket.emit("game:spinLetter", { code: state.code, playerId: session.playerId });
+  };
+
+  const tapZone = document.getElementById("letterWheelTapZone");
+  if (tapZone && !selectedLetter) {
+    tapZone.onclick = triggerSpin;
+    tapZone.onkeydown = (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        triggerSpin();
+      }
+    };
+  }
+
+  const rerollBtn = document.getElementById("rerollLetterBtn");
+  if (rerollBtn) {
+    rerollBtn.onclick = () => {
+      if (getCoins() < rerollCost) return toast(`Il te faut ${rerollCost} pièces.`);
+      rerollBtn.disabled = true;
+      const confirmBtn = document.getElementById("confirmLetterBtn");
+      if (confirmBtn) confirmBtn.disabled = true;
+      socket.emit("game:rerollLetter", { code: state.code, playerId: session.playerId });
+    };
+  }
+
+  const confirmBtn = document.getElementById("confirmLetterBtn");
+  if (confirmBtn) {
+    confirmBtn.onclick = () => {
+      confirmBtn.disabled = true;
+      const rerollBtn = document.getElementById("rerollLetterBtn");
+      if (rerollBtn) rerollBtn.disabled = true;
+      socket.emit("game:confirmLetter", { code: state.code, playerId: session.playerId });
+    };
   }
 }
 
@@ -872,7 +1105,7 @@ function renderRound() {
             maxlength="60"
             autocomplete="off"
             autocapitalize="words"
-            placeholder="${letter}..."
+            placeholder="Ta réponse..."
             value="${escapeHtml(value)}"
           />
           <button type="button" class="play-clear-answer" data-clear-category="${escapeHtml(category)}" aria-label="Effacer la réponse">×</button>
@@ -887,28 +1120,43 @@ function renderRound() {
       <div class="play-bg-letter play-bg-letter-right-top">${escapeHtml(String.fromCharCode(65 + ((state.roundIndex + 12) % 26)))}</div>
       <div class="play-bg-letter play-bg-letter-right-bottom">${escapeHtml(String.fromCharCode(65 + ((state.roundIndex + 16) % 26)))}</div>
 
-      <header class="play-header">
-        <button class="play-back" id="leaveGameBtn" type="button" aria-label="Quitter la partie">‹</button>
+      <header class="play-header play-header-v136">
+        <button class="play-back play-quit-v136" id="leaveGameBtn" type="button" aria-label="Quitter la partie">
+          <span class="play-quit-arrow">‹</span>
+          <span class="play-quit-copy">Quitter<br>la partie</span>
+        </button>
         <img class="play-logo" src="./petit-bac-logo.png" alt="P’tit Bac" />
         <div class="play-round-badge">Manche <b>${state.roundIndex + 1}/${state.rounds}</b></div>
       </header>
 
-      <section class="play-hero">
+      <section class="play-hero play-hero-v136">
+        <div class="play-current-letter-v136">
+          <div class="play-letter-label">Lettre actuelle</div>
+          <div class="play-letter-box"><span>${escapeHtml(letter)}</span></div>
+        </div>
+
         <div class="play-timer-ring" id="timerRing" style="--progress:100%">
           <div class="play-timer-inner">
             <strong id="timer">${state.duration}</strong>
             <span>secondes</span>
           </div>
         </div>
-        <div class="play-letter-label">Lettre</div>
-        <div class="play-letter-box"><span>${escapeHtml(letter)}</span></div>
-        <p class="play-instruction">Trouve un mot pour chaque catégorie !</p>
+
+        <div class="play-tip-v136">
+          <span class="play-tip-bolt">ϟ</span>
+          <strong>Trouve un mot<br>pour chaque<br>catégorie !</strong>
+        </div>
       </section>
 
       <div class="play-answer-list">${fields}</div>
 
       <div class="play-sticky-action">
         <button class="btn btn-primary play-submit" id="submitRound"><span>➤</span> Valider mes réponses</button>
+      </div>
+
+      <div class="play-rule-v136">
+        <span class="play-rule-icon">i</span>
+        <p>Une réponse rapporte <b>1 point uniquement</b> si elle est valide et qu’aucun autre joueur n’a donné la même réponse.</p>
       </div>
     </main>
   `);
@@ -978,100 +1226,101 @@ function renderRound() {
 
 function renderRoundWaiting() {
   const state = session.state;
+  const readyCount = state.players.filter(p => p.submitted).length;
   setScreen(`
-    <main class="screen">
-      <div class="game-top">
-        <span class="round-chip">Manche ${state.roundIndex + 1}/${state.rounds}</span>
-        <span class="timer" id="timer">—</span>
-      </div>
-      <div class="letter-card">
-        <div class="letter-label">Lettre</div>
-        <div class="letter">${escapeHtml(state.currentLetter)}</div>
-      </div>
-      <div class="wait-card">
-        <div class="spinner"></div>
-        <div class="wait-icon">⌛</div><h2>En attente des autres joueurs…</h2>
-        <p class="subtitle" style="margin-bottom:0">Tes réponses sont enregistrées. Encore un peu de patience !</p>
-      </div>
-      <h3 class="section-title">Joueurs</h3>
-      <div class="players">
-        ${state.players.map(p => `
-          <div class="player-row">
-            <span>${escapeHtml(p.name)}</span>
-            <span class="status-pill ${p.submitted ? "done" : ""}">${p.submitted ? "Prêt" : "Écrit…"}</span>
-          </div>
-        `).join("")}
-      </div>
+    <main class="screen v141-wait-screen">
+      <div class="v141-glow v141-glow-a"></div><div class="v141-glow v141-glow-b"></div>
+      <header class="v141-wait-top">
+        <div><small>Manche</small><strong>${state.roundIndex + 1}/${state.rounds}</strong></div>
+        <div class="v141-letter-mini"><small>Lettre</small><strong>${escapeHtml(state.currentLetter)}</strong></div>
+        <div><small>Catégories</small><strong>${state.categories?.length || state.categoryCount || 6}</strong></div>
+      </header>
+
+      <section class="v141-wait-card">
+        <div class="v141-hourglass-ring"><span>⌛</span></div>
+        <h1>En attente des autres joueurs…</h1>
+        <p>Tes réponses sont bien enregistrées.<br>Encore un peu de patience !</p>
+      </section>
+
+      <section class="v141-wait-players">
+        <h2>Joueurs <span>(${readyCount}/${state.players.length})</span></h2>
+        <div class="v141-wait-player-grid">
+          ${state.players.map((p, index) => `
+            <div class="v141-wait-player ${p.submitted ? "done" : "writing"}">
+              ${avatarMarkup(p, index)}
+              <strong>${escapeHtml(p.name)}</strong>
+              <span>${p.submitted ? "✓ Prêt" : "◌ En cours…"}</span>
+            </div>
+          `).join("")}
+        </div>
+      </section>
     </main>
   `);
+
+  const tick = () => {
+    const remaining = Math.max(0, Math.ceil((state.roundEndsAt - Date.now()) / 1000));
+    const ring = document.querySelector('.v141-hourglass-ring');
+    if (ring) ring.style.setProperty('--wait-progress', `${state.duration ? Math.max(0, Math.min(100, remaining / state.duration * 100)) : 0}%`);
+  };
+  tick();
+  session.timerHandle = setInterval(tick, 250);
 }
 
 function renderValidation() {
   const state = session.state;
   const user = me();
-  const validation = state.validation;
-  const pending = validation?.items?.[validation.cursor];
+  const validation = state.validation || {};
+  const total = Number(validation.total || 0);
+  const checked = Math.min(total, Number(validation.checked || 0));
+  const complete = validation.status === "complete";
+  const unavailable = validation.status === "unavailable";
+  const percent = total ? Math.max(8, Math.round((checked / total) * 100)) : 100;
+  const errorMessage = validation.error?.code === "not_configured"
+    ? "La clé OpenAI n’est pas configurée sur le serveur."
+    : "La vérification IA est temporairement indisponible. Aucun point ne sera perdu : la manche reste en attente.";
 
-  if (!user?.isHost) {
-    setScreen(`
-      <main class="screen center-screen validation-screen validation-wait-screen">
-        <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
-        <div class="wait-card">
-          <div class="spinner"></div>
-          <h2>Validation des réponses</h2>
-          <p class="subtitle" style="margin-bottom:0">L’hôte vérifie les réponses uniques.</p>
-        </div>
-      </main>
-    `);
-    return;
-  }
-
-  if (!pending) {
-    setScreen(`
-      <main class="screen center-screen validation-screen validation-wait-screen">
-        <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
-        <div class="wait-card"><div class="spinner"></div><h2>Calcul des scores…</h2></div>
-      </main>
-    `);
-    return;
-  }
-
-  const remaining = validation.items.filter(i => i.status === "pending").length;
   setScreen(`
-    <main class="screen center-screen validation-screen validation-v122">
-      <div class="validation-blob validation-blob-a"></div>
-      <div class="validation-blob validation-blob-b"></div>
-      <section class="review-card">
-        <button class="validation-close" id="validationLeave">×</button>
+    <main class="screen center-screen validation-screen validation-auto-v131">
+      <div class="validation-auto-blob validation-auto-blob-a"></div>
+      <div class="validation-auto-blob validation-auto-blob-b"></div>
+      <section class="auto-review-card ${unavailable ? "is-unavailable" : ""}">
         <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
-        <div class="review-icon">✓?</div>
-        <div class="review-kicker">À valider · ${remaining} restante${remaining > 1 ? "s" : ""}</div>
-        <div class="review-answer">${escapeHtml(pending.answer)}</div>
-        <div class="review-meta"><span class="review-meta-icon">👤</span><strong>${escapeHtml(pending.category)}</strong> · ${escapeHtml(pending.playerName)}</div>
-        <p>Cette réponse est-elle valide<br>pour la lettre <strong>${escapeHtml(state.currentLetter)}</strong> ?</p>
-        <div class="review-actions">
-          <button class="btn btn-red" id="invalidBtn">✕ Invalide</button>
-          <button class="btn btn-green" id="validBtn">✓ Valide</button>
+        <div class="auto-review-icon ${complete ? "done" : unavailable ? "unavailable" : ""}">
+          ${complete ? "✓" : unavailable ? "!" : '<span class="auto-review-spinner"></span>'}
+        </div>
+        <div class="auto-review-kicker">${complete ? "Vérification terminée" : unavailable ? "Vérification en pause" : "Vérification automatique"}</div>
+        <h2>${complete ? "C’est bon !" : unavailable ? "Impossible de vérifier pour le moment" : "On vérifie les réponses…"}</h2>
+        <p>${complete
+          ? "Les points de cette manche sont en cours de calcul."
+          : unavailable
+            ? errorMessage
+            : `Le jeu contrôle automatiquement les réponses pour la lettre <strong>${escapeHtml(state.currentLetter || "")}</strong>.`}
+        </p>
+
+        <div class="auto-validation-progress" aria-label="Progression de la vérification">
+          <div class="auto-validation-progress-fill ${complete ? "done" : unavailable ? "paused" : ""}" style="width:${complete ? 100 : percent}%"></div>
+        </div>
+        <div class="auto-validation-count">${complete ? "Terminé" : unavailable ? `${checked} / ${total} réponses vérifiées avant la pause` : `${checked} / ${total} réponses analysées`}</div>
+
+        ${unavailable && user?.isHost
+          ? `<button class="btn btn-primary validation-retry-btn" id="retryValidationBtn" type="button">↻ Réessayer la vérification</button>`
+          : unavailable
+            ? `<div class="validation-retry-wait">En attente de l’hôte pour réessayer.</div>`
+            : ""}
+
+        <div class="auto-check-grid">
+          <div class="auto-check-item"><span>✓</span><div><strong>Lettre</strong><small>Mauvaise lettre = 0</small></div></div>
+          <div class="auto-check-item"><span>↔</span><div><strong>Doublons</strong><small>Réponses identiques = 0</small></div></div>
+          <div class="auto-check-item"><span>✦</span><div><strong>Catégorie</strong><small>Le sens de la réponse est vérifié</small></div></div>
         </div>
       </section>
-      <div class="rules-mini"><span>ⓘ</span><p>Les doublons, réponses vides et mauvaises lettres sont déjà mis à 0 automatiquement.</p></div>
+      <div class="auto-validation-note">${unavailable ? "La manche ne sera pas comptée tant que la vérification n’a pas abouti." : "Aucune validation manuelle n’est nécessaire."}</div>
     </main>
   `);
 
-  const judge = status => socket.emit("validation:judge", {
-    code: state.code,
-    playerId: session.playerId,
-    itemId: pending.id,
-    status
+  document.getElementById("retryValidationBtn")?.addEventListener("click", () => {
+    socket.emit("validation:retry", { code: state.code, playerId: session.playerId });
   });
-  document.getElementById("invalidBtn").onclick = () => judge("invalid");
-  document.getElementById("validBtn").onclick = () => judge("valid");
-  document.getElementById("validationLeave").onclick = () => {
-    if (!confirm("Quitter la partie pendant la validation ?")) return;
-    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
-    clearSession();
-    renderHome();
-  };
 }
 
 function rankedPlayers() {
@@ -1081,132 +1330,202 @@ function rankedPlayers() {
 function renderScoreboard() {
   const state = session.state;
   const user = me();
-  const rows = rankedPlayers().map((p, index) => {
-    const gain = state.lastRoundScores[p.id] ?? 0;
+  const ranked = rankedPlayers();
+  const results = state.lastRoundResults || { byPlayer: {}, categories: state.categories || [], letter: state.currentLetter || "" };
+  const categories = results.categories?.length ? results.categories : (state.categories || []);
+  const letter = results.letter || state.currentLetter || "";
+  const isLastRound = state.roundIndex + 1 >= state.rounds;
+  const winner = ranked[0];
+  const topGain = winner ? (state.lastRoundScores?.[winner.id] ?? 0) : 0;
+
+  const categoryHeaders = categories.map(category => `
+    <div class="round-results-category-head" title="${escapeHtml(category)}">
+      <span>${categoryIcon(category)}</span>
+      <small>${escapeHtml(category)}</small>
+    </div>
+  `).join("");
+
+  const playerRows = ranked.map((player, playerIndex) => {
+    const cells = categories.map(category => {
+      const result = results.byPlayer?.[player.id]?.[category] || { answer: "", status: "invalid", correction: "Aucune réponse" };
+      const statusClass = result.status === "valid" ? "is-valid" : result.status === "duplicate" ? "is-duplicate" : "is-invalid";
+      const answer = result.answer ? escapeHtml(result.answer) : "—";
+      const correction = result.status === "valid" ? "" : escapeHtml(result.correction || (result.status === "duplicate" ? "Doublon" : "Incorrect"));
+      const symbol = result.status === "valid" ? "✓" : result.status === "duplicate" ? "!" : "×";
+      const canReport = player.id === session.playerId && result.status === "invalid" && result.reportable;
+      const reportButton = canReport
+        ? `<button class="answer-report-btn ${result.reported ? "is-reported" : ""}" type="button" data-category="${encodeURIComponent(category)}" data-round="${Number(results.roundIndex ?? state.roundIndex)}" ${result.reported ? "disabled" : ""}>${result.reported ? "Signalé ✓" : "Signaler"}</button>`
+        : "";
+      return `<div class="round-results-answer ${statusClass}" title="${escapeHtml(category)}"><strong>${answer}</strong><span class="round-results-status">${symbol}</span>${correction ? `<small>${correction}</small>` : ""}${reportButton}</div>`;
+    }).join("");
     return `
-      <div class="score-row">
-        <div class="rank">#${index + 1}</div>
-        <div class="score-name">${escapeHtml(p.name)}</div>
-        <div>
-          <div class="score-total">${p.score}</div>
-          <span class="round-gain">+${gain} cette manche</span>
+      <div class="round-results-player">
+        <div class="round-results-player-card ${playerIndex === 0 ? "is-leader" : ""}">
+          ${playerIndex === 0 ? '<span class="round-results-crown">♛</span>' : ""}
+          ${avatarMarkup(player, playerIndex, "round-results-avatar")}
+          <div class="round-results-player-copy"><strong>${escapeHtml(player.name)}</strong><small>${player.score} pt${player.score !== 1 ? "s" : ""}</small></div>
         </div>
-      </div>
-    `;
+        <div class="round-results-cells">${cells}</div>
+      </div>`;
   }).join("");
 
   setScreen(`
-    <main class="screen">
-      <div class="brand" style="margin-bottom:26px">P'tit Bac</div>
-      <h1 style="font-size:3rem">Classement</h1>
-      <p class="subtitle">Manche ${state.roundIndex + 1}/${state.rounds} terminée.</p>
-      <div class="scoreboard">${rows}</div>
+    <main class="round-results-v133">
+      <div class="round-results-glow round-results-glow-a"></div><div class="round-results-glow round-results-glow-b"></div>
+      <header class="round-results-top v133-top">
+        <div class="round-results-round-pill v133-letter-pill"><span class="round-results-letter">${escapeHtml(letter)}</span><div><small>Lettre</small><strong>${escapeHtml(letter)}</strong></div></div>
+        <img src="petit-bac-logo.png" class="round-results-logo" alt="P’tit Bac">
+        <div class="v133-top-actions">
+          <div class="round-results-state-pill v133-round-pill"><div><small>Manche</small><strong>${state.roundIndex + 1}/${state.rounds}</strong></div></div>
+          <button class="v133-quit" id="leaveResultsBtn" type="button" aria-label="Quitter la partie">${uiIcon("logout")}<span>Quitter<br>la partie</span></button>
+        </div>
+      </header>
+      <section class="round-results-heading"><h1>Résultats <em>de la manche</em></h1><p>Voici toutes les réponses et leurs corrections !</p></section>
+      <section class="round-results-board-wrap"><div class="round-results-board" style="--result-cols:${Math.max(1,categories.length)}"><div class="round-results-grid-head"><div class="round-results-player-label">Joueurs</div><div class="round-results-category-row">${categoryHeaders}</div></div>${playerRows}</div></section>
+      ${winner ? `<section class="round-results-winner v133-winner"><div class="round-results-trophy">🏆</div><div class="round-results-winner-copy"><small>En tête après cette manche</small><strong>${escapeHtml(winner.name)}</strong><span>avec ${topGain} point${topGain !== 1 ? "s" : ""} !</span></div></section>` : ""}
+      ${user?.isHost ? `<button class="round-results-next v133-next" id="nextRound">${isLastRound ? "Classement final" : "Manche suivante"}${uiIcon("chevron")}</button>` : `<div class="round-results-wait v133-wait"><span class="spinner"></span><small>En attente de l’hôte pour continuer</small></div>`}
+      <div class="round-results-rule"><span>i</span><p>Une réponse rapporte <strong>1 point</strong> uniquement si elle est valide et qu’aucun autre joueur n’a donné la même réponse.</p></div>
+    </main>`);
 
-      ${user?.isHost
-        ? `<button class="btn btn-primary" id="nextRound">Manche suivante →</button>`
-        : `<div class="wait-card"><div class="spinner"></div><h3>En attente de l’hôte</h3></div>`
-      }
+  document.getElementById("leaveResultsBtn")?.addEventListener("click", () => {
+    if (!confirm("Quitter la partie en cours ?")) return;
+    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+    clearSession(); renderHome();
+  });
+  document.querySelectorAll(".answer-report-btn:not(:disabled)").forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.disabled = true;
+      btn.textContent = "Envoi…";
+      socket.emit("answer:report", {
+        code: state.code,
+        playerId: session.playerId,
+        roundIndex: Number(btn.dataset.round),
+        category: decodeURIComponent(btn.dataset.category || "")
+      }, res => {
+        if (!res?.ok) {
+          btn.disabled = false;
+          btn.textContent = "Signaler";
+          return toast(res?.error || "Impossible d’envoyer le signalement.");
+        }
+        btn.textContent = "Signalé ✓";
+        btn.classList.add("is-reported");
+        toast("Signalement envoyé. L’IA le réexaminera en arrière-plan.");
+      });
+    });
+  });
 
-      <div class="category-pills">
-        ${state.categories.map(c => `<span class="category-pill">${escapeHtml(c)}</span>`).join("")}
-      </div>
-    </main>
-  `);
-
-  if (user?.isHost) {
-    document.getElementById("nextRound").onclick = () =>
-      socket.emit("game:nextRound", { code: state.code, playerId: session.playerId });
-  }
+  if (user?.isHost) document.getElementById("nextRound")?.addEventListener("click", () => socket.emit("game:nextRound", { code: state.code, playerId: session.playerId }));
 }
 
 function renderFinished() {
   const state = session.state;
   const user = me();
   const ranked = rankedPlayers();
+  const rewards = state.rewardsByPlayerId || {};
   const myReward = Math.max(0, Number(state.myReward || 0));
+  const totalPlayers = ranked.length;
+  const podiumPlayers = ranked.slice(0, 3);
 
-  const podium = ranked.slice(0, 3).map((p, index) => {
-    const isMe = p.id === session.playerId;
+  const rewardFor = p => Math.max(0, Number(rewards[p.id] || 0));
+  const placeLabel = place => place === 1 ? "1" : String(place);
+  const podiumClass = place => place === 1 ? "gold" : place === 2 ? "silver" : "bronze";
+
+  const podium = podiumPlayers.map((p, index) => {
     const place = index + 1;
-    const medal = place === 1 ? `<div class="result-place-crown"><span>1</span></div>` : `<div class="result-medal result-medal-${place}">${place}</div>`;
+    const isMe = p.id === session.playerId;
+    const reward = rewardFor(p);
     return `
-      <article class="result-player-card result-place-${place} ${isMe ? "is-me" : ""}">
-        ${medal}
-        ${avatarMarkup(p, index, "podium-avatar")}
-        <div class="result-player-name">${escapeHtml(p.name)}${isMe ? ' <small class="me-badge">Toi</small>' : ''}</div>
-        <div class="result-player-score">${p.score} pt${p.score !== 1 ? "s" : ""}</div>
-        ${isMe ? `<div class="result-private-reward">${gameCoin("game-coin-xs")}<strong>+ ${myReward} pièce${myReward !== 1 ? "s" : ""}</strong></div>` : ''}
-        ${place === 1 ? `<div class="winner-ribbon">🏆 Vainqueur !</div>` : ''}
-      </article>
-    `;
+      <article class="final-v134-podium-card place-${place} ${isMe ? "is-me" : ""}">
+        <div class="final-v134-medal ${podiumClass(place)}">${placeLabel(place)}</div>
+        ${place === 1 ? '<div class="final-v134-crown">♛</div>' : ''}
+        ${avatarMarkup(p, index, "final-v134-podium-avatar")}
+        <strong class="final-v134-podium-name">${escapeHtml(p.name)}${isMe ? ' <small>Toi</small>' : ''}</strong>
+        <span class="final-v134-podium-score">${p.score} pt${p.score !== 1 ? "s" : ""}</span>
+        <span class="final-v134-podium-reward">${gameCoin("game-coin-xs")} +${reward} pièce${reward !== 1 ? "s" : ""}</span>
+      </article>`;
   }).join("");
 
-  const rows = ranked.slice(3).map((p, index) => {
+  const rankingRows = ranked.map((p, index) => {
+    const place = index + 1;
     const isMe = p.id === session.playerId;
+    const reward = rewardFor(p);
     return `
-      <div class="final-row result-extra-row">
-        <span class="final-rank">${index + 4}</span>
-        ${avatarMarkup(p, index + 3, "final-avatar")}
-        <strong>${escapeHtml(p.name)}${isMe ? ' <small class="me-badge">Toi</small>' : ''}</strong>
-        <b>${p.score} pt${p.score !== 1 ? "s" : ""}</b>
-        ${isMe ? `<span class="private-row-win">+${myReward} ${gameCoin("game-coin-tiny")}</span>` : ''}
-      </div>
-    `;
+      <div class="final-v134-row ${isMe ? "is-me" : ""}">
+        <span class="final-v134-rank rank-${Math.min(place,4)}">${place}</span>
+        <div class="final-v134-player">
+          ${avatarMarkup(p, index, "final-v134-row-avatar")}
+          <strong>${escapeHtml(p.name)}${isMe ? ' <small>Toi</small>' : ''}</strong>
+        </div>
+        <b>${p.score}</b>
+        <span class="final-v134-row-reward">${gameCoin("game-coin-tiny")} +${reward}</span>
+      </div>`;
   }).join("");
 
   setScreen(`
-    <main class="screen finished-screen finished-v123">
-      <div class="result-glow result-glow-a"></div>
-      <div class="result-glow result-glow-b"></div>
-      <div class="result-confetti-v123" aria-hidden="true">◆ ✦ ● ◆ ✦ ◆ ● ✦</div>
+    <main class="screen final-v134">
+      <div class="final-v134-glow final-v134-glow-a"></div>
+      <div class="final-v134-glow final-v134-glow-b"></div>
+      <div class="final-v134-confetti" aria-hidden="true">◆ ✦ ◆ ● ✦ ◆ ● ✦</div>
 
-      <header class="result-topbar-v123">
-        <button class="result-back" id="leaveTopBtn" aria-label="Retour">‹</button>
-        <img src="petit-bac-logo.png" class="result-logo-v123" alt="P’tit Bac">
-        ${walletBadge("result-wallet-badge")}
+      <header class="final-v134-topbar">
+        <button class="final-v134-back" id="leaveTopBtn" type="button" aria-label="Retour à l’accueil">${uiIcon("chevron", "final-v134-back-icon")}</button>
+        <img src="petit-bac-logo.png" class="final-v134-logo" alt="P’tit Bac">
+        ${walletBadge("final-v134-wallet")}
       </header>
 
-      <h1 class="result-title-v123">Partie terminée !</h1>
-
-      <section class="result-podium result-podium-${Math.min(ranked.length, 3)}">${podium}</section>
-      ${rows ? `<section class="final-list">${rows}</section>` : ""}
-
-      <section class="result-stats-v123">
-        <div><span>${statIcon("player")}</span><strong>${ranked.length}</strong><small>Joueur${ranked.length > 1 ? "s" : ""}</small></div>
-        <div><span>${statIcon("round")}</span><strong>${state.rounds}</strong><small>Manche${state.rounds > 1 ? "s" : ""}</small></div>
-        <div><span>${statIcon("timer")}</span><strong>${state.duration === 60 ? "1 min" : `${state.duration}s`}</strong><small>Durée</small></div>
+      <section class="final-v134-heading">
+        <h1>Partie <em>terminée !</em></h1>
       </section>
 
-      <section class="my-coins-result-v123">
-        <div class="coin-stack-art">${gameCoin("game-coin-xl")}${gameCoin("game-coin-stack-a")}${gameCoin("game-coin-stack-b")}</div>
-        <div class="coin-result-copy">
-          <strong>Tes pièces gagnées !</strong>
-          <p>Tu remportes <b>+${myReward} pièce${myReward !== 1 ? "s" : ""}</b>.<br>Nouveau solde : <b>${getCoins()}</b> ${gameCoin("game-coin-inline")}</p>
+      <section class="final-v134-podium final-v134-podium-${Math.min(3,totalPlayers)}">
+        ${podium}
+      </section>
+
+      <section class="final-v134-ranking">
+        <div class="final-v134-ranking-head">
+          <span>#</span><span>Joueur</span><span>Points</span><span>Pièces gagnées</span>
         </div>
-        <span class="well-played">Bien joué !</span>
+        ${rankingRows}
       </section>
 
-      <div class="final-actions result-actions-v123">
+      <section class="final-v134-stats">
+        <div><span>${statIcon("player")}</span><strong>${totalPlayers}</strong><small>Joueur${totalPlayers > 1 ? "s" : ""}</small></div>
+        <div><span>${statIcon("round")}</span><strong>${state.rounds}</strong><small>Manche${state.rounds > 1 ? "s" : ""}</small></div>
+        <div><span>${statIcon("timer")}</span><strong>${state.duration === 90 ? "1m30" : state.duration === 60 ? "1 min" : `${state.duration}s`}</strong><small>Temps / manche</small></div>
+      </section>
+
+      <section class="final-v134-myreward">
+        <div class="final-v134-myreward-coin">${gameCoin("game-coin-xl")}</div>
+        <div>
+          <small>Ton gain</small>
+          <strong>+${myReward} pièce${myReward !== 1 ? "s" : ""}</strong>
+          <span>Nouveau solde : ${getCoins()} pièces</span>
+        </div>
+      </section>
+
+      <div class="final-v134-actions">
+        <button class="final-v134-home" id="leaveBtn" type="button">${uiIcon("home")}<span>Retour à l’accueil</span></button>
         ${user?.isHost
-          ? `<button class="btn btn-light" id="restartBtn">↻ Refaire une partie</button>`
-          : `<div class="final-wait">L’hôte peut relancer la partie.</div>`
+          ? `<button class="final-v134-restart" id="restartBtn" type="button">↻ <span>Refaire une partie</span></button>`
+          : `<div class="final-v134-wait">L’hôte peut relancer une partie.</div>`
         }
-        <button class="btn btn-primary" id="leaveBtn">⌂ Retour à l’accueil</button>
       </div>
     </main>
   `);
 
   if (user?.isHost) {
-    document.getElementById("restartBtn").onclick = () =>
-      socket.emit("game:restart", { code: state.code, playerId: session.playerId });
+    document.getElementById("restartBtn")?.addEventListener("click", () =>
+      socket.emit("game:restart", { code: state.code, playerId: session.playerId })
+    );
   }
+
   const leave = () => {
     socket.emit("room:leave", { code: state.code, playerId: session.playerId });
     clearSession();
     renderHome();
   };
-  document.getElementById("leaveBtn").onclick = leave;
-  document.getElementById("leaveTopBtn").onclick = leave;
+  document.getElementById("leaveBtn")?.addEventListener("click", leave);
+  document.getElementById("leaveTopBtn")?.addEventListener("click", leave);
 }
 
 window.addEventListener("beforeunload", () => {
