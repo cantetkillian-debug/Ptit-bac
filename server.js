@@ -15,6 +15,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.static(__dirname));
 
 const GAME_COST = 5;
+const LETTER_REROLL_COST = 10;
+const CATEGORY_REROLL_COST = 10;
 const DEFAULT_COINS = 25;
 const ADMIN_COIN_CODE = process.env.PTITBAC_ADMIN_CODE || "PTITBAC-ADMIN";
 const WALLET_FILE = path.join(__dirname, "wallets.json");
@@ -114,7 +116,7 @@ const DIFFICULTY_WEIGHTS = {
 
 // Lettres volontairement jouables en français pour une soirée.
 // Tu peux en ajouter/retirer ici.
-const LETTERS = ["A","B","C","D","E","F","G","H","J","L","M","N","P","R","S","T","V"];
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 const rooms = new Map();
 
@@ -154,6 +156,41 @@ function pickCategories(difficulty = "beginner", count = 6) {
     picked.push(...sample(CATEGORY_LEVELS[level], amount));
   }
   return sample(picked, picked.length);
+}
+
+function availableLetters(room, exclude = null) {
+  const used = new Set((room.letters || []).filter(Boolean));
+  let pool = LETTERS.filter(letter => !used.has(letter));
+  if (!pool.length) pool = [...LETTERS];
+  if (exclude && pool.length > 1) pool = pool.filter(letter => letter !== exclude);
+  return pool;
+}
+
+function chooseLetterPlayer(room) {
+  const connectedHumans = room.players.filter(p => !p.isBot && p.connected);
+  const humans = room.players.filter(p => !p.isBot);
+  const pool = connectedHumans.length ? connectedHumans : humans;
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+}
+
+function prepareLetterSelection(room) {
+  const chooser = chooseLetterPlayer(room);
+  room.phase = "letter_selection";
+  room.letterChooserPlayerId = chooser?.id || null;
+  room.pendingLetter = null;
+  room.letterSpinVersion = (room.letterSpinVersion || 0) + 1;
+  room.roundEndsAt = null;
+  room.validation = null;
+  room.lastRoundScores = {};
+  emitRoom(room);
+}
+
+function spinLetter(room, exclude = null) {
+  const pool = availableLetters(room, exclude);
+  const letter = pool[Math.floor(Math.random() * pool.length)];
+  room.pendingLetter = letter;
+  room.letterSpinVersion = (room.letterSpinVersion || 0) + 1;
+  return letter;
 }
 
 function cleanName(name) {
@@ -202,6 +239,11 @@ function publicRoom(room, viewerPlayerId = null) {
     letters: room.letters,
     roundIndex: room.roundIndex,
     currentLetter: room.roundIndex >= 0 ? room.letters[room.roundIndex] : null,
+    letterChooserPlayerId: room.letterChooserPlayerId || null,
+    pendingLetter: room.pendingLetter || null,
+    letterSpinVersion: room.letterSpinVersion || 0,
+    letterRerollCost: LETTER_REROLL_COST,
+    categoryRerollCost: CATEGORY_REROLL_COST,
     roundEndsAt: room.roundEndsAt,
     validation: room.validation
       ? {
@@ -561,7 +603,10 @@ io.on("connection", socket => {
       categories: pickCategories(safeCategoryDifficulty, safeCategoryCount),
       rounds: safeRounds,
       duration: safeDuration,
-      letters: sample(LETTERS, safeRounds),
+      letters: [],
+      letterChooserPlayerId: null,
+      pendingLetter: null,
+      letterSpinVersion: 0,
       roundIndex: -1,
       roundEndsAt: null,
       validation: null,
@@ -740,6 +785,78 @@ io.on("connection", socket => {
       humans.forEach(emitWallet);
     }
 
+    room.categories = pickCategories(room.categoryDifficulty || "beginner", room.categoryCount || 6);
+    room.letters = [];
+    room.letterChooserPlayerId = null;
+    room.pendingLetter = null;
+    room.letterSpinVersion = 0;
+    room.roundIndex = -1;
+    room.roundEndsAt = null;
+    room.validation = null;
+    room.lastRoundScores = {};
+    room.phase = "category_selection";
+    emitRoom(room);
+  });
+
+  socket.on("game:rerollCategories", payload => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player?.isHost || room.phase !== "category_selection") return;
+    if (player.isBot || !player.walletToken) return;
+
+    if (walletBalance(player.walletToken) < CATEGORY_REROLL_COST) {
+      socket.emit("toast", `Il te faut ${CATEGORY_REROLL_COST} pièces pour relancer les catégories.`);
+      emitWallet(player);
+      emitRoom(room);
+      return;
+    }
+
+    updateWallet(player.walletToken, -CATEGORY_REROLL_COST);
+    saveWallets();
+    emitWallet(player);
+    room.categories = pickCategories(room.categoryDifficulty || "beginner", room.categoryCount || 6);
+    emitRoom(room);
+  });
+
+  socket.on("game:confirmCategories", payload => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player?.isHost || room.phase !== "category_selection") return;
+    prepareLetterSelection(room);
+  });
+
+  socket.on("game:spinLetter", payload => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player || room.phase !== "letter_selection") return;
+    if (player.id !== room.letterChooserPlayerId) return;
+    if (room.pendingLetter) return;
+    spinLetter(room);
+    emitRoom(room);
+  });
+
+  socket.on("game:rerollLetter", payload => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player || room.phase !== "letter_selection") return;
+    if (player.id !== room.letterChooserPlayerId || !room.pendingLetter) return;
+    if (player.isBot || !player.walletToken) return;
+    if (walletBalance(player.walletToken) < LETTER_REROLL_COST) {
+      return socket.emit("toast", `Il te faut ${LETTER_REROLL_COST} pièces pour relancer la roue.`);
+    }
+
+    updateWallet(player.walletToken, -LETTER_REROLL_COST);
+    saveWallets();
+    emitWallet(player);
+    spinLetter(room, room.pendingLetter);
+    emitRoom(room);
+  });
+
+  socket.on("game:confirmLetter", payload => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player || room.phase !== "letter_selection") return;
+    if (player.id !== room.letterChooserPlayerId || !room.pendingLetter) return;
+
+    const nextRoundIndex = room.roundIndex + 1;
+    room.letters[nextRoundIndex] = room.pendingLetter;
+    room.pendingLetter = null;
+    room.letterChooserPlayerId = null;
     startRound(room);
   });
 
@@ -784,7 +901,7 @@ io.on("connection", socket => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "scoreboard") return;
     if (room.roundIndex + 1 >= room.rounds) return;
-    startRound(room);
+    prepareLetterSelection(room);
   });
 
   socket.on("game:restart", payload => {
@@ -793,7 +910,10 @@ io.on("connection", socket => {
 
     room.phase = "lobby";
     room.categories = pickCategories(room.categoryDifficulty || "beginner", room.categoryCount || 6);
-    room.letters = sample(LETTERS, room.rounds);
+    room.letters = [];
+    room.letterChooserPlayerId = null;
+    room.pendingLetter = null;
+    room.letterSpinVersion = 0;
     room.roundIndex = -1;
     room.roundEndsAt = null;
     room.validation = null;
@@ -818,6 +938,11 @@ io.on("connection", socket => {
     if (!room || !player) return;
 
     player.connected = false;
+    if (room.phase === "letter_selection" && room.letterChooserPlayerId === player.id) {
+      const chooser = chooseLetterPlayer(room);
+      room.letterChooserPlayerId = chooser?.id || null;
+      room.letterSpinVersion = (room.letterSpinVersion || 0) + 1;
+    }
     emitRoom(room);
 
     // Nettoyage après 3 heures d'inactivité totale.

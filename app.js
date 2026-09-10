@@ -17,6 +17,7 @@ const GAME_COST = 5;
 const DEFAULT_COINS = 25;
 const ADMIN_COIN_CODE = "PTITBAC-ADMIN"; // mode test local, pas une sécurité serveur
 const PROFILE_ICONS = ["🐼","🦊","🐯","🐸","🦁","🐨","🐙","🦄","🤖","😎","🧠","⭐"];
+const LETTER_WHEEL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 function getProfile() {
   return {
@@ -657,6 +658,8 @@ function render() {
 
   switch (session.state.phase) {
     case "lobby": return renderLobby();
+    case "category_selection": return renderCategorySelection();
+    case "letter_selection": return renderLetterSelection();
     case "round": return me()?.submitted ? renderRoundWaiting() : renderRound();
     case "validation": return renderValidation();
     case "scoreboard": return renderScoreboard();
@@ -903,6 +906,221 @@ function renderRoomSettings() {
       render();
     });
   };
+}
+
+function difficultyLabel(value) {
+  return value === "hard" ? "Difficile" : value === "medium" ? "Moyen" : "Débutant";
+}
+
+function renderCategorySelection() {
+  clearInterval(session.timerHandle);
+  const state = session.state;
+  const user = me();
+  const categories = state.categories || [];
+  const categoryRerollCost = Number(state.categoryRerollCost || 10);
+
+  setScreen(`
+    <main class="screen category-pick-screen">
+      <div class="category-pick-blob category-pick-blob-a"></div>
+      <div class="category-pick-blob category-pick-blob-b"></div>
+
+      <header class="category-pick-header">
+        <img src="petit-bac-logo.png" class="category-pick-logo" alt="P’tit Bac">
+        ${walletBadge("category-pick-wallet")}
+      </header>
+
+      <section class="category-pick-heading">
+        <p class="ref-eyebrow">Sélection des catégories</p>
+        <h1>Voici votre tirage !</h1>
+        <p>${categories.length} catégories · Niveau ${difficultyLabel(state.categoryDifficulty)}</p>
+      </section>
+
+      <section class="category-pick-grid" aria-label="Catégories tirées">
+        ${categories.map((category, index) => `
+          <article class="category-pick-card" style="--pick-index:${index}">
+            <span class="category-pick-icon">${categoryIcon(category)}</span>
+            <strong>${escapeHtml(category)}</strong>
+          </article>
+        `).join("")}
+      </section>
+
+      ${user?.isHost ? `
+        <section class="category-pick-actions">
+          <button class="category-reroll-btn" id="rerollCategoriesBtn" ${getCoins() < categoryRerollCost ? "disabled" : ""}>
+            <span>↻ Relancer le tirage</span>
+            <span class="letter-reroll-cost">${gameCoin("game-coin-tiny")}<b>${categoryRerollCost}</b></span>
+          </button>
+          ${getCoins() < categoryRerollCost ? `<p class="letter-cost-note">Il te faut ${categoryRerollCost} pièces pour relancer les catégories.</p>` : ""}
+          <button class="btn btn-primary category-confirm-btn" id="confirmCategoriesBtn">Continuer vers la lettre →</button>
+        </section>
+      ` : `
+        <div class="category-pick-wait">
+          <div class="spinner small-spinner"></div>
+          <div><strong>En attente de l’hôte</strong><span>L’hôte valide le tirage des catégories.</span></div>
+        </div>
+      `}
+    </main>
+  `);
+
+  if (user?.isHost) {
+    const rerollBtn = document.getElementById("rerollCategoriesBtn");
+    const confirmBtn = document.getElementById("confirmCategoriesBtn");
+    rerollBtn.onclick = () => {
+      rerollBtn.disabled = true;
+      confirmBtn.disabled = true;
+      socket.emit("game:rerollCategories", { code: state.code, playerId: session.playerId });
+    };
+    confirmBtn.onclick = () => {
+      rerollBtn.disabled = true;
+      confirmBtn.disabled = true;
+      socket.emit("game:confirmCategories", { code: state.code, playerId: session.playerId });
+    };
+  }
+}
+
+
+function renderLetterSelection() {
+  clearInterval(session.timerHandle);
+  const state = session.state;
+  const user = me();
+  const chooser = state.players.find(p => p.id === state.letterChooserPlayerId);
+  const isChooser = user?.id === state.letterChooserPlayerId;
+  const selectedLetter = state.pendingLetter || "";
+  const rerollCost = Number(state.letterRerollCost || 10);
+  const nextRound = state.roundIndex + 2;
+  const segmentAngle = 360 / LETTER_WHEEL.length;
+
+  const wheelLabels = LETTER_WHEEL.map((letter, index) => {
+    const angle = index * segmentAngle;
+    return `<span class="letter-wheel-label" style="--letter-angle:${angle}deg">${letter}</span>`;
+  }).join("");
+
+  const wheelStops = LETTER_WHEEL.map((_, index) => {
+    const start = index * segmentAngle;
+    const end = (index + 1) * segmentAngle;
+    const color = index % 2 === 0 ? "#6746e9" : "#7655f1";
+    return `${color} ${start}deg ${end}deg`;
+  }).join(",");
+
+  setScreen(`
+    <main class="screen letter-pick-screen">
+      <div class="letter-pick-blob letter-pick-blob-a"></div>
+      <div class="letter-pick-blob letter-pick-blob-b"></div>
+      <div class="letter-pick-spark spark-a">✦</div>
+      <div class="letter-pick-spark spark-b">✦</div>
+
+      <header class="letter-pick-header">
+        <img src="petit-bac-logo.png" class="letter-pick-logo" alt="P’tit Bac">
+        ${walletBadge("letter-pick-wallet")}
+      </header>
+
+      <section class="letter-pick-heading">
+        <p class="ref-eyebrow">Manche ${nextRound}/${state.rounds}</p>
+        <h1>Tirage de la lettre</h1>
+        <p>${isChooser ? "C’est à toi de lancer la roue !" : `${escapeHtml(chooser?.name || "Un joueur")} a été choisi pour lancer la roue.`}</p>
+      </section>
+
+      <section class="letter-wheel-zone">
+        <div class="letter-wheel-pointer"><span></span></div>
+        <div class="letter-wheel-shell">
+          <div class="letter-wheel" id="letterWheel" style="background:conic-gradient(${wheelStops})">
+            ${wheelLabels}
+            <div class="letter-wheel-center">
+              <strong id="letterWheelResult">${selectedLetter ? escapeHtml(selectedLetter) : "?"}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      ${!selectedLetter ? `
+        <div class="letter-pick-message">
+          <strong>${isChooser ? "Lance la roue !" : `En attente de ${escapeHtml(chooser?.name || "ce joueur")}…`}</strong>
+          <span>${isChooser ? "La lettre sera choisie au hasard." : "La roue va déterminer la lettre de cette manche."}</span>
+        </div>
+      ` : `
+        <div class="letter-result-card">
+          <span>Lettre sélectionnée</span>
+          <strong>${escapeHtml(selectedLetter)}</strong>
+        </div>
+      `}
+
+      ${isChooser ? `
+        <section class="letter-pick-actions">
+          ${!selectedLetter ? `
+            <button class="btn btn-primary letter-spin-btn" id="spinLetterBtn">🎯 Lancer la roue</button>
+          ` : `
+            <button class="letter-reroll-btn" id="rerollLetterBtn" ${getCoins() < rerollCost ? "disabled" : ""}>
+              <span>↻ Relancer</span>
+              <span class="letter-reroll-cost">${gameCoin("game-coin-tiny")}<b>${rerollCost}</b></span>
+            </button>
+            <button class="btn btn-primary letter-confirm-btn" id="confirmLetterBtn">▶ Jouer avec ${escapeHtml(selectedLetter)}</button>
+            ${getCoins() < rerollCost ? `<p class="letter-cost-note">Il te faut ${rerollCost} pièces pour relancer.</p>` : ""}
+          `}
+        </section>
+      ` : `
+        <div class="letter-pick-wait">
+          <div class="spinner small-spinner"></div>
+          <div><strong>${selectedLetter ? `Lettre ${escapeHtml(selectedLetter)}` : "Tirage en cours"}</strong><span>${selectedLetter ? `En attente de ${escapeHtml(chooser?.name || "ce joueur")} pour confirmer.` : `En attente de ${escapeHtml(chooser?.name || "ce joueur")}.`}</span></div>
+        </div>
+      `}
+    </main>
+  `);
+
+  const wheel = document.getElementById("letterWheel");
+  if (wheel && selectedLetter) {
+    const targetIndex = Math.max(0, LETTER_WHEEL.indexOf(selectedLetter));
+    const targetAngle = -(targetIndex * segmentAngle);
+    const turns = 5 + ((Number(state.letterSpinVersion || 0) % 3));
+    const finalRotation = turns * 360 + targetAngle;
+    wheel.style.setProperty("--wheel-final-rotation", `${finalRotation}deg`);
+    requestAnimationFrame(() => wheel.classList.add("is-spinning"));
+
+    const result = document.getElementById("letterWheelResult");
+    if (result) {
+      result.classList.add("result-pop");
+      setTimeout(() => result.classList.add("visible"), 2650);
+    }
+
+    const rerollBtn = document.getElementById("rerollLetterBtn");
+    const confirmBtn = document.getElementById("confirmLetterBtn");
+    if (rerollBtn) rerollBtn.disabled = true;
+    if (confirmBtn) confirmBtn.disabled = true;
+    setTimeout(() => {
+      if (rerollBtn) rerollBtn.disabled = getCoins() < rerollCost;
+      if (confirmBtn) confirmBtn.disabled = false;
+    }, 2900);
+  }
+
+  if (!isChooser) return;
+
+  const spinBtn = document.getElementById("spinLetterBtn");
+  if (spinBtn) {
+    spinBtn.onclick = () => {
+      spinBtn.disabled = true;
+      socket.emit("game:spinLetter", { code: state.code, playerId: session.playerId });
+    };
+  }
+
+  const rerollBtn = document.getElementById("rerollLetterBtn");
+  if (rerollBtn) {
+    rerollBtn.onclick = () => {
+      if (getCoins() < rerollCost) return toast(`Il te faut ${rerollCost} pièces.`);
+      rerollBtn.disabled = true;
+      const confirmBtn = document.getElementById("confirmLetterBtn");
+      if (confirmBtn) confirmBtn.disabled = true;
+      socket.emit("game:rerollLetter", { code: state.code, playerId: session.playerId });
+    };
+  }
+
+  const confirmBtn = document.getElementById("confirmLetterBtn");
+  if (confirmBtn) {
+    confirmBtn.onclick = () => {
+      confirmBtn.disabled = true;
+      const rerollBtn = document.getElementById("rerollLetterBtn");
+      if (rerollBtn) rerollBtn.disabled = true;
+      socket.emit("game:confirmLetter", { code: state.code, playerId: session.playerId });
+    };
+  }
 }
 
 function answerKey(category) {
