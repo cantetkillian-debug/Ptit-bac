@@ -1247,70 +1247,42 @@ function renderRoundWaiting() {
 
 function renderValidation() {
   const state = session.state;
-  const user = me();
-  const validation = state.validation;
-  const pending = validation?.items?.[validation.cursor];
+  const validation = state.validation || {};
+  const total = Number(validation.total || 0);
+  const checked = Math.min(total, Number(validation.checked || 0));
+  const complete = validation.status === "complete";
+  const percent = total ? Math.max(8, Math.round((checked / total) * 100)) : 100;
 
-  if (!user?.isHost) {
-    setScreen(`
-      <main class="screen center-screen validation-screen validation-wait-screen">
-        <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
-        <div class="wait-card">
-          <div class="spinner"></div>
-          <h2>Validation des réponses</h2>
-          <p class="subtitle" style="margin-bottom:0">L’hôte vérifie les réponses uniques.</p>
-        </div>
-      </main>
-    `);
-    return;
-  }
-
-  if (!pending) {
-    setScreen(`
-      <main class="screen center-screen validation-screen validation-wait-screen">
-        <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
-        <div class="wait-card"><div class="spinner"></div><h2>Calcul des scores…</h2></div>
-      </main>
-    `);
-    return;
-  }
-
-  const remaining = validation.items.filter(i => i.status === "pending").length;
   setScreen(`
-    <main class="screen center-screen validation-screen validation-v122">
-      <div class="validation-blob validation-blob-a"></div>
-      <div class="validation-blob validation-blob-b"></div>
-      <section class="review-card">
-        <button class="validation-close" id="validationLeave">×</button>
+    <main class="screen center-screen validation-screen validation-auto-v131">
+      <div class="validation-auto-blob validation-auto-blob-a"></div>
+      <div class="validation-auto-blob validation-auto-blob-b"></div>
+      <section class="auto-review-card">
         <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
-        <div class="review-icon">✓?</div>
-        <div class="review-kicker">À valider · ${remaining} restante${remaining > 1 ? "s" : ""}</div>
-        <div class="review-answer">${escapeHtml(pending.answer)}</div>
-        <div class="review-meta"><span class="review-meta-icon">👤</span><strong>${escapeHtml(pending.category)}</strong> · ${escapeHtml(pending.playerName)}</div>
-        <p>Cette réponse est-elle valide<br>pour la lettre <strong>${escapeHtml(state.currentLetter)}</strong> ?</p>
-        <div class="review-actions">
-          <button class="btn btn-red" id="invalidBtn">✕ Invalide</button>
-          <button class="btn btn-green" id="validBtn">✓ Valide</button>
+        <div class="auto-review-icon ${complete ? "done" : ""}">
+          ${complete ? "✓" : '<span class="auto-review-spinner"></span>'}
+        </div>
+        <div class="auto-review-kicker">${complete ? "Vérification terminée" : "Vérification automatique"}</div>
+        <h2>${complete ? "C’est bon !" : "On vérifie les réponses…"}</h2>
+        <p>${complete
+          ? "Les points de cette manche sont en cours de calcul."
+          : `Le jeu contrôle automatiquement les réponses pour la lettre <strong>${escapeHtml(state.currentLetter || "")}</strong>.`}
+        </p>
+
+        <div class="auto-validation-progress" aria-label="Progression de la vérification">
+          <div class="auto-validation-progress-fill ${complete ? "done" : ""}" style="width:${complete ? 100 : percent}%"></div>
+        </div>
+        <div class="auto-validation-count">${complete ? "Terminé" : `${checked} / ${total} réponses analysées`}</div>
+
+        <div class="auto-check-grid">
+          <div class="auto-check-item"><span>✓</span><div><strong>Lettre</strong><small>Mauvaise lettre = 0</small></div></div>
+          <div class="auto-check-item"><span>↔</span><div><strong>Doublons</strong><small>Réponses identiques = 0</small></div></div>
+          <div class="auto-check-item"><span>✦</span><div><strong>Catégorie</strong><small>Le sens de la réponse est vérifié</small></div></div>
         </div>
       </section>
-      <div class="rules-mini"><span>ⓘ</span><p>Les doublons, réponses vides et mauvaises lettres sont déjà mis à 0 automatiquement.</p></div>
+      <div class="auto-validation-note">Aucune validation manuelle n’est nécessaire.</div>
     </main>
   `);
-
-  const judge = status => socket.emit("validation:judge", {
-    code: state.code,
-    playerId: session.playerId,
-    itemId: pending.id,
-    status
-  });
-  document.getElementById("invalidBtn").onclick = () => judge("invalid");
-  document.getElementById("validBtn").onclick = () => judge("valid");
-  document.getElementById("validationLeave").onclick = () => {
-    if (!confirm("Quitter la partie pendant la validation ?")) return;
-    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
-    clearSession();
-    renderHome();
-  };
 }
 
 function rankedPlayers() {
@@ -1320,41 +1292,112 @@ function rankedPlayers() {
 function renderScoreboard() {
   const state = session.state;
   const user = me();
-  const rows = rankedPlayers().map((p, index) => {
-    const gain = state.lastRoundScores[p.id] ?? 0;
-    return `
-      <div class="score-row">
-        <div class="rank">#${index + 1}</div>
-        <div class="score-name">${escapeHtml(p.name)}</div>
-        <div>
-          <div class="score-total">${p.score}</div>
-          <span class="round-gain">+${gain} cette manche</span>
+  const ranked = rankedPlayers();
+  const results = state.lastRoundResults || { byPlayer: {}, categories: state.categories || [], letter: state.currentLetter || "" };
+  const categories = results.categories?.length ? results.categories : (state.categories || []);
+  const letter = results.letter || state.currentLetter || "";
+  const isLastRound = state.roundIndex + 1 >= state.rounds;
+  const winner = ranked[0];
+  const topGain = winner ? (state.lastRoundScores?.[winner.id] ?? 0) : 0;
+
+  const categoryHeaders = categories.map(category => `
+    <div class="round-results-category-head" title="${escapeHtml(category)}">
+      <span>${categoryIcon(category)}</span>
+      <small>${escapeHtml(category)}</small>
+    </div>
+  `).join("");
+
+  const playerRows = ranked.map((player, playerIndex) => {
+    const gain = state.lastRoundScores?.[player.id] ?? 0;
+    const cells = categories.map(category => {
+      const result = results.byPlayer?.[player.id]?.[category] || { answer: "", status: "invalid", correction: "Aucune réponse" };
+      const statusClass = result.status === "valid" ? "is-valid" : result.status === "duplicate" ? "is-duplicate" : "is-invalid";
+      const answer = result.answer ? escapeHtml(result.answer) : "—";
+      const correction = result.status === "valid" ? "" : escapeHtml(result.correction || (result.status === "duplicate" ? "Doublon" : "Incorrect"));
+      const symbol = result.status === "valid" ? "✓" : result.status === "duplicate" ? "=" : "×";
+      return `
+        <div class="round-results-answer ${statusClass}" title="${escapeHtml(category)}">
+          <strong>${answer}</strong>
+          <span class="round-results-status">${symbol}</span>
+          ${correction ? `<small>${correction}</small>` : ""}
         </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="round-results-player">
+        <div class="round-results-player-card ${playerIndex === 0 ? "is-leader" : ""}">
+          ${playerIndex === 0 ? '<span class="round-results-crown">♛</span>' : ""}
+          ${avatarMarkup(player, playerIndex, "round-results-avatar")}
+          <div class="round-results-player-copy">
+            <strong>${escapeHtml(player.name)}</strong>
+            <small>+${gain} cette manche</small>
+          </div>
+          <span class="round-results-score">${player.score}</span>
+        </div>
+        <div class="round-results-cells">${cells}</div>
       </div>
     `;
   }).join("");
 
   setScreen(`
-    <main class="screen">
-      <div class="brand" style="margin-bottom:26px">P'tit Bac</div>
-      <h1 style="font-size:3rem">Classement</h1>
-      <p class="subtitle">Manche ${state.roundIndex + 1}/${state.rounds} terminée.</p>
-      <div class="scoreboard">${rows}</div>
+    <main class="round-results-v132">
+      <div class="round-results-glow round-results-glow-a"></div>
+      <div class="round-results-glow round-results-glow-b"></div>
 
-      ${user?.isHost
-        ? `<button class="btn btn-primary" id="nextRound">Manche suivante →</button>`
-        : `<div class="wait-card"><div class="spinner"></div><h3>En attente de l’hôte</h3></div>`
-      }
+      <header class="round-results-top">
+        <div class="round-results-round-pill">
+          <span class="round-results-letter">${escapeHtml(letter)}</span>
+          <div><small>Manche ${state.roundIndex + 1}/${state.rounds}</small><strong>Lettre : ${escapeHtml(letter)}</strong></div>
+        </div>
+        <img src="petit-bac-logo.png" class="round-results-logo" alt="P’tit Bac">
+        <div class="round-results-state-pill">
+          <span>✓</span>
+          <div><small>Correction</small><strong>Terminée</strong></div>
+        </div>
+      </header>
 
-      <div class="category-pills">
-        ${state.categories.map(c => `<span class="category-pill">${escapeHtml(c)}</span>`).join("")}
+      <section class="round-results-heading">
+        <h1>Résultats <em>de la manche</em></h1>
+        <p>Voici toutes les réponses et leurs corrections.</p>
+      </section>
+
+      <section class="round-results-board-wrap">
+        <div class="round-results-board" style="--result-cols:${Math.max(1, categories.length)}">
+          <div class="round-results-grid-head">
+            <div class="round-results-player-label">Joueurs</div>
+            <div class="round-results-category-row">${categoryHeaders}</div>
+          </div>
+          ${playerRows}
+        </div>
+      </section>
+
+      ${winner ? `
+        <section class="round-results-winner">
+          <div class="round-results-trophy">🏆</div>
+          <div class="round-results-winner-copy">
+            <small>${ranked.length > 1 ? "En tête après cette manche" : "Résultat de la manche"}</small>
+            <strong>${escapeHtml(winner.name)}</strong>
+            <span>${topGain} point${topGain !== 1 ? "s" : ""} gagné${topGain !== 1 ? "s" : ""} sur cette manche</span>
+          </div>
+          ${user?.isHost
+            ? `<button class="round-results-next" id="nextRound">${isLastRound ? "Classement final" : "Suivante"}${uiIcon("chevron")}</button>`
+            : `<div class="round-results-wait"><span class="spinner"></span><small>En attente de l’hôte</small></div>`
+          }
+        </section>
+      ` : ""}
+
+      <div class="round-results-rule">
+        <span>i</span>
+        <p>Une réponse rapporte <strong>1 point</strong> uniquement si elle est valide et qu’aucun autre joueur n’a donné la même réponse.</p>
       </div>
     </main>
   `);
 
   if (user?.isHost) {
-    document.getElementById("nextRound").onclick = () =>
+    document.getElementById("nextRound")?.addEventListener("click", () => {
       socket.emit("game:nextRound", { code: state.code, playerId: session.playerId });
+    });
   }
 }
 
