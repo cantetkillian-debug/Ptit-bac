@@ -184,147 +184,86 @@ function renderHome() {
   const coins = getCoins();
   const decorativePool = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
   const decorativeLetters = [];
-  while (decorativeLetters.length < 2) {
-    const i = Math.floor(Math.random() * decorativePool.length);
-    decorativeLetters.push(decorativePool.splice(i, 1)[0]);
-  }
+  while (decorativeLetters.length < 2) decorativeLetters.push(decorativePool.splice(Math.floor(Math.random() * decorativePool.length), 1)[0]);
 
   setScreen(`
-    <main class="screen home-v129">
-      <section class="home-v129-hero">
-        <div class="home-v129-glow home-v129-glow-a"></div>
-        <div class="home-v129-glow home-v129-glow-b"></div>
+    <main class="screen home-v129 home-v130">
+      <section class="home-v129-hero home-v130-hero">
+        <div class="home-v129-glow home-v129-glow-a"></div><div class="home-v129-glow home-v129-glow-b"></div>
         <div class="home-v129-letter home-v129-letter-left">${decorativeLetters[0]}</div>
         <div class="home-v129-letter home-v129-letter-right">${decorativeLetters[1]}</div>
-
         <header class="home-v129-topbar">
-          <button class="home-v129-settings" id="settingsBtn" aria-label="Réglages">${uiIcon("settings")}</button>
-          <button class="home-v129-wallet" id="topShopBtn" aria-label="Ouvrir la boutique">
-            ${homeCoin("home-coin-main")}
-            <strong>${coins}</strong>
-            <span class="home-v129-wallet-plus">${uiIcon("plus")}</span>
-          </button>
+          <button class="home-v130-profile-top" id="profileBtn"><span class="home-v130-profile-avatar">${escapeHtml(profile.icon)}</span><strong>Mon profil</strong>${uiIcon("chevron")}</button>
+          <button class="home-v129-wallet" id="topShopBtn" aria-label="Ouvrir la boutique">${homeCoin("home-coin-main")}<strong>${coins}</strong><span class="home-v129-wallet-plus">${uiIcon("plus")}</span></button>
         </header>
-
-        <div class="home-v129-brand">
-          <img src="petit-bac-logo.png" class="home-v129-logo" alt="P’tit Bac">
-          <p>Le jeu de mots qui rassemble<br>tout le monde !</p>
-          <span class="home-v129-underline"></span>
-        </div>
+        <div class="home-v129-brand home-v130-brand"><img src="petit-bac-logo.png" class="home-v129-logo" alt="P’tit Bac"><p>Le jeu de mots qui rassemble<br>tout le monde !</p><span class="home-v129-underline"></span></div>
       </section>
 
-      <section class="home-v129-content">
-        <div class="home-v129-shortcuts">
-          <button class="home-v129-mini-card" id="profileBtn">
-            <span class="home-v129-avatar">${escapeHtml(profile.icon)}</span>
-            <span class="home-v129-mini-copy"><strong>Mon profil</strong><small>${escapeHtml(profile.name || "Choisir un pseudo")}</small></span>
-            ${uiIcon("chevron", "home-v129-chevron")}
+      <section class="home-v129-content home-v130-content">
+        <section class="home-v129-actions home-v130-actions">
+          <button class="home-v129-action primary home-v130-play" id="quickPlayBtn" ${coins < GAME_COST ? 'disabled' : ''}>
+            <span class="home-v129-action-symbol">⚡</span><span class="home-v129-action-copy"><strong>Jouer</strong><small>Lance une partie rapide</small></span>
+            <span class="home-v129-cost">${homeCoin("home-coin-xs")}<b>${GAME_COST}</b></span>${uiIcon("chevron", "home-v129-action-arrow")}
           </button>
-
-          <button class="home-v129-mini-card shop" id="shopBtn">
-            <span class="home-v129-icon-tile amber">${uiIcon("shop")}</span>
-            <span class="home-v129-mini-copy"><strong>Boutique</strong><small>Pièces et avantages</small></span>
-            ${uiIcon("chevron", "home-v129-chevron")}
+          <button class="home-v129-action secondary home-v130-create" id="createBtn">
+            <span class="home-v129-action-symbol soft">${uiIcon("plus")}</span><span class="home-v129-action-copy"><strong>Créer un salon</strong><small>Invite tes amis et personnalise ta partie</small></span>${uiIcon("chevron", "home-v129-action-arrow")}
           </button>
-        </div>
-
-        <button class="home-v129-row-card" id="rewardsBtn">
-          <span class="home-v129-icon-tile violet">${uiIcon("gift")}</span>
-          <span class="home-v129-row-copy"><strong>Récompenses</strong><small>Bientôt disponible</small></span>
-          ${uiIcon("chevron", "home-v129-chevron")}
-        </button>
-
-        <section class="home-v129-actions">
-          <button class="home-v129-action primary" id="createBtn" ${coins < GAME_COST ? 'disabled' : ''}>
-            <span class="home-v129-action-symbol">${uiIcon("plus")}</span>
-            <span class="home-v129-action-copy"><strong>Créer une partie</strong><small>Lance ton salon et défie tes amis</small></span>
-            <span class="home-v129-cost">${homeCoin("home-coin-xs")}<b>${GAME_COST}</b></span>
-            ${uiIcon("chevron", "home-v129-action-arrow")}
-          </button>
-
-          <button class="home-v129-action secondary" id="joinBtn" ${coins < GAME_COST ? 'disabled' : ''}>
+          <div class="home-v130-join-card">
             <span class="home-v129-action-symbol soft">${uiIcon("users")}</span>
-            <span class="home-v129-action-copy"><strong>Rejoindre une partie</strong><small>Entre un code et rejoins la partie</small></span>
-            <span class="home-v129-cost dark">${homeCoin("home-coin-xs")}<b>${GAME_COST}</b></span>
-            ${uiIcon("chevron", "home-v129-action-arrow")}
-          </button>
+            <div class="home-v130-join-main"><strong>Rejoindre un salon</strong><div class="home-v130-code-row"><input id="homeRoomCode" maxlength="5" autocapitalize="characters" placeholder="Entrez le code du salon..." /><button id="joinBtn" aria-label="Rejoindre">${uiIcon("chevron")}</button></div></div>
+          </div>
         </section>
-
-        ${coins < GAME_COST ? `<p class="home-v129-no-coins">Il te faut ${GAME_COST} pièces pour jouer.</p>` : ''}
-
-        <button class="home-v129-row-card home-v129-howto" id="howToBtn">
-          <span class="home-v129-icon-tile yellow">${uiIcon("bulb")}</span>
-          <span class="home-v129-row-copy"><strong>Comment jouer ?</strong><small>Règles simples et rapides</small></span>
-          ${uiIcon("chevron", "home-v129-chevron")}
-        </button>
-
-        <footer class="home-v129-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
+        ${coins < GAME_COST ? `<p class="home-v129-no-coins">Il te faut ${GAME_COST} pièces pour lancer une partie rapide.</p>` : ''}
+        <div class="home-v130-spacer"></div>
+        <button class="home-v130-howto" id="howToBtn">${uiIcon("bulb")}<span>Comment jouer ?</span></button>
+        <footer class="home-v129-beta home-v130-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
       </section>
 
       <nav class="home-v129-nav" aria-label="Navigation principale">
         <button class="active" data-nav="home">${uiIcon("home")}<small>Accueil</small></button>
-        <button data-nav="rooms">${uiIcon("game")}<small>Salons</small></button>
-        <button data-nav="ranking">${uiIcon("trophy")}<small>Classement</small></button>
+        <button data-nav="rewards">${uiIcon("gift")}<small>Récompenses</small></button>
         <button data-nav="friends">${uiIcon("users")}<small>Amis</small></button>
+        <button data-nav="shop">${uiIcon("shop")}<small>Boutique</small></button>
       </nav>
-    </main>
-  `);
+    </main>`);
 
-  document.getElementById("createBtn").onclick = () => {
-    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
-    const profile = getProfile();
-    const name = String(profile.name || "").trim();
-    if (!name) {
-      toast("Choisis d’abord ton pseudo.");
-      return renderProfile();
-    }
-    socket.emit("room:create", {
-      name,
-      rounds: 1,
-      categoryCount: 6,
-      categoryDifficulty: "beginner",
-      duration: 60,
-      avatar: profile.icon,
-      walletToken: session.walletToken
-    }, res => {
-      if (!res?.ok) return toast(res?.error || "Impossible de créer la partie.");
-      if (res.walletToken) setWalletState(res.walletToken, res.balance);
-      saveSession(res.code, res.playerId);
-      session.state = res.state;
-      render();
-    });
-  };
-  document.getElementById("joinBtn").onclick = () => {
-    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
-    renderJoinForm();
+  const ensureProfile = () => {
+    const p = getProfile();
+    if (!String(p.name || "").trim()) { toast("Choisis d’abord ton pseudo."); renderProfile(); return null; }
+    return p;
   };
   document.getElementById("profileBtn").onclick = renderProfile;
-  document.getElementById("shopBtn").onclick = renderShop;
   document.getElementById("topShopBtn").onclick = renderShop;
-  document.getElementById("settingsBtn").onclick = () => toast("Réglages bientôt disponibles.");
-  document.getElementById("rewardsBtn").onclick = () => toast("Récompenses bientôt disponibles.");
-  document.getElementById("howToBtn").onclick = renderHowTo;
-  document.querySelectorAll('[data-nav]').forEach(btn => {
-    btn.onclick = () => {
-      const target = btn.dataset.nav;
-      if (target === 'home') return;
-      toast(target === 'rooms' ? 'Salons bientôt disponibles.' : target === 'ranking' ? 'Classement bientôt disponible.' : 'Amis bientôt disponibles.');
-    };
-  });
-
-  const betaTrigger = document.getElementById("betaAdminTrigger");
-  let adminTapCount = 0;
-  let adminTapTimer = null;
-  betaTrigger.onclick = () => {
-    adminTapCount += 1;
-    clearTimeout(adminTapTimer);
-    adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 2200);
-    if (adminTapCount >= 7) {
-      adminTapCount = 0;
-      clearTimeout(adminTapTimer);
-      openAdminCoinAccess();
-    }
+  document.getElementById("quickPlayBtn").onclick = () => {
+    if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
+    toast("Les parties rapides en ligne arrivent bientôt !");
   };
+  document.getElementById("createBtn").onclick = () => {
+    const p = ensureProfile(); if (!p) return;
+    socket.emit("room:create", { name:p.name.trim(), rounds:1, categoryCount:6, categoryDifficulty:"beginner", duration:60, avatar:p.icon, walletToken:session.walletToken }, res => {
+      if (!res?.ok) return toast(res?.error || "Impossible de créer le salon.");
+      if (res.walletToken) setWalletState(res.walletToken, res.balance);
+      saveSession(res.code, res.playerId); session.state=res.state; render();
+    });
+  };
+  const codeInput = document.getElementById("homeRoomCode");
+  codeInput.oninput = () => codeInput.value = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,5);
+  document.getElementById("joinBtn").onclick = () => {
+    const p = ensureProfile(); if (!p) return;
+    const code=codeInput.value.trim(); if (code.length !== 5) return toast("Entre le code à 5 caractères du salon.");
+    socket.emit("room:join", { code, name:p.name.trim(), avatar:p.icon, walletToken:session.walletToken }, res => {
+      if (!res?.ok) return toast(res?.error || "Impossible de rejoindre.");
+      if (res.walletToken) setWalletState(res.walletToken, res.balance);
+      saveSession(res.code,res.playerId); session.state=res.state; render();
+    });
+  };
+  document.getElementById("howToBtn").onclick = renderHowTo;
+  document.querySelectorAll('[data-nav]').forEach(btn => btn.onclick = () => {
+    const t=btn.dataset.nav; if(t==='home') return; if(t==='shop') return renderShop();
+    toast(t==='rewards' ? 'Récompenses bientôt disponibles.' : 'Amis bientôt disponibles.');
+  });
+  const betaTrigger=document.getElementById("betaAdminTrigger"); let adminTapCount=0,adminTapTimer=null;
+  betaTrigger.onclick=()=>{adminTapCount++;clearTimeout(adminTapTimer);adminTapTimer=setTimeout(()=>adminTapCount=0,2200);if(adminTapCount>=7){adminTapCount=0;clearTimeout(adminTapTimer);openAdminCoinAccess();}};
 }
 
 function openAdminCoinAccess() {
