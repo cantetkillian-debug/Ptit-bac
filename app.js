@@ -157,6 +157,27 @@ function setScreen(html) {
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
+
+function uiIcon(name, extraClass = "") {
+  const icons = {
+    settings: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.1 13.2c.05-.4.05-.8 0-1.2l2-1.55-2-3.45-2.45.98a7.4 7.4 0 0 0-1.05-.6L15.25 4h-4.5l-.35 3.38c-.37.17-.72.37-1.05.6L6.9 7l-2 3.45L6.9 12a6.7 6.7 0 0 0 0 1.2l-2 1.55 2 3.45 2.45-.98c.33.23.68.43 1.05.6l.35 3.38h4.5l.35-3.38c.37-.17.72-.37 1.05-.6l2.45.98 2-3.45-2-1.55Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`,
+    plus: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+    shop: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8.5h14l-1 11H6l-1-11Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 9V7a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+    gift: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4V10Zm-1-4h18v4H3V6Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v14M12 6c-1.3 0-4.2-.4-4.2-2.2C7.8 2.6 9 2 10 2c1.4 0 2 1.1 2 4Zm0 0c1.3 0 4.2-.4 4.2-2.2C16.2 2.6 15 2 14 2c-1.4 0-2 1.1-2 4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+    users: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M15.7 14.7a4.7 4.7 0 0 1 4.8 4.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+    bulb: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 15.5c-1.7-1.2-2.7-3-2.7-5a6.2 6.2 0 1 1 12.4 0c0 2-1 3.8-2.7 5-.7.5-1 1-1 1.7h-5c0-.7-.3-1.2-1-1.7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9.5 20h5M10 17.3h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+    home: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9h-5v-6H9v6H4v-9Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
+    game: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5.5 5.5 0 0 1 5.1 7.55l-.9 2.2a2.8 2.8 0 0 1-4.45 1.03L14.5 17h-5l-1.75 1.78a2.8 2.8 0 0 1-4.45-1.03l-.9-2.2A5.5 5.5 0 0 1 7.5 8Z" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M7 11v4M5 13h4M16.5 12.2h.01M18.6 14.1h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+    trophy: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v3.5c0 3.7-1.7 6.2-4 6.2s-4-2.5-4-6.2V4Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 6H4v1.5c0 3 1.7 4.6 4.5 4.6M16 6h4v1.5c0 3-1.7 4.6-4.5 4.6M12 14v4M8 20h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    chevron: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+  };
+  return `<span class="ui-icon ${extraClass}">${icons[name] || icons.chevron}</span>`;
+}
+
+function homeCoin(sizeClass = "") {
+  return `<span class="home-coin ${sizeClass}" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" opacity=".18"/><path d="M8.1 13.7h7.8M8.7 10.6l1.8 1.4 1.5-3 1.5 3 1.8-1.4-.8 5H9.5l-.8-5Z" fill="currentColor" stroke="currentColor" stroke-width=".7" stroke-linejoin="round"/></svg></span>`;
+}
+
 function renderHome() {
   if (session.state) return render();
   const profile = getProfile();
@@ -169,79 +190,83 @@ function renderHome() {
   }
 
   setScreen(`
-    <main class="screen home-mix-screen">
-      <div class="home-mix-glow home-mix-glow-a"></div>
-      <div class="home-mix-glow home-mix-glow-b"></div>
-      <div class="home-mix-letter home-mix-letter-left">${decorativeLetters[0]}</div>
-      <div class="home-mix-letter home-mix-letter-right">${decorativeLetters[1]}</div>
+    <main class="screen home-v129">
+      <section class="home-v129-hero">
+        <div class="home-v129-glow home-v129-glow-a"></div>
+        <div class="home-v129-glow home-v129-glow-b"></div>
+        <div class="home-v129-letter home-v129-letter-left">${decorativeLetters[0]}</div>
+        <div class="home-v129-letter home-v129-letter-right">${decorativeLetters[1]}</div>
 
-      <header class="home-mix-topbar">
-        <button class="home-mix-icon-btn" id="settingsBtn" aria-label="Réglages">⚙</button>
-        <button class="home-mix-wallet" id="topShopBtn" aria-label="Ouvrir la boutique">
-          <span class="home-mix-coin">♛</span>
-          <strong>${coins}</strong>
-          <span class="home-mix-wallet-plus">＋</span>
-        </button>
-      </header>
+        <header class="home-v129-topbar">
+          <button class="home-v129-settings" id="settingsBtn" aria-label="Réglages">${uiIcon("settings")}</button>
+          <button class="home-v129-wallet" id="topShopBtn" aria-label="Ouvrir la boutique">
+            ${homeCoin("home-coin-main")}
+            <strong>${coins}</strong>
+            <span class="home-v129-wallet-plus">${uiIcon("plus")}</span>
+          </button>
+        </header>
 
-      <section class="home-mix-hero">
-        <img src="petit-bac-logo.png" class="home-mix-logo" alt="P’tit Bac">
-        <p>Le jeu de mots qui rassemble<br>tout le monde !</p>
-        <span class="home-mix-underline"></span>
+        <div class="home-v129-brand">
+          <img src="petit-bac-logo.png" class="home-v129-logo" alt="P’tit Bac">
+          <p>Le jeu de mots qui rassemble<br>tout le monde !</p>
+          <span class="home-v129-underline"></span>
+        </div>
       </section>
 
-      <section class="home-mix-shortcuts">
-        <button class="home-mix-card shortcut-card" id="profileBtn">
-          <span class="home-mix-round-icon profile-icon">${escapeHtml(profile.icon)}</span>
-          <span class="home-mix-card-copy"><strong>Mon<br>profil</strong></span>
-          <span class="home-mix-arrow">›</span>
+      <section class="home-v129-content">
+        <div class="home-v129-shortcuts">
+          <button class="home-v129-mini-card" id="profileBtn">
+            <span class="home-v129-avatar">${escapeHtml(profile.icon)}</span>
+            <span class="home-v129-mini-copy"><strong>Mon profil</strong><small>${escapeHtml(profile.name || "Choisir un pseudo")}</small></span>
+            ${uiIcon("chevron", "home-v129-chevron")}
+          </button>
+
+          <button class="home-v129-mini-card shop" id="shopBtn">
+            <span class="home-v129-icon-tile amber">${uiIcon("shop")}</span>
+            <span class="home-v129-mini-copy"><strong>Boutique</strong><small>Pièces et avantages</small></span>
+            ${uiIcon("chevron", "home-v129-chevron")}
+          </button>
+        </div>
+
+        <button class="home-v129-row-card" id="rewardsBtn">
+          <span class="home-v129-icon-tile violet">${uiIcon("gift")}</span>
+          <span class="home-v129-row-copy"><strong>Récompenses</strong><small>Bientôt disponible</small></span>
+          ${uiIcon("chevron", "home-v129-chevron")}
         </button>
 
-        <button class="home-mix-card shortcut-card shop-card" id="shopBtn">
-          <span class="home-mix-round-icon shop-icon">🛍️</span>
-          <span class="home-mix-card-copy"><strong>Boutique</strong><small>Pièces et avantages</small></span>
-          <span class="home-mix-arrow">›</span>
+        <section class="home-v129-actions">
+          <button class="home-v129-action primary" id="createBtn" ${coins < GAME_COST ? 'disabled' : ''}>
+            <span class="home-v129-action-symbol">${uiIcon("plus")}</span>
+            <span class="home-v129-action-copy"><strong>Créer une partie</strong><small>Lance ton salon et défie tes amis</small></span>
+            <span class="home-v129-cost">${homeCoin("home-coin-xs")}<b>${GAME_COST}</b></span>
+            ${uiIcon("chevron", "home-v129-action-arrow")}
+          </button>
+
+          <button class="home-v129-action secondary" id="joinBtn" ${coins < GAME_COST ? 'disabled' : ''}>
+            <span class="home-v129-action-symbol soft">${uiIcon("users")}</span>
+            <span class="home-v129-action-copy"><strong>Rejoindre une partie</strong><small>Entre un code et rejoins la partie</small></span>
+            <span class="home-v129-cost dark">${homeCoin("home-coin-xs")}<b>${GAME_COST}</b></span>
+            ${uiIcon("chevron", "home-v129-action-arrow")}
+          </button>
+        </section>
+
+        ${coins < GAME_COST ? `<p class="home-v129-no-coins">Il te faut ${GAME_COST} pièces pour jouer.</p>` : ''}
+
+        <button class="home-v129-row-card home-v129-howto" id="howToBtn">
+          <span class="home-v129-icon-tile yellow">${uiIcon("bulb")}</span>
+          <span class="home-v129-row-copy"><strong>Comment jouer ?</strong><small>Règles simples et rapides</small></span>
+          ${uiIcon("chevron", "home-v129-chevron")}
         </button>
+
+        <footer class="home-v129-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
       </section>
 
-      <button class="home-mix-wide-card" id="rewardsBtn">
-        <span class="home-mix-square-icon">🎁</span>
-        <span><strong>Récompenses</strong><small>Bientôt disponible !</small></span>
-        <span class="home-mix-arrow">›</span>
-      </button>
-
-      <section class="home-mix-actions">
-        <button class="home-mix-action primary" id="createBtn" ${coins < GAME_COST ? 'disabled' : ''}>
-          <span class="home-mix-action-icon">＋</span>
-          <span class="home-mix-action-copy"><strong>Créer une partie</strong><small>Lance ton salon et défie tes amis !</small></span>
-          <span class="home-mix-cost"><span class="home-mix-cost-coin">♛</span>${GAME_COST}</span>
-          <span class="home-mix-action-arrow">›</span>
-        </button>
-
-        <button class="home-mix-action secondary" id="joinBtn" ${coins < GAME_COST ? 'disabled' : ''}>
-          <span class="home-mix-action-icon">👥</span>
-          <span class="home-mix-action-copy"><strong>Rejoindre une partie</strong><small>Entre un code et rejoins la partie !</small></span>
-          <span class="home-mix-cost"><span class="home-mix-cost-coin">♛</span>${GAME_COST}</span>
-          <span class="home-mix-action-arrow">›</span>
-        </button>
-      </section>
-
-      ${coins < GAME_COST ? `<p class="home-mix-no-coins">Il te faut ${GAME_COST} pièces pour jouer.</p>` : ''}
-
-      <button class="home-mix-wide-card home-mix-howto" id="howToBtn">
-        <span class="home-mix-square-icon howto-icon">💡</span>
-        <span><strong>Comment jouer ?</strong><small>Règles simples et rapides</small></span>
-        <span class="home-mix-arrow">›</span>
-      </button>
-
-      <nav class="home-mix-nav" aria-label="Navigation principale">
-        <button class="active" data-nav="home"><span>⌂</span><small>Accueil</small></button>
-        <button data-nav="rooms"><span>🎮</span><small>Salons</small></button>
-        <button data-nav="ranking"><span>🏆</span><small>Classement</small></button>
-        <button data-nav="friends"><span>👥</span><small>Amis</small></button>
+      <nav class="home-v129-nav" aria-label="Navigation principale">
+        <button class="active" data-nav="home">${uiIcon("home")}<small>Accueil</small></button>
+        <button data-nav="rooms">${uiIcon("game")}<small>Salons</small></button>
+        <button data-nav="ranking">${uiIcon("trophy")}<small>Classement</small></button>
+        <button data-nav="friends">${uiIcon("users")}<small>Amis</small></button>
       </nav>
-
-      <footer class="home-mix-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
     </main>
   `);
 
