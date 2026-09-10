@@ -89,6 +89,8 @@ function publicRoom(room) {
     phase: room.phase,
     players: room.players.map(publicPlayer),
     categories: room.categories,
+    rounds: room.rounds,
+    duration: room.duration,
     letters: room.letters,
     roundIndex: room.roundIndex,
     currentLetter: room.roundIndex >= 0 ? room.letters[room.roundIndex] : null,
@@ -209,7 +211,7 @@ function finalizeRound(room) {
   });
 
   room.lastRoundScores = scores;
-  room.phase = "finished";
+  room.phase = room.roundIndex + 1 < room.rounds ? "scoreboard" : "finished";
   room.roundEndsAt = null;
   room.validation = null;
   emitRoom(room);
@@ -239,7 +241,7 @@ function endRound(room) {
 function startRound(room) {
   room.roundIndex += 1;
   room.phase = "round";
-  room.roundEndsAt = Date.now() + 60_000;
+  room.roundEndsAt = Date.now() + room.duration * 1000;
   room.validation = null;
   room.lastRoundScores = {};
   room.players.forEach(p => {
@@ -255,7 +257,7 @@ function startRound(room) {
     if (current && current.phase === "round" && current.roundIndex === thisRound) {
       endRound(current);
     }
-  }, 60_300);
+  }, room.duration * 1000 + 300);
 }
 
 
@@ -304,8 +306,10 @@ function playBots(room) {
 }
 
 io.on("connection", socket => {
-  socket.on("room:create", ({ name }, cb = () => {}) => {
+  socket.on("room:create", ({ name, rounds, duration }, cb = () => {}) => {
     const safeName = cleanName(name);
+    const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
+    const safeDuration = [30, 60].includes(Number(duration)) ? Number(duration) : 60;
     if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
 
     const code = roomCode();
@@ -326,7 +330,9 @@ io.on("connection", socket => {
       phase: "lobby",
       players: [player],
       categories: sample(CATEGORIES, 6),
-      letters: sample(LETTERS, 1),
+      rounds: safeRounds,
+      duration: safeDuration,
+      letters: sample(LETTERS, safeRounds),
       roundIndex: -1,
       roundEndsAt: null,
       validation: null,
@@ -493,6 +499,7 @@ io.on("connection", socket => {
   socket.on("game:nextRound", payload => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "scoreboard") return;
+    if (room.roundIndex + 1 >= room.rounds) return;
     startRound(room);
   });
 
@@ -502,7 +509,7 @@ io.on("connection", socket => {
 
     room.phase = "lobby";
     room.categories = sample(CATEGORIES, 6);
-    room.letters = sample(LETTERS, 1);
+    room.letters = sample(LETTERS, room.rounds);
     room.roundIndex = -1;
     room.roundEndsAt = null;
     room.validation = null;

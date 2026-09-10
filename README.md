@@ -4,14 +4,16 @@ Site multijoueur mobile inspiré de la maquette fournie.
 
 ## Règles intégrées
 
-- 5 manches.
-- 60 secondes par manche.
-- 6 catégories tirées aléatoirement parmi 12 au début.
-- Les 6 catégories restent identiques pendant les 5 manches.
-- Une nouvelle lettre est tirée à chaque manche.
+- L’hôte choisit **1, 3 ou 5 manches** à la création du salon.
+- L’hôte choisit **30 ou 60 secondes par manche**.
+- 6 catégories sont tirées aléatoirement au début de la partie.
+- Les 6 mêmes catégories restent identiques pendant toutes les manches.
+- Chaque manche utilise une **lettre différente**.
 - 1 point seulement si la réponse est **valide ET unique**.
 - Doublon, mauvaise lettre, réponse vide ou réponse invalide = 0.
-- Score maximum : 30 points.
+- Le score est **cumulé** d’une manche à l’autre.
+- Après chaque manche intermédiaire, l’hôte lance la manche suivante.
+- Le classement final n’apparaît qu’après la dernière manche.
 
 ### Les 12 catégories
 
@@ -119,12 +121,14 @@ petit-bac-iphone/
 Sur GitHub mobile, importe les fichiers décompressés eux-mêmes, pas le ZIP.
 
 
-## Version 2
+## Version 1.15 — Multimanches
 
 Modifications :
-- Lobby / salon entièrement retravaillé pour mobile.
-- Aperçu des 6 catégories dans le salon.
-- Bouton hôte « Ajouter un bot test ».
-- Le bot remplit automatiquement ses réponses et valide sa manche.
-- Le jeu comporte désormais 1 seule manche de 60 secondes.
-- Score maximum : 6 points.
+- Les choix 1 / 3 / 5 manches sont maintenant réellement appliqués par le serveur.
+- Les choix 30 s / 60 s contrôlent réellement le chrono de chaque manche.
+- Le lobby affiche les paramètres sélectionnés.
+- L’écran de jeu affiche `Manche X/Y`.
+- Les lettres sont différentes à chaque manche.
+- Les scores sont cumulés jusqu’à la dernière manche.
+- Le bot test rejoue automatiquement à chaque manche.
+- « Refaire une partie » conserve les réglages du salon et génère de nouvelles catégories / lettres.

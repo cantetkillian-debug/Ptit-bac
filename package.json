@@ -2,7 +2,7 @@
   "name": "petit-bac-soiree",
   "version": "1.0.0",
   "private": true,
-  "description": "Petit Bac multijoueur mobile - 5 manches, 6 catégories fixes, 60 secondes.",
+  "description": "P'tit Bac multijoueur mobile - 1, 3 ou 5 manches, 6 catégories fixes, 30 ou 60 secondes.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

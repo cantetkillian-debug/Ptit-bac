@@ -261,6 +261,7 @@ function statIcon(type) {
 
 function renderLobby() {
   clearInterval(session.timerHandle);
+  session.localAnswers = {};
   const state = session.state;
   const user = me();
   const hasBot = state.players.some(p => p.isBot);
@@ -305,11 +306,11 @@ function renderLobby() {
         </div>
         <div class="ref-stat-card">
           <span class="ref-stat-icon">${statIcon("round")}</span>
-          <div><strong>1</strong><span>manche</span></div>
+          <div><strong>${state.rounds}</strong><span>manche${state.rounds > 1 ? "s" : ""}</span></div>
         </div>
         <div class="ref-stat-card">
           <span class="ref-stat-icon">${statIcon("timer")}</span>
-          <div><strong>60s</strong><span>chrono</span></div>
+          <div><strong>${state.duration}s</strong><span>chrono</span></div>
         </div>
       </section>
 
@@ -425,12 +426,12 @@ function renderRound() {
   setScreen(`
     <main class="screen">
       <div class="game-top">
-        <span class="round-chip">Manche ${state.roundIndex + 1}/1</span>
+        <span class="round-chip">Manche ${state.roundIndex + 1}/${state.rounds}</span>
         <span class="game-sound">🔊</span>
       </div>
 
       <div class="letter-card">
-        <div class="timer-ring"><span class="timer" id="timer">60</span></div>
+        <div class="timer-ring"><span class="timer" id="timer">${state.duration}</span></div>
         <div class="letter-label">Lettre</div>
         <div class="letter">${escapeHtml(letter)}</div>
         <p class="game-instruction">Trouve un mot pour chaque catégorie !</p>
@@ -482,7 +483,7 @@ function renderRoundWaiting() {
   setScreen(`
     <main class="screen">
       <div class="game-top">
-        <span class="round-chip">Manche ${state.roundIndex + 1}/1</span>
+        <span class="round-chip">Manche ${state.roundIndex + 1}/${state.rounds}</span>
         <span class="timer" id="timer">—</span>
       </div>
       <div class="letter-card">
@@ -587,11 +588,11 @@ function renderScoreboard() {
     <main class="screen">
       <div class="brand" style="margin-bottom:26px">P'tit Bac</div>
       <h1 style="font-size:3rem">Classement</h1>
-      <p class="subtitle">Manche ${state.roundIndex + 1} terminée.</p>
+      <p class="subtitle">Manche ${state.roundIndex + 1}/${state.rounds} terminée.</p>
       <div class="scoreboard">${rows}</div>
 
       ${user?.isHost
-        ? `<button class="btn btn-primary" id="nextRound">Manche suivante</button>`
+        ? `<button class="btn btn-primary" id="nextRound">Manche suivante →</button>`
         : `<div class="wait-card"><div class="spinner"></div><h3>En attente de l’hôte</h3></div>`
       }
 
@@ -640,7 +641,7 @@ function renderFinished() {
       <header class="final-header">
         <div class="winner-emoji">👑</div>
         <h1>Partie terminée !</h1>
-        <p>Bravo à tous !</p>
+        <p>${state.rounds} manche${state.rounds > 1 ? "s" : ""} terminée${state.rounds > 1 ? "s" : ""} · Bravo à tous !</p>
       </header>
 
       <section class="podium">${podium}</section>
