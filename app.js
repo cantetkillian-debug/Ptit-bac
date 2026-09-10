@@ -694,39 +694,55 @@ function renderRound() {
     const key = answerKey(category);
     const value = session.localAnswers[key] || "";
     return `
-      <div class="answer-card">
-        <label><span class="answer-icon">${categoryIcon(category)}</span>${escapeHtml(category)}</label>
-        <input
-          class="answer-input"
-          data-category="${escapeHtml(category)}"
-          maxlength="60"
-          autocomplete="off"
-          autocapitalize="words"
-          placeholder="${letter}..."
-          value="${escapeHtml(value)}"
-        />
+      <div class="play-answer-row">
+        <div class="play-answer-label">
+          <span class="play-answer-icon">${categoryIcon(category)}</span>
+          <strong>${escapeHtml(category)}</strong>
+        </div>
+        <div class="play-input-wrap">
+          <input
+            class="answer-input play-answer-input"
+            data-category="${escapeHtml(category)}"
+            maxlength="60"
+            autocomplete="off"
+            autocapitalize="words"
+            placeholder="${letter}..."
+            value="${escapeHtml(value)}"
+          />
+          <button type="button" class="play-clear-answer" data-clear-category="${escapeHtml(category)}" aria-label="Effacer la réponse">×</button>
+        </div>
       </div>
     `;
   }).join("");
 
   setScreen(`
-    <main class="screen">
-      <div class="game-top">
-        <span class="round-chip">Manche ${state.roundIndex + 1}/${state.rounds}</span>
-        <span class="game-sound">🔊</span>
-      </div>
+    <main class="screen play-screen">
+      <div class="play-bg-letter play-bg-letter-left">${escapeHtml(String.fromCharCode(65 + ((state.roundIndex + 7) % 26)))}</div>
+      <div class="play-bg-letter play-bg-letter-right-top">${escapeHtml(String.fromCharCode(65 + ((state.roundIndex + 12) % 26)))}</div>
+      <div class="play-bg-letter play-bg-letter-right-bottom">${escapeHtml(String.fromCharCode(65 + ((state.roundIndex + 16) % 26)))}</div>
 
-      <div class="letter-card">
-        <div class="timer-ring"><span class="timer" id="timer">${state.duration}</span></div>
-        <div class="letter-label">Lettre</div>
-        <div class="letter">${escapeHtml(letter)}</div>
-        <p class="game-instruction">Trouve un mot pour chaque catégorie !</p>
-      </div>
+      <header class="play-header">
+        <button class="play-back" id="leaveGameBtn" type="button" aria-label="Quitter la partie">‹</button>
+        <img class="play-logo" src="./petit-bac-logo.png" alt="P’tit Bac" />
+        <div class="play-round-badge">Manche <b>${state.roundIndex + 1}/${state.rounds}</b></div>
+      </header>
 
-      <div class="answer-list">${fields}</div>
+      <section class="play-hero">
+        <div class="play-timer-ring" id="timerRing" style="--progress:100%">
+          <div class="play-timer-inner">
+            <strong id="timer">${state.duration}</strong>
+            <span>secondes</span>
+          </div>
+        </div>
+        <div class="play-letter-label">Lettre</div>
+        <div class="play-letter-box"><span>${escapeHtml(letter)}</span></div>
+        <p class="play-instruction">Trouve un mot pour chaque catégorie !</p>
+      </section>
 
-      <div class="sticky-action">
-        <button class="btn btn-primary" id="submitRound">✓ Valider mes réponses</button>
+      <div class="play-answer-list">${fields}</div>
+
+      <div class="play-sticky-action">
+        <button class="btn btn-primary play-submit" id="submitRound"><span>➤</span> Valider mes réponses</button>
       </div>
     </main>
   `);
@@ -745,6 +761,31 @@ function renderRound() {
     });
   });
 
+  document.querySelectorAll("[data-clear-category]").forEach(btn => {
+    btn.onclick = () => {
+      const category = btn.dataset.clearCategory;
+      const input = document.querySelector(`.answer-input[data-category="${CSS.escape(category)}"]`);
+      if (!input) return;
+      input.value = "";
+      const key = answerKey(category);
+      session.localAnswers[key] = "";
+      socket.emit("answer:update", {
+        code: state.code,
+        playerId: session.playerId,
+        category,
+        value: ""
+      });
+      input.focus();
+    };
+  });
+
+  document.getElementById("leaveGameBtn").onclick = () => {
+    if (!confirm("Quitter la partie en cours ?")) return;
+    socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+    clearSession();
+    renderHome();
+  };
+
   document.getElementById("submitRound").onclick = () => {
     document.getElementById("submitRound").disabled = true;
     socket.emit("round:submit", { code: state.code, playerId: session.playerId });
@@ -752,10 +793,15 @@ function renderRound() {
 
   const tick = () => {
     const timer = document.getElementById("timer");
+    const ring = document.getElementById("timerRing");
     if (!timer) return;
     const seconds = Math.max(0, Math.ceil((state.roundEndsAt - Date.now()) / 1000));
     timer.textContent = String(seconds);
-    timer.classList.toggle("danger", seconds <= 10);
+    const progress = state.duration > 0 ? Math.max(0, Math.min(100, (seconds / state.duration) * 100)) : 0;
+    if (ring) {
+      ring.style.setProperty("--progress", `${progress}%`);
+      ring.classList.toggle("danger", seconds <= 10);
+    }
     if (seconds <= 0) {
       document.querySelectorAll("input, button").forEach(el => el.disabled = true);
     }
