@@ -153,70 +153,85 @@ function renderHome() {
   const coins = getCoins();
   const decorativePool = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
   const decorativeLetters = [];
-  while (decorativeLetters.length < 3) {
+  while (decorativeLetters.length < 2) {
     const i = Math.floor(Math.random() * decorativePool.length);
     decorativeLetters.push(decorativePool.splice(i, 1)[0]);
   }
 
   setScreen(`
-    <main class="screen home-v2-screen">
-      <div class="home-v2-blob home-v2-blob-a"></div>
-      <div class="home-v2-blob home-v2-blob-b"></div>
-      <div class="home-v2-blob home-v2-blob-c"></div>
-      <div class="home-v2-letter home-v2-a">${decorativeLetters[0]}</div>
-      <div class="home-v2-letter home-v2-b">${decorativeLetters[1]}</div>
-      <div class="home-v2-letter home-v2-c">${decorativeLetters[2]}</div>
+    <main class="screen home-mix-screen">
+      <div class="home-mix-glow home-mix-glow-a"></div>
+      <div class="home-mix-glow home-mix-glow-b"></div>
+      <div class="home-mix-letter home-mix-letter-left">${decorativeLetters[0]}</div>
+      <div class="home-mix-letter home-mix-letter-right">${decorativeLetters[1]}</div>
 
-      <section class="home-v2-hero home-v2-hero-clean">
-        <img src="petit-bac-logo.png" class="home-v2-logo" alt="P’tit Bac">
+      <header class="home-mix-topbar">
+        <button class="home-mix-icon-btn" id="settingsBtn" aria-label="Réglages">⚙</button>
+        <button class="home-mix-wallet" id="topShopBtn" aria-label="Ouvrir la boutique">
+          <span class="home-mix-coin">♛</span>
+          <strong>${coins}</strong>
+          <span class="home-mix-wallet-plus">＋</span>
+        </button>
+      </header>
+
+      <section class="home-mix-hero">
+        <img src="petit-bac-logo.png" class="home-mix-logo" alt="P’tit Bac">
         <p>Le jeu de mots qui rassemble<br>tout le monde !</p>
-        <span class="home-v2-underline"></span>
+        <span class="home-mix-underline"></span>
       </section>
 
-      <section class="home-v2-dashboard home-v2-dashboard-compact">
-        <button class="home-v2-panel home-v2-panel-compact profile-panel" id="profileBtn">
-          <span class="home-v2-avatar home-v2-avatar-large">${escapeHtml(profile.icon)}</span>
-          <strong>Mon profil</strong>
-          <span class="home-v2-chevron home-v2-chevron-center">›</span>
+      <section class="home-mix-shortcuts">
+        <button class="home-mix-card shortcut-card" id="profileBtn">
+          <span class="home-mix-round-icon profile-icon">${escapeHtml(profile.icon)}</span>
+          <span class="home-mix-card-copy"><strong>Mon<br>profil</strong></span>
+          <span class="home-mix-arrow">›</span>
         </button>
 
-        <button class="home-v2-panel home-v2-panel-compact coin-panel" id="coinsBtn">
-          <span class="coin-medal home-v2-main-coin">👑</span>
-          <span class="home-v2-coin-copy"><strong>Mes pièces</strong><b>${coins}</b></span>
-          <span class="home-v2-chevron home-v2-chevron-center">›</span>
+        <button class="home-mix-card shortcut-card shop-card" id="shopBtn">
+          <span class="home-mix-round-icon shop-icon">🛍️</span>
+          <span class="home-mix-card-copy"><strong>Boutique</strong><small>Pièces et avantages</small></span>
+          <span class="home-mix-arrow">›</span>
         </button>
       </section>
 
-      <button class="home-v2-category-card home-v2-rewards-card" id="rewardsBtn">
-        <span class="home-v2-category-icon home-v2-rewards-icon">🎁</span>
+      <button class="home-mix-wide-card" id="rewardsBtn">
+        <span class="home-mix-square-icon">🎁</span>
         <span><strong>Récompenses</strong><small>Bientôt disponible !</small></span>
-        <span>›</span>
+        <span class="home-mix-arrow">›</span>
       </button>
 
-      <section class="home-v2-actions">
-        <button class="home-v2-action primary" id="createBtn" ${coins < GAME_COST ? 'disabled' : ''}>
-          <span class="action-symbol">＋</span>
-          <span class="action-label">Créer une partie</span>
-          <span class="cost-pill"><span class="mini-coin">👑</span>${GAME_COST}</span>
-          <span class="action-arrow">›</span>
+      <section class="home-mix-actions">
+        <button class="home-mix-action primary" id="createBtn" ${coins < GAME_COST ? 'disabled' : ''}>
+          <span class="home-mix-action-icon">＋</span>
+          <span class="home-mix-action-copy"><strong>Créer une partie</strong><small>Lance ton salon et défie tes amis !</small></span>
+          <span class="home-mix-cost"><span class="home-mix-cost-coin">♛</span>${GAME_COST}</span>
+          <span class="home-mix-action-arrow">›</span>
         </button>
-        <button class="home-v2-action secondary" id="joinBtn" ${coins < GAME_COST ? 'disabled' : ''}>
-          <span class="action-symbol">👥</span>
-          <span class="action-label">Rejoindre une partie</span>
-          <span class="cost-pill"><span class="mini-coin">👑</span>${GAME_COST}</span>
-          <span class="action-arrow">›</span>
+
+        <button class="home-mix-action secondary" id="joinBtn" ${coins < GAME_COST ? 'disabled' : ''}>
+          <span class="home-mix-action-icon">👥</span>
+          <span class="home-mix-action-copy"><strong>Rejoindre une partie</strong><small>Entre un code et rejoins la partie !</small></span>
+          <span class="home-mix-cost"><span class="home-mix-cost-coin">♛</span>${GAME_COST}</span>
+          <span class="home-mix-action-arrow">›</span>
         </button>
       </section>
 
-      ${coins < GAME_COST ? `<p class="home-v2-no-coins">Il te faut ${GAME_COST} pièces pour jouer.</p>` : ''}
+      ${coins < GAME_COST ? `<p class="home-mix-no-coins">Il te faut ${GAME_COST} pièces pour jouer.</p>` : ''}
 
-      <button class="home-v2-howto" id="howToBtn">
-        <span>💡</span>
+      <button class="home-mix-wide-card home-mix-howto" id="howToBtn">
+        <span class="home-mix-square-icon howto-icon">💡</span>
         <span><strong>Comment jouer ?</strong><small>Règles simples et rapides</small></span>
-        <span>›</span>
+        <span class="home-mix-arrow">›</span>
       </button>
 
-      <footer class="home-v2-footer home-v2-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
+      <nav class="home-mix-nav" aria-label="Navigation principale">
+        <button class="active" data-nav="home"><span>⌂</span><small>Accueil</small></button>
+        <button data-nav="rooms"><span>🎮</span><small>Salons</small></button>
+        <button data-nav="ranking"><span>🏆</span><small>Classement</small></button>
+        <button data-nav="friends"><span>👥</span><small>Amis</small></button>
+      </nav>
+
+      <footer class="home-mix-beta" id="betaAdminTrigger" title="Version bêta">Version bêta</footer>
     </main>
   `);
 
@@ -229,12 +244,19 @@ function renderHome() {
     renderJoinForm();
   };
   document.getElementById("profileBtn").onclick = renderProfile;
-  document.getElementById("coinsBtn").onclick = renderCoins;
+  document.getElementById("shopBtn").onclick = renderShop;
+  document.getElementById("topShopBtn").onclick = renderShop;
+  document.getElementById("settingsBtn").onclick = () => toast("Réglages bientôt disponibles.");
   document.getElementById("rewardsBtn").onclick = () => toast("Récompenses bientôt disponibles.");
   document.getElementById("howToBtn").onclick = renderHowTo;
+  document.querySelectorAll('[data-nav]').forEach(btn => {
+    btn.onclick = () => {
+      const target = btn.dataset.nav;
+      if (target === 'home') return;
+      toast(target === 'rooms' ? 'Salons bientôt disponibles.' : target === 'ranking' ? 'Classement bientôt disponible.' : 'Amis bientôt disponibles.');
+    };
+  });
 
-  // Menu admin caché : 7 pressions rapides sur « Version bêta ».
-  // Il agit uniquement sur les pièces stockées dans ce navigateur/appareil.
   const betaTrigger = document.getElementById("betaAdminTrigger");
   let adminTapCount = 0;
   let adminTapTimer = null;
@@ -366,23 +388,76 @@ function renderProfile() {
   document.getElementById('backHome').onclick = renderHome;
 }
 
-function renderCoins() {
+function renderShop() {
   const coins = getCoins();
   setScreen(`
-    <main class="screen utility-screen">
-      <button class="utility-back" id="backHome">←</button>
-      <img src="petit-bac-logo.png" class="utility-logo" alt="P’tit Bac">
-      <div class="utility-heading"><h1>Mes pièces</h1><p>Les pièces servent à créer ou rejoindre une partie.</p></div>
-      <section class="utility-card coins-screen-card">
-        <div class="big-coin">👑</div>
-        <div class="coin-total">${coins}</div>
-        <div class="coin-caption">pièce${coins > 1 ? 's' : ''} disponible${coins > 1 ? 's' : ''}</div>
-        <div class="coin-rule"><span>🎮</span><div><strong>Une partie = ${GAME_COST} pièces</strong><small>Les 5 pièces sont débitées au lancement réel de la partie.</small></div></div>
+    <main class="screen shop-screen">
+      <header class="shop-topbar">
+        <button class="utility-back shop-back" id="backHome">←</button>
+        <img src="petit-bac-logo.png" class="shop-logo" alt="P’tit Bac">
+        <div class="shop-wallet"><span class="home-mix-coin">♛</span><strong>${coins}</strong></div>
+      </header>
+
+      <div class="shop-heading">
+        <h1>Boutique</h1>
+        <p>Gagne des pièces, débloque des avantages et profite encore plus du jeu !</p>
+      </div>
+
+      <section class="shop-reward-card">
+        <div class="shop-badge">GRATUIT</div>
+        <div class="shop-reward-icon">🎬</div>
+        <div class="shop-reward-copy">
+          <h2>Pub récompensée</h2>
+          <p>Regarde une courte publicité et reçois <strong>10 pièces</strong>.</p>
+          <div class="shop-reward-value"><span class="home-mix-coin">♛</span><b>+10</b></div>
+        </div>
+        <button class="shop-reward-btn" id="rewardAdBtn">▶ <span>Regarder<br>une pub</span></button>
       </section>
+
+      <div class="shop-section-title"><h2>Packs de pièces</h2><p>Pour participer à encore plus de parties.</p></div>
+      <section class="shop-pack-grid">
+        <article class="shop-pack-card">
+          <div class="shop-coins-art">🪙🪙🪙</div>
+          <small>Petit pack</small>
+          <h3>25 pièces</h3>
+          <p>Parfait pour commencer !</p>
+          <button class="shop-buy-btn" data-product="25">0,99 €</button>
+        </article>
+        <article class="shop-pack-card popular">
+          <span class="popular-label">LE PLUS POPULAIRE</span>
+          <div class="shop-coins-art">🪙🪙🪙🪙</div>
+          <small>Gros pack</small>
+          <h3>100 pièces</h3>
+          <p>Joue encore plus longtemps !</p>
+          <button class="shop-buy-btn" data-product="100">2,99 €</button>
+        </article>
+      </section>
+
+      <div class="shop-section-title"><h2>Pack Sans Pub</h2><p>Profite du jeu sans interruption.</p></div>
+      <section class="shop-noads-card">
+        <span class="best-label">MEILLEURE OFFRE</span>
+        <div class="shop-noads-art">🚫</div>
+        <div class="shop-noads-copy">
+          <h2>Sans pub à vie</h2>
+          <p>✓ Aucune publicité automatique</p>
+          <p>✓ Pub récompensée toujours disponible si tu le souhaites</p>
+          <p>✓ <strong>+100 pièces offertes</strong></p>
+        </div>
+        <button class="shop-noads-btn" data-product="noads">4,99 €</button>
+      </section>
+
+      <div class="shop-info">ⓘ Les pièces servent à participer aux parties : <strong>${GAME_COST} pièces par partie</strong>.</div>
     </main>
   `);
+
   document.getElementById('backHome').onclick = renderHome;
+  document.getElementById('rewardAdBtn').onclick = () => toast('Les pubs récompensées seront activées dans l’application mobile.');
+  document.querySelectorAll('[data-product]').forEach(btn => {
+    btn.onclick = () => toast('Les achats seront activés avec les achats intégrés Apple.');
+  });
 }
+
+function renderCoins() { renderShop(); }
 
 function renderCategoriesInfo() {
   const categories = Object.keys(CATEGORY_ICONS);
