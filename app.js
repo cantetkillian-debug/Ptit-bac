@@ -15,7 +15,6 @@ const session = {
 
 const GAME_COST = 5;
 const DEFAULT_COINS = 25;
-const ADMIN_COIN_CODE = "PTITBAC-ADMIN"; // mode test local, pas une sécurité serveur
 const PROFILE_ICONS = ["🐼","🦊","🐯","🐸","🦁","🐨","🐙","🦄","🤖","😎","🧠","⭐"];
 const LETTER_WHEEL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -269,10 +268,6 @@ function renderHome() {
 function openAdminCoinAccess() {
   const code = window.prompt("Code administrateur");
   if (code === null) return;
-  if (code.trim() !== ADMIN_COIN_CODE) {
-    toast("Code administrateur incorrect.");
-    return;
-  }
   session.adminCoinCode = code.trim();
   renderAdminCoins();
 }
@@ -526,6 +521,7 @@ function renderNameForm(mode) {
           <div class="choice-grid time-grid" id="timeChoices">
             <button type="button" class="choice-btn time-choice selected" data-value="30"><span class="choice-icon lightning">⚡</span><span>30 secondes</span></button>
             <button type="button" class="choice-btn time-choice" data-value="60"><span class="choice-icon clock">◴</span><span>60 secondes</span></button>
+            <button type="button" class="choice-btn time-choice" data-value="90"><span class="choice-icon clock">◴</span><span>1 min 30</span></button>
           </div>
         </fieldset>
 
@@ -1273,32 +1269,45 @@ function renderRoundWaiting() {
 
 function renderValidation() {
   const state = session.state;
+  const user = me();
   const validation = state.validation || {};
   const total = Number(validation.total || 0);
   const checked = Math.min(total, Number(validation.checked || 0));
   const complete = validation.status === "complete";
+  const unavailable = validation.status === "unavailable";
   const percent = total ? Math.max(8, Math.round((checked / total) * 100)) : 100;
+  const errorMessage = validation.error?.code === "not_configured"
+    ? "La clé OpenAI n’est pas configurée sur le serveur."
+    : "La vérification IA est temporairement indisponible. Aucun point ne sera perdu : la manche reste en attente.";
 
   setScreen(`
     <main class="screen center-screen validation-screen validation-auto-v131">
       <div class="validation-auto-blob validation-auto-blob-a"></div>
       <div class="validation-auto-blob validation-auto-blob-b"></div>
-      <section class="auto-review-card">
+      <section class="auto-review-card ${unavailable ? "is-unavailable" : ""}">
         <img src="petit-bac-logo.png" class="validation-logo" alt="P’tit Bac">
-        <div class="auto-review-icon ${complete ? "done" : ""}">
-          ${complete ? "✓" : '<span class="auto-review-spinner"></span>'}
+        <div class="auto-review-icon ${complete ? "done" : unavailable ? "unavailable" : ""}">
+          ${complete ? "✓" : unavailable ? "!" : '<span class="auto-review-spinner"></span>'}
         </div>
-        <div class="auto-review-kicker">${complete ? "Vérification terminée" : "Vérification automatique"}</div>
-        <h2>${complete ? "C’est bon !" : "On vérifie les réponses…"}</h2>
+        <div class="auto-review-kicker">${complete ? "Vérification terminée" : unavailable ? "Vérification en pause" : "Vérification automatique"}</div>
+        <h2>${complete ? "C’est bon !" : unavailable ? "Impossible de vérifier pour le moment" : "On vérifie les réponses…"}</h2>
         <p>${complete
           ? "Les points de cette manche sont en cours de calcul."
-          : `Le jeu contrôle automatiquement les réponses pour la lettre <strong>${escapeHtml(state.currentLetter || "")}</strong>.`}
+          : unavailable
+            ? errorMessage
+            : `Le jeu contrôle automatiquement les réponses pour la lettre <strong>${escapeHtml(state.currentLetter || "")}</strong>.`}
         </p>
 
         <div class="auto-validation-progress" aria-label="Progression de la vérification">
-          <div class="auto-validation-progress-fill ${complete ? "done" : ""}" style="width:${complete ? 100 : percent}%"></div>
+          <div class="auto-validation-progress-fill ${complete ? "done" : unavailable ? "paused" : ""}" style="width:${complete ? 100 : percent}%"></div>
         </div>
-        <div class="auto-validation-count">${complete ? "Terminé" : `${checked} / ${total} réponses analysées`}</div>
+        <div class="auto-validation-count">${complete ? "Terminé" : unavailable ? `${checked} / ${total} réponses vérifiées avant la pause` : `${checked} / ${total} réponses analysées`}</div>
+
+        ${unavailable && user?.isHost
+          ? `<button class="btn btn-primary validation-retry-btn" id="retryValidationBtn" type="button">↻ Réessayer la vérification</button>`
+          : unavailable
+            ? `<div class="validation-retry-wait">En attente de l’hôte pour réessayer.</div>`
+            : ""}
 
         <div class="auto-check-grid">
           <div class="auto-check-item"><span>✓</span><div><strong>Lettre</strong><small>Mauvaise lettre = 0</small></div></div>
@@ -1306,9 +1315,13 @@ function renderValidation() {
           <div class="auto-check-item"><span>✦</span><div><strong>Catégorie</strong><small>Le sens de la réponse est vérifié</small></div></div>
         </div>
       </section>
-      <div class="auto-validation-note">Aucune validation manuelle n’est nécessaire.</div>
+      <div class="auto-validation-note">${unavailable ? "La manche ne sera pas comptée tant que la vérification n’a pas abouti." : "Aucune validation manuelle n’est nécessaire."}</div>
     </main>
   `);
+
+  document.getElementById("retryValidationBtn")?.addEventListener("click", () => {
+    socket.emit("validation:retry", { code: state.code, playerId: session.playerId });
+  });
 }
 
 function rankedPlayers() {

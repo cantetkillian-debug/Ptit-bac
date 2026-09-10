@@ -4,12 +4,14 @@ const path = require("path");
 const crypto = require("crypto");
 const fs = require("fs");
 const { Server } = require("socket.io");
+const { Pool } = require("pg");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
+const SOCKET_CORS_ORIGIN = String(process.env.SOCKET_CORS_ORIGIN || "").trim();
+const io = new Server(server, SOCKET_CORS_ORIGIN
+  ? { cors: { origin: SOCKET_CORS_ORIGIN.split(",").map(v => v.trim()).filter(Boolean) } }
+  : {});
 
 const PORT = process.env.PORT || 3000;
 app.use(express.static(__dirname));
@@ -18,8 +20,12 @@ const GAME_COST = 5;
 const LETTER_REROLL_COST = 10;
 const CATEGORY_REROLL_COST = 10;
 const DEFAULT_COINS = 25;
-const ADMIN_COIN_CODE = process.env.PTITBAC_ADMIN_CODE || "PTITBAC-ADMIN";
-const WALLET_FILE = path.join(__dirname, "wallets.json");
+const ADMIN_COIN_CODE = String(process.env.PTITBAC_ADMIN_CODE || "").trim();
+const WALLET_FILE = process.env.PTITBAC_WALLET_FILE
+  ? path.resolve(process.env.PTITBAC_WALLET_FILE)
+  : path.join(__dirname, "wallets.json");
+const DATABASE_URL = String(process.env.DATABASE_URL || "").trim();
+const VALIDATION_ENGINE_VERSION = "v2.1.0";
 
 // Validation automatique des réponses.
 // Sur Render, ajoute OPENAI_API_KEY dans Environment pour activer la vérification sémantique.
@@ -30,34 +36,114 @@ const OPENAI_VALIDATION_WEB_SEARCH = String(process.env.OPENAI_VALIDATION_WEB_SE
 const AUTO_VALIDATION_TIMEOUT_MS = Math.max(8000, Number(process.env.AUTO_VALIDATION_TIMEOUT_MS) || 30000);
 const VALIDATION_CACHE_FILE = path.join(__dirname, "validation-cache-v2.json");
 const validationCache = new Map();
+const validationServiceState = {
+  lastSuccessAt: null,
+  lastErrorAt: null,
+  lastErrorStatus: null,
+  lastErrorCode: "",
+  lastErrorMessage: ""
+};
 
 const wallets = new Map();
+let pgPool = null;
+let walletStorageMode = "json";
 
-function loadWallets() {
+function normalizeWalletRecord(wallet) {
+  const history = Array.isArray(wallet?.history) ? wallet.history.slice(-100) : [];
+  return {
+    coins: Math.max(0, Math.floor(Number(wallet?.coins) || 0)),
+    createdAt: Number(wallet?.createdAt) || Date.now(),
+    updatedAt: Number(wallet?.updatedAt) || Date.now(),
+    history
+  };
+}
+
+function loadWalletsFromFile() {
   try {
     if (!fs.existsSync(WALLET_FILE)) return;
     const data = JSON.parse(fs.readFileSync(WALLET_FILE, "utf8"));
-    for (const [token, wallet] of Object.entries(data || {})) {
-      wallets.set(token, {
-        coins: Math.max(0, Math.floor(Number(wallet?.coins) || 0)),
-        createdAt: Number(wallet?.createdAt) || Date.now(),
-        updatedAt: Number(wallet?.updatedAt) || Date.now()
-      });
-    }
+    for (const [token, wallet] of Object.entries(data || {})) wallets.set(token, normalizeWalletRecord(wallet));
   } catch (err) {
-    console.error("Impossible de charger wallets.json:", err);
+    console.error(`Impossible de charger ${path.basename(WALLET_FILE)}:`, err.message);
   }
 }
 
-function saveWallets() {
+function saveWalletsToFile() {
   try {
     const out = Object.fromEntries(wallets);
+    const dir = path.dirname(WALLET_FILE);
+    fs.mkdirSync(dir, { recursive: true });
     const tmp = `${WALLET_FILE}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(out, null, 2));
     fs.renameSync(tmp, WALLET_FILE);
   } catch (err) {
-    console.error("Impossible de sauvegarder wallets.json:", err);
+    console.error(`Impossible de sauvegarder ${path.basename(WALLET_FILE)}:`, err.message);
   }
+}
+
+async function initWalletPersistence() {
+  if (!DATABASE_URL) {
+    walletStorageMode = "json";
+    loadWalletsFromFile();
+    console.warn("Portefeuilles: stockage JSON local. Configure DATABASE_URL pour une persistance durable.");
+    return;
+  }
+
+  try {
+    pgPool = new Pool({
+      connectionString: DATABASE_URL,
+      ssl: /localhost|127\.0\.0\.1/.test(DATABASE_URL) ? false : { rejectUnauthorized: false }
+    });
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS ptitbac_wallets (
+        token TEXT PRIMARY KEY,
+        coins INTEGER NOT NULL,
+        created_at BIGINT NOT NULL,
+        updated_at BIGINT NOT NULL,
+        history JSONB NOT NULL DEFAULT '[]'::jsonb
+      )
+    `);
+    const { rows } = await pgPool.query("SELECT token, coins, created_at, updated_at, history FROM ptitbac_wallets");
+    for (const row of rows) {
+      wallets.set(row.token, normalizeWalletRecord({
+        coins: row.coins,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        history: row.history
+      }));
+    }
+    walletStorageMode = "postgres";
+    console.log(`Portefeuilles: PostgreSQL actif (${rows.length} portefeuille(s) chargé(s)).`);
+  } catch (err) {
+    console.error("PostgreSQL indisponible, repli sur wallets.json:", err.message);
+    try { await pgPool?.end(); } catch {}
+    pgPool = null;
+    walletStorageMode = "json";
+    loadWalletsFromFile();
+  }
+}
+
+function persistWallet(token) {
+  const wallet = wallets.get(token);
+  if (!wallet) return;
+  if (!pgPool) {
+    saveWalletsToFile();
+    return;
+  }
+  pgPool.query(
+    `INSERT INTO ptitbac_wallets(token, coins, created_at, updated_at, history)
+     VALUES($1,$2,$3,$4,$5::jsonb)
+     ON CONFLICT(token) DO UPDATE SET
+       coins=EXCLUDED.coins,
+       updated_at=EXCLUDED.updated_at,
+       history=EXCLUDED.history`,
+    [token, wallet.coins, wallet.createdAt, wallet.updatedAt, JSON.stringify(wallet.history || [])]
+  ).catch(err => console.error("Erreur persistance portefeuille PostgreSQL:", err.message));
+}
+
+function saveWallets() {
+  if (!pgPool) return saveWalletsToFile();
+  for (const token of wallets.keys()) persistWallet(token);
 }
 
 function createWalletToken() {
@@ -68,8 +154,8 @@ function ensureWallet(token) {
   let safeToken = typeof token === "string" && /^[a-f0-9]{48}$/i.test(token) ? token : "";
   if (!safeToken) safeToken = createWalletToken();
   if (!wallets.has(safeToken)) {
-    wallets.set(safeToken, { coins: DEFAULT_COINS, createdAt: Date.now(), updatedAt: Date.now() });
-    saveWallets();
+    wallets.set(safeToken, { coins: DEFAULT_COINS, createdAt: Date.now(), updatedAt: Date.now(), history: [] });
+    persistWallet(safeToken);
   }
   return { token: safeToken, wallet: wallets.get(safeToken) };
 }
@@ -78,12 +164,48 @@ function walletBalance(token) {
   return wallets.get(token)?.coins ?? 0;
 }
 
-function updateWallet(token, delta) {
+function walletTransaction(token, delta, type, details = {}, idempotencyKey = "") {
   const wallet = wallets.get(token);
   if (!wallet) return null;
-  wallet.coins = Math.max(0, Math.floor(wallet.coins + Number(delta || 0)));
-  wallet.updatedAt = Date.now();
-  return wallet.coins;
+
+  if (idempotencyKey) {
+    const existing = (wallet.history || []).find(tx => tx.idempotencyKey === idempotencyKey);
+    if (existing) return { balance: wallet.coins, transaction: existing, duplicate: true };
+  }
+
+  const safeDelta = Math.trunc(Number(delta) || 0);
+  const before = wallet.coins;
+  const after = Math.max(0, Math.min(999999, before + safeDelta));
+  const appliedDelta = after - before;
+  const transaction = {
+    id: crypto.randomBytes(8).toString("hex"),
+    type: String(type || "adjustment").slice(0, 40),
+    delta: appliedDelta,
+    before,
+    after,
+    at: Date.now(),
+    roomCode: details.roomCode ? String(details.roomCode).slice(0, 8) : "",
+    note: details.note ? String(details.note).slice(0, 100) : "",
+    idempotencyKey: idempotencyKey ? String(idempotencyKey).slice(0, 120) : ""
+  };
+  wallet.coins = after;
+  wallet.updatedAt = transaction.at;
+  wallet.history = [...(wallet.history || []), transaction].slice(-100);
+  persistWallet(token);
+  return { balance: after, transaction, duplicate: false };
+}
+
+function setWalletBalance(token, balance, type = "admin_set", details = {}) {
+  const wallet = wallets.get(token);
+  if (!wallet) return null;
+  const target = Math.max(0, Math.min(999999, Math.floor(Number(balance) || 0)));
+  return walletTransaction(token, target - wallet.coins, type, details);
+}
+
+function recentWalletTransactions(token, limit = 20) {
+  const wallet = wallets.get(token);
+  if (!wallet) return [];
+  return (wallet.history || []).slice(-Math.max(1, Math.min(50, Number(limit) || 20))).reverse();
 }
 
 function emitWallet(player) {
@@ -91,7 +213,6 @@ function emitWallet(player) {
   io.to(player.socketId).emit("wallet:update", { balance: walletBalance(player.walletToken) });
 }
 
-loadWallets();
 
 function loadValidationCache() {
   try {
@@ -101,7 +222,7 @@ function loadValidationCache() {
       if (value && ["valid", "invalid"].includes(value.status)) validationCache.set(key, value);
     }
   } catch (err) {
-    console.warn("Impossible de charger validation-cache.json:", err.message);
+    console.warn("Impossible de charger validation-cache-v2.json:", err.message);
   }
 }
 
@@ -111,21 +232,32 @@ function saveValidationCache() {
     fs.writeFileSync(tmp, JSON.stringify(Object.fromEntries(validationCache), null, 2));
     fs.renameSync(tmp, VALIDATION_CACHE_FILE);
   } catch (err) {
-    console.warn("Impossible de sauvegarder validation-cache.json:", err.message);
+    console.warn("Impossible de sauvegarder validation-cache-v2.json:", err.message);
   }
 }
 
 loadValidationCache();
 
-app.get("/api/validation-health", (_req, res) => {
+app.get("/api/validation-health", async (req, res) => {
+  let liveCheck = null;
+  if (String(req.query.live || "") === "1") {
+    liveCheck = await testOpenAIConnection();
+  }
   res.json({
     ok: true,
-    engineVersion: "v2.0.0",
+    engineVersion: VALIDATION_ENGINE_VERSION,
     aiConfigured: Boolean(OPENAI_API_KEY),
     model: OPENAI_VALIDATION_MODEL,
     reviewModel: OPENAI_VALIDATION_REVIEW_MODEL,
     webSearchReview: OPENAI_VALIDATION_WEB_SEARCH,
-    cacheEntries: validationCache.size
+    cacheEntries: validationCache.size,
+    walletStorage: walletStorageMode,
+    lastSuccessAt: validationServiceState.lastSuccessAt,
+    lastErrorAt: validationServiceState.lastErrorAt,
+    lastErrorStatus: validationServiceState.lastErrorStatus,
+    lastErrorCode: validationServiceState.lastErrorCode,
+    lastErrorMessage: validationServiceState.lastErrorMessage,
+    liveCheck
   });
 });
 
@@ -296,7 +428,13 @@ function publicRoom(room, viewerPlayerId = null) {
           status: room.validation.status || "checking",
           total: room.validation.items.length,
           checked: room.validation.items.filter(item => item.status !== "pending").length,
-          semanticEnabled: !!OPENAI_API_KEY
+          semanticEnabled: !!OPENAI_API_KEY,
+          attempts: Number(room.validation.attempts || 0),
+          error: room.validation.error ? {
+            code: room.validation.error.code || "ai_unavailable",
+            status: room.validation.error.status || null,
+            message: room.validation.error.message || "Vérification temporairement indisponible"
+          } : null
         }
       : null,
     lastRoundScores: room.lastRoundScores || {},
@@ -397,7 +535,6 @@ function buildValidation(room) {
   return { items, autoResults, status: items.length ? "checking" : "complete" };
 }
 
-const VALIDATION_ENGINE_VERSION = "v2.0.0";
 
 const CATEGORY_RULES = {
   "Prénom": {
@@ -709,6 +846,90 @@ function makeValidationPayload(items, letter) {
   });
 }
 
+class OpenAIRequestError extends Error {
+  constructor(message, { status = null, code = "", retryable = false } = {}) {
+    super(message);
+    this.name = "OpenAIRequestError";
+    this.status = status;
+    this.code = code;
+    this.retryable = retryable;
+  }
+}
+
+function sanitizeOpenAIErrorMessage(message) {
+  return String(message || "Erreur OpenAI")
+    .replace(/sk-[A-Za-z0-9_-]+/g, "[clé masquée]")
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 220);
+}
+
+function rememberOpenAIError(err) {
+  validationServiceState.lastErrorAt = Date.now();
+  validationServiceState.lastErrorStatus = Number(err?.status) || null;
+  validationServiceState.lastErrorCode = String(err?.code || "").slice(0, 80);
+  validationServiceState.lastErrorMessage = sanitizeOpenAIErrorMessage(err?.message);
+}
+
+function rememberOpenAISuccess() {
+  validationServiceState.lastSuccessAt = Date.now();
+  validationServiceState.lastErrorStatus = null;
+  validationServiceState.lastErrorCode = "";
+  validationServiceState.lastErrorMessage = "";
+}
+
+function parseOpenAIError(status, text) {
+  let code = "";
+  let message = `OpenAI ${status}`;
+  try {
+    const parsed = JSON.parse(text);
+    code = String(parsed?.error?.code || parsed?.error?.type || "");
+    message = String(parsed?.error?.message || message);
+  } catch {
+    message = text ? `${message}: ${text.slice(0, 220)}` : message;
+  }
+  const nonRetryableCodes = new Set(["insufficient_quota", "credit_balance_exhausted", "invalid_api_key", "model_not_found"]);
+  const retryable = !nonRetryableCodes.has(code) && (status === 408 || status === 409 || status === 429 || status >= 500);
+  return new OpenAIRequestError(sanitizeOpenAIErrorMessage(message), { status, code, retryable });
+}
+
+function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function testOpenAIConnection() {
+  if (!OPENAI_API_KEY) return { ok: false, code: "not_configured", message: "OPENAI_API_KEY absente." };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), Math.min(AUTO_VALIDATION_TIMEOUT_MS, 15000));
+  try {
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: OPENAI_VALIDATION_MODEL,
+        store: false,
+        input: "Réponds uniquement: OK",
+        max_output_tokens: 32
+      }),
+      signal: controller.signal
+    });
+    if (!response.ok) {
+      const err = parseOpenAIError(response.status, await response.text());
+      rememberOpenAIError(err);
+      return { ok: false, status: err.status, code: err.code, message: err.message };
+    }
+    rememberOpenAISuccess();
+    return { ok: true, model: OPENAI_VALIDATION_MODEL };
+  } catch (err) {
+    const normalized = err?.name === "AbortError"
+      ? new OpenAIRequestError("Délai OpenAI dépassé.", { code: "timeout", retryable: true })
+      : err;
+    rememberOpenAIError(normalized);
+    return { ok: false, status: normalized?.status || null, code: normalized?.code || "network_error", message: sanitizeOpenAIErrorMessage(normalized?.message) };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function callValidationModel(items, letter, { review = false } = {}) {
   if (!OPENAI_API_KEY || !items.length) return null;
 
@@ -750,15 +971,27 @@ async function callValidationModel(items, letter, { review = false } = {}) {
     });
 
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`OpenAI ${response.status}: ${text.slice(0, 500)}`);
+      const err = parseOpenAIError(response.status, await response.text());
+      rememberOpenAIError(err);
+      throw err;
     }
 
     const data = await response.json();
     const output = extractOutputText(data);
-    if (!output) throw new Error("Réponse IA vide");
+    if (!output) throw new OpenAIRequestError("Réponse IA vide", { code: "empty_response", retryable: true });
     const parsed = JSON.parse(output);
-    return Array.isArray(parsed?.results) ? parsed.results : null;
+    const results = Array.isArray(parsed?.results) ? parsed.results : null;
+    if (!results) throw new OpenAIRequestError("Format de réponse IA invalide", { code: "invalid_output", retryable: true });
+    rememberOpenAISuccess();
+    return results;
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      const timeoutError = new OpenAIRequestError("Délai OpenAI dépassé.", { code: "timeout", retryable: true });
+      rememberOpenAIError(timeoutError);
+      throw timeoutError;
+    }
+    rememberOpenAIError(err);
+    throw err;
   } finally {
     clearTimeout(timeout);
   }
@@ -826,8 +1059,23 @@ async function validateInBatches(items, letter, options = {}) {
   const batchSize = Math.max(1, Math.min(30, Number(process.env.OPENAI_VALIDATION_BATCH_SIZE) || 20));
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
-    const results = await callValidationModel(batch, letter, options);
-    if (!results) continue;
+    let results = null;
+    let lastError = null;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        results = await callValidationModel(batch, letter, options);
+        break;
+      } catch (err) {
+        lastError = err;
+        if (!err?.retryable || attempt >= 2) throw err;
+        await wait(900 * attempt);
+      }
+    }
+    if (!results) throw lastError || new OpenAIRequestError("Aucun résultat de validation", { code: "missing_results", retryable: true });
+    const returnedIds = new Set(results.map(r => r?.id).filter(Boolean));
+    if (batch.some(item => !returnedIds.has(item.id))) {
+      throw new OpenAIRequestError("Réponse IA incomplète", { code: "incomplete_results", retryable: true });
+    }
     all.push(...results);
   }
   return all;
@@ -837,11 +1085,16 @@ async function runAutomaticValidation(room, roundAtStart) {
   const validation = room.validation;
   if (!validation || room.phase !== "validation") return;
 
+  validation.status = "checking";
+  validation.error = null;
+  validation.attempts = Number(validation.attempts || 0) + 1;
+
   const letter = room.letters[roundAtStart];
   const unresolved = [];
   let cacheChanged = false;
 
   for (const item of validation.items) {
+    if (item.status !== "pending") continue;
     const local = localSemanticDecision(item);
     if (local) {
       item.status = local.status;
@@ -863,26 +1116,26 @@ async function runAutomaticValidation(room, roundAtStart) {
       item.validationSource = "cache";
       continue;
     }
-
     unresolved.push(item);
   }
 
   emitRoom(room);
 
-  const needsReview = [];
+  if (unresolved.length && !OPENAI_API_KEY) {
+    validation.status = "unavailable";
+    validation.error = { code: "not_configured", message: "La validation IA n’est pas configurée." };
+    emitRoom(room);
+    return;
+  }
 
-  if (unresolved.length && OPENAI_API_KEY) {
-    try {
+  const needsReview = [];
+  try {
+    if (unresolved.length) {
       const primaryResults = await validateInBatches(unresolved, letter, { review: false });
       const primaryById = new Map(primaryResults.map(result => [result.id, result]));
 
       for (const item of unresolved) {
         const result = primaryById.get(item.id);
-        if (!result) {
-          needsReview.push(item);
-          continue;
-        }
-
         if (shouldAcceptPrimary(item, result)) {
           applyAiDecision(item, result, letter, "ai_primary");
         } else {
@@ -907,48 +1160,43 @@ async function runAutomaticValidation(room, roundAtStart) {
           const review = normalizeAiResult(rawReview);
           const primary = item.primaryDecision || null;
           const type = categoryRule(item.category).type;
+          if (!review) throw new OpenAIRequestError("Résultat de seconde vérification invalide", { code: "invalid_review", retryable: true });
 
-          if (!review) continue;
-
-          // Pour une réponse valide, le moteur exige une validation forte au second passage.
-          // Les catégories factuelles sont volontairement les plus strictes pour éviter les pseudo-mots.
           const reviewValidThreshold = type === "subjective" ? 80 : type === "lexical" ? 92 : 90;
           const reviewInvalidThreshold = type === "subjective" ? 76 : 80;
-
           let finalVerdict = "invalid";
           if (review.verdict === "valid" && review.confidence >= reviewValidThreshold) {
-            // Si le premier passage disait explicitement "invalid" avec une forte confiance,
-            // on n'autorise pas un retournement facile vers valide.
-            if (!(primary?.verdict === "invalid" && primary.confidence >= 85 && type !== "subjective")) {
-              finalVerdict = "valid";
-            }
+            if (!(primary?.verdict === "invalid" && primary.confidence >= 85 && type !== "subjective")) finalVerdict = "valid";
           } else if (review.verdict === "invalid" && review.confidence >= reviewInvalidThreshold) {
             finalVerdict = "invalid";
           }
 
           applyAiDecision(item, { ...rawReview, verdict: finalVerdict }, letter, "ai_review");
-          if (finalVerdict === "invalid" && review.verdict === "uncertain") {
-            item.reason = "review_unresolved";
-          }
+          if (finalVerdict === "invalid" && review.verdict === "uncertain") item.reason = "review_unresolved";
           delete item.primaryDecision;
         }
       }
-    } catch (err) {
-      console.error("Validation IA indisponible:", err.message);
     }
+  } catch (err) {
+    console.error(`Validation IA indisponible [${err?.status || "réseau"}/${err?.code || "erreur"}]:`, sanitizeOpenAIErrorMessage(err?.message));
+    validation.status = "unavailable";
+    validation.error = {
+      code: String(err?.code || "ai_unavailable").slice(0, 80),
+      status: Number(err?.status) || null,
+      message: sanitizeOpenAIErrorMessage(err?.message || "Vérification temporairement indisponible")
+    };
+    emitRoom(room);
+    return;
   }
 
-  // Fail-closed : une panne ou absence de clé ne transforme plus une réponse inconnue en bonne réponse.
-  // Les réponses impossibles à vérifier automatiquement rapportent 0 plutôt que d'être validées à tort.
   for (const item of validation.items) {
     if (item.status === "pending") {
       item.status = "invalid";
-      item.reason = OPENAI_API_KEY ? "ai_unavailable" : "semantic_validation_disabled";
-      item.validationSource = "fallback";
-      item.aiConfidence = 0;
+      item.reason = "review_unresolved";
+      item.validationSource = "ai_review";
+      item.aiConfidence = Number(item.aiConfidence || 0);
       item.correction = "";
     }
-
     if (shouldCacheDecision(item)) {
       validationCache.set(validationCacheKey(item.category, item.answer), {
         engineVersion: VALIDATION_ENGINE_VERSION,
@@ -968,17 +1216,14 @@ async function runAutomaticValidation(room, roundAtStart) {
 
   const current = rooms.get(room.code);
   if (!current || current !== room || current.phase !== "validation" || current.roundIndex !== roundAtStart) return;
-
   validation.status = "complete";
+  validation.error = null;
   emitRoom(room);
   setTimeout(() => {
     const latest = rooms.get(room.code);
-    if (latest === room && latest.phase === "validation" && latest.roundIndex === roundAtStart) {
-      finalizeRound(latest);
-    }
+    if (latest === room && latest.phase === "validation" && latest.roundIndex === roundAtStart) finalizeRound(latest);
   }, 650);
 }
-
 
 function rewardSharesForCount(count) {
   if (count <= 1) return [1];
@@ -1059,10 +1304,16 @@ function distributeRewards(room) {
 
   room.players.forEach(player => {
     if (player.isBot || !player.walletToken) return;
-    const reward = room.rewardsByPlayerId[player.id] || 0;
-    updateWallet(player.walletToken, reward);
+    const reward = Math.max(0, Math.floor(room.rewardsByPlayerId[player.id] || 0));
+    if (!reward) return;
+    walletTransaction(
+      player.walletToken,
+      reward,
+      "GAME_REWARD",
+      { roomCode: room.code, note: `Récompense de fin de partie (+${reward})` },
+      `reward:${room.code}:${room.gameSessionId || "session"}:${player.id}`
+    );
   });
-  saveWallets();
   room.players.forEach(emitWallet);
 }
 
@@ -1164,14 +1415,12 @@ function endRound(room) {
 
   emitRoom(room);
   runAutomaticValidation(room, roundAtStart).catch(err => {
-    console.error("Erreur de validation automatique:", err);
+    console.error("Erreur inattendue de validation automatique:", sanitizeOpenAIErrorMessage(err?.message));
     const current = rooms.get(room.code);
     if (!current || current !== room || current.phase !== "validation") return;
-    current.validation.items.forEach(item => {
-      if (item.status === "pending") { item.status = "invalid"; item.reason = "ai_unavailable"; item.validationSource = "fallback"; }
-    });
-    current.validation.status = "complete";
-    finalizeRound(current);
+    current.validation.status = "unavailable";
+    current.validation.error = { code: "unexpected_error", message: "Vérification temporairement indisponible." };
+    emitRoom(current);
   });
 }
 
@@ -1250,16 +1499,20 @@ io.on("connection", socket => {
   });
 
   socket.on("wallet:adminAdjust", ({ token, code, mode, value } = {}, cb = () => {}) => {
+    if (!ADMIN_COIN_CODE) return cb({ ok: false, error: "Outil administrateur désactivé sur ce serveur." });
     if (String(code || "") !== ADMIN_COIN_CODE) return cb({ ok: false, error: "Code administrateur incorrect." });
     const result = ensureWallet(token);
-    let next = result.wallet.coins;
-    if (mode === "add") next = Math.max(0, next + Math.floor(Number(value) || 0));
-    else if (mode === "set") next = Math.max(0, Math.floor(Number(value) || 0));
+    let txResult = null;
+    if (mode === "add") txResult = walletTransaction(result.token, Math.floor(Number(value) || 0), "ADMIN_ADJUST", { note: "Ajustement administrateur" });
+    else if (mode === "set") txResult = setWalletBalance(result.token, value, "ADMIN_SET", { note: "Solde défini par administrateur" });
     else return cb({ ok: false, error: "Action invalide." });
-    result.wallet.coins = Math.min(999999, next);
-    result.wallet.updatedAt = Date.now();
-    saveWallets();
-    cb({ ok: true, token: result.token, balance: result.wallet.coins });
+    cb({ ok: true, token: result.token, balance: txResult?.balance ?? result.wallet.coins });
+  });
+
+  socket.on("wallet:history", ({ token, limit } = {}, cb = () => {}) => {
+    const safeToken = token || socket.data.walletToken;
+    if (!safeToken || safeToken !== socket.data.walletToken) return cb({ ok: false, error: "Portefeuille non autorisé." });
+    cb({ ok: true, balance: walletBalance(safeToken), transactions: recentWalletTransactions(safeToken, limit) });
   });
   socket.on("room:create", ({ name, rounds = 1, duration = 60, categoryCount = 6, categoryDifficulty = "beginner", avatar, walletToken }, cb = () => {}) => {
     const safeName = cleanName(name);
@@ -1311,6 +1564,7 @@ io.on("connection", socket => {
       rewardsDistributed: false,
       rewardsByPlayerId: {},
       rewardsDistributedAt: null,
+      gameSessionId: null,
       createdAt: Date.now()
     };
 
@@ -1471,11 +1725,17 @@ io.on("connection", socket => {
         return socket.emit("toast", `${insufficient.map(p => p.name).join(", ")} n’a pas assez de pièces.`);
       }
 
-      humans.forEach(p => updateWallet(p.walletToken, -GAME_COST));
+      room.gameSessionId = id();
+      humans.forEach(p => walletTransaction(
+        p.walletToken,
+        -GAME_COST,
+        "GAME_ENTRY",
+        { roomCode: room.code, note: `Participation à la partie (-${GAME_COST})` },
+        `entry:${room.code}:${room.gameSessionId}:${p.id}`
+      ));
       room.entryDebited = true;
       room.paidPlayerIds = humans.map(p => p.id);
       room.pot = humans.length * GAME_COST;
-      saveWallets();
       humans.forEach(emitWallet);
     }
 
@@ -1504,8 +1764,10 @@ io.on("connection", socket => {
       return;
     }
 
-    updateWallet(player.walletToken, -CATEGORY_REROLL_COST);
-    saveWallets();
+    walletTransaction(player.walletToken, -CATEGORY_REROLL_COST, "CATEGORY_REROLL", {
+      roomCode: room.code,
+      note: `Relance des catégories (-${CATEGORY_REROLL_COST})`
+    });
     emitWallet(player);
     room.categories = pickCategories(room.categoryDifficulty || "beginner", room.categoryCount || 6);
     emitRoom(room);
@@ -1535,8 +1797,10 @@ io.on("connection", socket => {
       return socket.emit("toast", `Il te faut ${LETTER_REROLL_COST} pièces pour relancer la roue.`);
     }
 
-    updateWallet(player.walletToken, -LETTER_REROLL_COST);
-    saveWallets();
+    walletTransaction(player.walletToken, -LETTER_REROLL_COST, "LETTER_REROLL", {
+      roomCode: room.code,
+      note: `Relance de la lettre (-${LETTER_REROLL_COST})`
+    });
     emitWallet(player);
     spinLetter(room, room.pendingLetter);
     emitRoom(room);
@@ -1575,6 +1839,22 @@ io.on("connection", socket => {
 
   // La validation est désormais entièrement automatique côté serveur.
 
+  socket.on("validation:retry", payload => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player?.isHost || room.phase !== "validation" || room.validation?.status !== "unavailable") return;
+    const roundAtStart = room.roundIndex;
+    room.validation.status = "checking";
+    room.validation.error = null;
+    emitRoom(room);
+    runAutomaticValidation(room, roundAtStart).catch(err => {
+      console.error("Nouvel échec de validation:", sanitizeOpenAIErrorMessage(err?.message));
+      if (room.phase !== "validation" || room.roundIndex !== roundAtStart) return;
+      room.validation.status = "unavailable";
+      room.validation.error = { code: "unexpected_error", message: "Vérification temporairement indisponible." };
+      emitRoom(room);
+    });
+  });
+
   socket.on("game:nextRound", payload => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "scoreboard") return;
@@ -1608,6 +1888,7 @@ io.on("connection", socket => {
     room.rewardsDistributed = false;
     room.rewardsByPlayerId = {};
     room.rewardsDistributedAt = null;
+    room.gameSessionId = null;
     room.players.forEach(p => {
       p.score = 0;
       p.submitted = false;
@@ -1647,6 +1928,13 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Petit Bac lancé sur http://localhost:${PORT}`);
-});
+initWalletPersistence()
+  .catch(err => console.error("Initialisation stockage portefeuille:", err.message))
+  .finally(() => {
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`Petit Bac lancé sur http://localhost:${PORT}`);
+      console.log(`Validation IA: ${OPENAI_API_KEY ? `configurée (${OPENAI_VALIDATION_MODEL})` : "non configurée"}`);
+      console.log(`Stockage portefeuille: ${walletStorageMode}`);
+      console.log(`Admin pièces: ${ADMIN_COIN_CODE ? "activé par variable d’environnement" : "désactivé"}`);
+    });
+  });

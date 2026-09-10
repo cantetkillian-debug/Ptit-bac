@@ -1,44 +1,142 @@
-# P'tit Bac — version soirée
+# P’tit Bac — V1.39 stabilité
 
-Site multijoueur mobile inspiré de la maquette fournie.
+Jeu P’tit Bac multijoueur mobile en Node.js / Socket.IO, pensé pour être déployé sur Render.
 
-## Règles intégrées
+## Fonctionnalités principales
 
-- L’hôte choisit **1, 3 ou 5 manches** à la création du salon.
-- L’hôte choisit **30 ou 60 secondes par manche**.
-- 6 catégories sont tirées aléatoirement au début de la partie.
-- Les 6 mêmes catégories restent identiques pendant toutes les manches.
-- Chaque manche utilise une **lettre différente**.
-- 1 point seulement si la réponse est **valide ET unique**.
-- Doublon, mauvaise lettre, réponse vide ou réponse invalide = 0.
-- Le score est **cumulé** d’une manche à l’autre.
-- Après chaque manche intermédiaire, l’hôte lance la manche suivante.
-- Le classement final n’apparaît qu’après la dernière manche.
+- 1, 3 ou 5 manches.
+- 30, 60 ou 90 secondes par manche.
+- 6 à 10 catégories fixes pendant toute la partie.
+- 43 catégories réparties en trois difficultés : débutant, moyen et difficile.
+- Sélection pondérée des catégories selon la difficulté.
+- Roue A–Z avec un joueur humain choisi pour lancer la lettre.
+- Relance des catégories : 10 pièces.
+- Relance de la lettre : 10 pièces.
+- Participation à une partie : 5 pièces par joueur humain.
+- Validation automatique des réponses par OpenAI, avec contrôle local des réponses vides, mauvaises lettres et doublons.
+- 1 point uniquement pour une réponse valide et unique.
+- Résultats détaillés après chaque manche et classement final.
+- Portefeuille géré côté serveur avec historique de transactions.
+- PostgreSQL pris en charge si `DATABASE_URL` est configurée ; repli sur `wallets.json` pour le développement.
 
-### Les 12 catégories
+## Validation IA
 
-1. Prénom
-2. Animal
-3. Lieu
-4. Métier
-5. Nourriture
-6. Marque
-7. Film
-8. Jeu vidéo
-9. Personnage fictif
-10. Fruit / Légume
-11. Objet
-12. Sport
+La clé OpenAI ne doit jamais être placée dans GitHub ou dans `app.js`.
 
-## Pourquoi l'hôte valide certaines réponses ?
+Sur Render, ajoute :
 
-Le serveur peut détecter automatiquement :
-- une réponse vide ;
-- une réponse qui ne commence pas par la bonne lettre ;
-- un doublon exact (accents et majuscules ignorés).
+```text
+OPENAI_API_KEY=ta_clé_privée
+```
 
-Mais il ne peut pas savoir de façon fiable si une réponse inventée est réellement un métier, un film, un lieu, etc.  
-Les réponses uniques qui passent les contrôles automatiques sont donc montrées à l'hôte, qui appuie sur **Valide** ou **Invalide**.
+Variables optionnelles :
+
+```text
+OPENAI_VALIDATION_MODEL=gpt-5-mini
+OPENAI_VALIDATION_REVIEW_MODEL=gpt-5-mini
+OPENAI_VALIDATION_WEB_SEARCH=false
+OPENAI_VALIDATION_BATCH_SIZE=20
+AUTO_VALIDATION_TIMEOUT_MS=30000
+```
+
+### Diagnostic
+
+Ouvre :
+
+```text
+/api/validation-health
+```
+
+Le champ `aiConfigured` indique si la variable `OPENAI_API_KEY` est présente. L’endpoint expose aussi le dernier succès et la dernière erreur OpenAI sans révéler la clé.
+
+Pour effectuer un vrai test API volontaire et très léger :
+
+```text
+/api/validation-health?live=1
+```
+
+Ce test consomme une petite quantité de crédit API.
+
+### Comportement en cas de panne
+
+Une panne OpenAI ne transforme plus toutes les réponses en réponses fausses. La manche reste sur l’écran de vérification avec l’état « vérification en pause ». L’hôte peut ensuite utiliser « Réessayer la vérification ». Aucun score n’est calculé tant que la validation n’a pas abouti.
+
+Les erreurs temporaires sont retentées automatiquement une fois avant de mettre la vérification en pause.
+
+## Portefeuille
+
+Un nouveau portefeuille commence avec 25 pièces.
+
+Transactions possibles :
+
+- `GAME_ENTRY` : -5 pièces au lancement réel de la partie.
+- `CATEGORY_REROLL` : -10 pièces.
+- `LETTER_REROLL` : -10 pièces.
+- `GAME_REWARD` : récompense de fin de partie.
+- `ADMIN_ADJUST` / `ADMIN_SET` : outil de test administrateur.
+
+Chaque portefeuille conserve les 100 dernières transactions. Les débits d’entrée et récompenses de fin utilisent aussi des clés d’idempotence afin de réduire le risque de double débit ou double récompense.
+
+### Récompenses
+
+La cagnotte contient exactement les mises des joueurs humains :
+
+```text
+nombre de joueurs humains × 5 pièces
+```
+
+Répartition de base :
+
+- 2 joueurs : 100 % au gagnant.
+- 3 joueurs : 67 % / 33 %.
+- 4 joueurs : 60 % / 40 %.
+- 5 joueurs et plus : 60 % / 25 % / 15 %.
+
+Une variation aléatoire de ±20 % est appliquée aux parts gagnantes puis renormalisée. La somme finale redistribuée reste exactement égale à la cagnotte. Les égalités partagent les places concernées.
+
+## Persistance des pièces
+
+### Recommandé : PostgreSQL
+
+Configure une variable Render :
+
+```text
+DATABASE_URL=postgresql://...
+```
+
+Le serveur crée automatiquement la table `ptitbac_wallets` au démarrage et recharge les portefeuilles existants.
+
+### Développement / secours : JSON
+
+Sans `DATABASE_URL`, le serveur utilise `wallets.json`. Ce mode convient aux tests mais n’est pas recommandé comme stockage définitif sur une instance Render éphémère.
+
+Un emplacement JSON spécifique peut être choisi avec :
+
+```text
+PTITBAC_WALLET_FILE=/chemin/wallets.json
+```
+
+## Outil administrateur de pièces
+
+Il n’existe plus de code administrateur par défaut dans le code source.
+
+Pour l’activer, configure sur Render :
+
+```text
+PTITBAC_ADMIN_CODE=un_code_privé
+```
+
+Sans cette variable, l’outil est désactivé côté serveur.
+
+## Sécurité réseau
+
+Socket.IO est en même origine par défaut. Pour autoriser explicitement un frontend séparé :
+
+```text
+SOCKET_CORS_ORIGIN=https://exemple.com
+```
+
+Plusieurs origines peuvent être séparées par des virgules.
 
 ## Installation locale
 
@@ -53,104 +151,50 @@ Puis ouvre :
 http://localhost:3000
 ```
 
-Sur un même Wi-Fi, les autres téléphones peuvent ouvrir l'adresse IP locale de l'ordinateur avec le port 3000.
+## Déploiement Render
 
-## Replit
-
-1. Crée un Repl Node.js.
-2. Envoie tous les fichiers du projet.
-3. Lance `npm install`.
-4. Lance `npm start`.
-5. Ouvre l'URL publique du Repl.
-
-Le port est récupéré automatiquement avec `process.env.PORT`.
-
-## Structure
+Le dépôt contient `render.yaml`. Le service utilise :
 
 ```text
-petit-bac-complete/
-├── package.json
-├── server.js
-└── public/
-    ├── index.html
-    ├── style.css
-    └── app.js
+Build Command: npm install
+Start Command: npm start
 ```
 
-## Limite actuelle
-
-Les parties sont stockées en mémoire dans le serveur. Si le serveur redémarre, les salles en cours disparaissent.  
-Pour une version de production durable, remplace le stockage en mémoire par Redis/PostgreSQL.
-
-
-## Déploiement gratuit sur Render
-
-1. Mets ce dossier dans un dépôt GitHub.
-2. Va sur Render et crée un **Web Service**.
-3. Connecte ton dépôt GitHub.
-4. Render détectera le fichier `render.yaml`.
-5. Le service utilise :
-   - Build Command : `npm install`
-   - Start Command : `npm start`
-   - Plan : `Free`
-6. Une URL publique en `onrender.com` sera créée.
-
-Important : sur le plan gratuit, Render peut mettre le serveur en veille après une période d'inactivité. Le premier chargement suivant peut donc prendre un peu plus de temps.
-
-Le serveur est déjà compatible Render : il écoute `process.env.PORT` et `0.0.0.0`.
-
-
-## Version iPhone simplifiée
-
-Cette variante n'utilise aucun dossier `public`, afin que tous les fichiers puissent être envoyés facilement depuis l'iPhone vers GitHub.
-
-Structure :
+Variables importantes à mettre dans **Render → Environment** et jamais dans GitHub :
 
 ```text
-petit-bac-iphone/
-├── index.html
-├── style.css
-├── app.js
-├── server.js
-├── package.json
-├── render.yaml
-├── README.md
-└── .gitignore
+OPENAI_API_KEY
+DATABASE_URL              # recommandé pour les pièces
+PTITBAC_ADMIN_CODE        # uniquement si l’outil admin est souhaité
 ```
 
-Sur GitHub mobile, importe les fichiers décompressés eux-mêmes, pas le ZIP.
+## Fichiers
 
+```text
+index.html
+style.css
+app.js
+server.js
+package.json
+render.yaml
+petit-bac-logo.png
+README.md
+.gitignore
+```
 
-## Version 1.15 — Multimanches
+`petit-bac-logo.jpg` est un ancien fichier devenu inutile et peut être supprimé du dépôt.
 
-Modifications :
-- Les choix 1 / 3 / 5 manches sont maintenant réellement appliqués par le serveur.
-- Les choix 30 s / 60 s contrôlent réellement le chrono de chaque manche.
-- Le lobby affiche les paramètres sélectionnés.
-- L’écran de jeu affiche `Manche X/Y`.
-- Les lettres sont différentes à chaque manche.
-- Les scores sont cumulés jusqu’à la dernière manche.
-- Le bot test rejoue automatiquement à chaque manche.
-- « Refaire une partie » conserve les réglages du salon et génère de nouvelles catégories / lettres.
+## V1.39 — corrections principales
 
-## V1.16 — Accueil, profil et pièces
-- Nouvel écran d'accueil dans le style pastel premium.
-- Profil local persistant : pseudo + icône.
-- L'icône choisie suit le joueur dans le salon et les classements.
-- Solde de pièces persistant (12 pièces au premier lancement).
-- Créer ou rejoindre une partie coûte 5 pièces, débitées seulement après succès.
-- Pages liées : Profil, Mes pièces, 12 catégories, Comment jouer ?
-
-## V1.22 — Économie serveur et récompenses
-
-- Portefeuille créé côté serveur avec 25 pièces au premier accès.
-- 5 pièces sont vérifiées à la création/rejoint du salon mais débitées uniquement au lancement réel de la partie.
-- Les bots ne paient pas et ne reçoivent aucune récompense économique.
-- La cagnotte contient exactement les mises des joueurs humains.
-- Répartition: 2 joueurs = 100% au 1er; 3 = 67/33; 4 = 60/40; 5+ = 60/25/15, avec variation aléatoire ±20%, puis normalisation exacte à la cagnotte.
-- Les égalités partagent les places/récompenses concernées.
-- Une partie ne peut ni débiter l'entrée ni distribuer les récompenses deux fois.
-- À l'écran final, chaque client ne reçoit et ne voit que son propre gain de pièces.
-- Les soldes sont enregistrés dans `wallets.json` côté serveur et ne sont plus pilotés par `localStorage`.
-
-> Pour une mise en production durable sur plusieurs redéploiements/instances Render, remplacer `wallets.json` par une base persistante (PostgreSQL/Redis/etc.). Le fichier serveur protège déjà les actualisations/reconnexions tant que le stockage de l'instance est conservé.
+- Validation OpenAI plus résiliente : retry + état de panne sans donner 0 point à toute la manche.
+- Bouton de nouvelle tentative réservé à l’hôte.
+- Diagnostic OpenAI enrichi.
+- `VALIDATION_ENGINE_VERSION` centralisée.
+- Messages du cache corrigés.
+- Historique transactionnel du portefeuille.
+- Protection supplémentaire contre les doubles débits/récompenses.
+- Prise en charge optionnelle de PostgreSQL.
+- Suppression du code admin par défaut exposé côté client/serveur.
+- CORS Socket.IO limité par défaut à la même origine.
+- Ancien formulaire mis à jour avec l’option 90 secondes.
+- Documentation remise à jour.

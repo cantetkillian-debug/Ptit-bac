@@ -2958,3 +2958,28 @@ body {
   .v135-letter-heading>p:last-child{font-size:.84rem}
   .v137-letter-result{gap:12px;padding-left:12px;padding-right:12px}
 }
+
+/* V1.39 — validation IA résiliente */
+.auto-review-card.is-unavailable {
+  border-color: rgba(255,255,255,.16);
+}
+.auto-review-icon.unavailable {
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 1.6rem;
+  background: rgba(255,255,255,.09);
+  border: 1px solid rgba(255,255,255,.18);
+}
+.auto-validation-progress-fill.paused {
+  opacity: .55;
+}
+.validation-retry-btn {
+  width: min(100%, 360px);
+  margin: 18px auto 6px;
+}
+.validation-retry-wait {
+  margin: 16px auto 4px;
+  font-size: .92rem;
+  opacity: .78;
+}
