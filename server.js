@@ -1754,7 +1754,7 @@ io.on("connection", socket => {
     const safeName = cleanName(name);
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
     const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : 60;
-    const safeCategoryCount = [6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : 6;
+    const safeCategoryCount = [5, 6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : 6;
     const safeCategoryDifficulty = ["beginner", "medium", "hard"].includes(categoryDifficulty) ? categoryDifficulty : "beginner";
     if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
     const walletResult = ensureWallet(walletToken || socket.data.walletToken);
@@ -1817,7 +1817,7 @@ io.on("connection", socket => {
 
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : room.rounds;
     const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : room.duration;
-    const safeCategoryCount = [6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : (room.categoryCount || room.categories.length || 6);
+    const safeCategoryCount = [5, 6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : (room.categoryCount || room.categories.length || 6);
     const safeCategoryDifficulty = ["beginner", "medium", "hard"].includes(categoryDifficulty) ? categoryDifficulty : (room.categoryDifficulty || "beginner");
 
     room.rounds = safeRounds;

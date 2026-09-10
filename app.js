@@ -670,13 +670,12 @@ function renderLobby() {
   setScreen(`
     <main class="screen v141-lobby-screen">
       <div class="v141-glow v141-glow-a"></div><div class="v141-glow v141-glow-b"></div>
-      <header class="v141-lobby-top">
-        <button class="v141-back" id="leaveLobbyBtn" aria-label="Quitter le salon">←</button>
-        <div class="v141-room-head">
-          <div class="v141-room-label">Salon</div>
-          <button class="v141-code" id="copyCode">${escapeHtml(state.code)} <span>⧉</span></button>
+      <header class="v145-lobby-top">
+        <div class="v145-room-head">
+          <div class="v145-room-label">Salon</div>
+          <button class="v145-code" id="copyCode">${escapeHtml(state.code)} <span aria-hidden="true">⧉</span></button>
         </div>
-        <div class="v141-player-count"><strong>${state.players.length}/12</strong><span>Joueurs</span></div>
+        <div class="v145-player-count"><strong>${state.players.length}/12</strong><span>Joueurs</span></div>
       </header>
 
       <section class="v141-lobby-grid">
@@ -701,14 +700,13 @@ function renderLobby() {
               <span class="v141-setting-icon">◷</span><span><small>Temps par manche</small><strong>${formatDuration(state.duration)}</strong></span><b>›</b>
             </button>
             <button class="v141-setting-row" id="roomSettingsBtnDifficulty" ${!user?.isHost ? "disabled" : ""}>
-              <span class="v141-setting-icon">▥</span><span><small>Difficulté</small><strong>${state.categoryDifficulty === "hard" ? "Difficile" : state.categoryDifficulty === "medium" ? "Moyen" : "Débutant"}</strong></span><b>›</b>
+              <span class="v141-setting-icon">▥</span><span><small>Difficulté</small><strong>${state.categoryDifficulty === "hard" ? "Difficile" : state.categoryDifficulty === "medium" ? "Normal" : "Facile"}</strong></span><b>›</b>
             </button>
             <button class="v141-setting-row v143-category-setting" id="roomCategoriesCard" ${!user?.isHost ? "disabled" : ""}>
-              <span class="v141-setting-icon">🏷️</span><span><small>Catégories</small><strong>${state.categoryCount || state.categories?.length || 6} sélectionnées</strong></span><b>›</b>
+              <span class="v141-setting-icon">🏷️</span><span><small>Catégories</small><strong>${state.categoryCount || state.categories?.length || 6}</strong></span><b>›</b>
             </button>
           </section>
 
-          <div class="v141-panel v141-bot-note"><span>ⓘ</span><p>Les bots jouent comme de vrais joueurs : leurs réponses apparaissent progressivement pendant la manche.</p></div>
         </div>
       </section>
 
@@ -724,19 +722,24 @@ function renderLobby() {
     clearSession();
     renderHome();
   };
-  document.getElementById("leaveLobbyBtn").onclick = leave;
   document.getElementById("leaveLobbyBottom").onclick = leave;
   document.getElementById("copyCode").onclick = async () => {
     try { await navigator.clipboard.writeText(state.code); toast("Code copié !"); }
     catch { toast(`Code : ${state.code}`); }
   };
 
-  const openSettings = () => user?.isHost && renderRoomSettings();
-  ["roomSettingsBtn","roomSettingsBtnTime","roomSettingsBtnDifficulty"].forEach(id => {
-    const el = document.getElementById(id); if (el) el.onclick = openSettings;
-  });
-  const categoriesCard = document.getElementById("roomCategoriesCard");
-  if (categoriesCard) categoriesCard.onclick = openSettings;
+  if (user?.isHost) {
+    const settingButtons = [
+      ["roomSettingsBtn", "rounds"],
+      ["roomSettingsBtnTime", "duration"],
+      ["roomSettingsBtnDifficulty", "categoryDifficulty"],
+      ["roomCategoriesCard", "categoryCount"]
+    ];
+    settingButtons.forEach(([id, setting]) => {
+      const el = document.getElementById(id);
+      if (el) el.onclick = () => openLobbySettingPopover(setting, el);
+    });
+  }
 
   if (user?.isHost) {
     const botBtn = document.getElementById("addBotBtn");
@@ -752,98 +755,161 @@ function renderLobby() {
   }
 }
 
-function renderRoomSettings() {
+function openLobbySettingPopover(setting, anchor) {
   const state = session.state;
   const user = me();
-  if (!state || !user?.isHost || state.phase !== "lobby") return;
+  if (!state || !user?.isHost || state.phase !== "lobby" || !anchor) return;
 
-  const overlay = document.createElement("div");
-  overlay.className = "room-settings-overlay";
-  overlay.innerHTML = `
-    <section class="room-settings-sheet" role="dialog" aria-modal="true" aria-label="Paramètres de la partie">
-      <div class="room-settings-handle"></div>
-      <div class="room-settings-head">
-        <div><p class="ref-eyebrow">Salon</p><h2>Paramètres de la partie</h2></div>
-        <button class="room-settings-close" id="closeRoomSettings" aria-label="Fermer">×</button>
-      </div>
+  document.querySelector(".v146-popover-layer")?.remove();
 
-      <fieldset class="room-settings-group">
-        <legend>Nombre de manches</legend>
-        <div class="room-settings-options">
-          ${[1,3,5].map(v => `<button type="button" data-setting="rounds" data-value="${v}" class="room-setting-choice ${state.rounds === v ? "selected" : ""}">${v}</button>`).join("")}
-        </div>
-      </fieldset>
+  const current = {
+    rounds: Number(state.rounds || 1),
+    duration: Number(state.duration || 60),
+    categoryDifficulty: state.categoryDifficulty || "beginner",
+    categoryCount: Number(state.categoryCount || state.categories?.length || 6)
+  };
+  let draft = current[setting];
 
-      <fieldset class="room-settings-group">
-        <legend>Nombre de catégories</legend>
-        <div class="room-settings-options room-settings-five">
-          ${[6,7,8,9,10].map(v => `<button type="button" data-setting="categoryCount" data-value="${v}" class="room-setting-choice ${(state.categoryCount || state.categories.length) === v ? "selected" : ""}">${v}</button>`).join("")}
-        </div>
-      </fieldset>
-
-      <fieldset class="room-settings-group">
-        <legend>Temps par manche</legend>
-        <div class="room-settings-options">
-          ${[[30,"30s"],[60,"60s"],[90,"1m30"]].map(([v,label]) => `<button type="button" data-setting="duration" data-value="${v}" class="room-setting-choice ${state.duration === v ? "selected" : ""}">${label}</button>`).join("")}
-        </div>
-      </fieldset>
-
-      <fieldset class="room-settings-group">
-        <legend>Difficulté des catégories</legend>
-        <div class="room-settings-options difficulty-options">
-          ${[["beginner","🟢 Débutant"],["medium","🟡 Moyen"],["hard","🔴 Difficile"]].map(([v,label]) => `<button type="button" data-setting="categoryDifficulty" data-value="${v}" class="room-setting-choice difficulty-choice ${(state.categoryDifficulty || "beginner") === v ? "selected" : ""}">${label}</button>`).join("")}
-        </div>
-        <p class="room-settings-note">Moyen : 30% débutant / 70% moyen · Difficile : 20% / 30% / 50%</p>
-      </fieldset>
-
-      <button class="btn btn-primary room-settings-save" id="saveRoomSettings">Enregistrer</button>
-    </section>
-  `;
-  document.body.appendChild(overlay);
-
-  const values = {
-    rounds: state.rounds,
-    categoryCount: state.categoryCount || state.categories.length || 6,
-    duration: state.duration,
-    categoryDifficulty: state.categoryDifficulty || "beginner"
+  const titleBySetting = {
+    rounds: "Nombre de manches",
+    duration: "Temps par manche",
+    categoryDifficulty: "Choisir la difficulté",
+    categoryCount: "Nombre de catégories"
   };
 
-  overlay.querySelectorAll("[data-setting]").forEach(btn => {
-    btn.onclick = () => {
-      const setting = btn.dataset.setting;
-      values[setting] = setting === "categoryDifficulty" ? btn.dataset.value : Number(btn.dataset.value);
-      overlay.querySelectorAll(`[data-setting="${setting}"]`).forEach(item => item.classList.toggle("selected", item === btn));
-    };
-  });
+  const layer = document.createElement("div");
+  layer.className = "v146-popover-layer";
+  layer.innerHTML = `<div class="v146-popover" role="dialog" aria-modal="true" aria-label="${titleBySetting[setting]}"></div>`;
+  document.body.appendChild(layer);
+  const popover = layer.querySelector(".v146-popover");
 
-  const close = () => overlay.remove();
-  document.getElementById("closeRoomSettings").onclick = close;
-  overlay.onclick = e => { if (e.target === overlay) close(); };
-  document.getElementById("saveRoomSettings").onclick = () => {
-    const saveBtn = document.getElementById("saveRoomSettings");
-    saveBtn.disabled = true;
-    socket.emit("room:updateSettings", {
+  const renderContent = () => {
+    if (setting === "rounds") {
+      popover.innerHTML = `
+        <div class="v146-popover-arrow"></div>
+        <h3>Nombre de manches</h3>
+        <div class="v146-choice-list compact-three">
+          ${[1,3,5].map(v => `<button type="button" class="v146-choice ${draft === v ? "selected" : ""}" data-value="${v}"><span>${v}</span>${draft === v ? '<b>✓</b>' : ''}</button>`).join("")}
+        </div>
+        <button type="button" class="v146-validate" id="v146ValidateSetting">Valider</button>`;
+    } else if (setting === "duration") {
+      const labels = {30:"30 secondes",60:"60 secondes",90:"1 minute 30"};
+      popover.innerHTML = `
+        <div class="v146-popover-arrow"></div>
+        <h3>Temps par manche</h3>
+        <div class="v146-choice-list">
+          ${[30,60,90].map(v => `<button type="button" class="v146-choice ${draft === v ? "selected" : ""}" data-value="${v}"><span>${labels[v]}</span>${draft === v ? '<b>✓</b>' : '<i></i>'}</button>`).join("")}
+        </div>
+        <button type="button" class="v146-validate" id="v146ValidateSetting">Valider</button>`;
+    } else if (setting === "categoryDifficulty") {
+      const options = [
+        ["beginner","Facile","Des catégories plus simples"],
+        ["medium","Normal","Un bon équilibre"],
+        ["hard","Difficile","Un vrai challenge"]
+      ];
+      popover.innerHTML = `
+        <div class="v146-popover-arrow"></div>
+        <h3>Choisir la difficulté</h3>
+        <div class="v146-choice-list">
+          ${options.map(([v,label,sub]) => `<button type="button" class="v146-choice difficulty ${draft === v ? "selected" : ""}" data-value="${v}"><span><strong>${label}</strong><small>${sub}</small></span>${draft === v ? '<b>✓</b>' : '<i></i>'}</button>`).join("")}
+        </div>
+        <button type="button" class="v146-validate" id="v146ValidateSetting">Valider</button>`;
+    } else {
+      draft = Math.max(5, Math.min(10, Number(draft) || 6));
+      popover.innerHTML = `
+        <div class="v146-popover-arrow"></div>
+        <h3>Nombre de catégories</h3>
+        <div class="v146-stepper">
+          <button type="button" class="v146-step-btn" id="v146CategoryPrev" ${draft <= 5 ? "disabled" : ""} aria-label="Moins de catégories">‹</button>
+          <strong class="v146-step-value">${draft}</strong>
+          <button type="button" class="v146-step-btn" id="v146CategoryNext" ${draft >= 10 ? "disabled" : ""} aria-label="Plus de catégories">›</button>
+        </div>
+        <p class="v146-range-note">Entre 5 et 10</p>
+        <button type="button" class="v146-validate" id="v146ValidateSetting">Valider</button>`;
+    }
+
+    popover.querySelectorAll(".v146-choice").forEach(btn => {
+      btn.onclick = () => {
+        draft = setting === "categoryDifficulty" ? btn.dataset.value : Number(btn.dataset.value);
+        renderContent();
+        positionPopover();
+      };
+    });
+    popover.querySelector("#v146CategoryPrev")?.addEventListener("click", () => {
+      draft = Math.max(5, Number(draft) - 1); renderContent(); positionPopover();
+    });
+    popover.querySelector("#v146CategoryNext")?.addEventListener("click", () => {
+      draft = Math.min(10, Number(draft) + 1); renderContent(); positionPopover();
+    });
+    popover.querySelector("#v146ValidateSetting")?.addEventListener("click", saveSetting);
+  };
+
+  const positionPopover = () => {
+    const rect = anchor.getBoundingClientRect();
+    const margin = 10;
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+    const desiredWidth = Math.min(setting === "categoryCount" ? 250 : 270, viewportW - 24);
+    popover.style.width = `${desiredWidth}px`;
+    popover.style.left = "0px";
+    popover.style.top = "0px";
+    const popRect = popover.getBoundingClientRect();
+    let left = rect.left + rect.width / 2 - desiredWidth / 2;
+    left = Math.max(12, Math.min(viewportW - desiredWidth - 12, left));
+    let top = rect.bottom + margin;
+    let above = false;
+    if (top + popRect.height > viewportH - 12) {
+      top = Math.max(12, rect.top - popRect.height - margin);
+      above = true;
+    }
+    popover.style.left = `${left}px`;
+    popover.style.top = `${top}px`;
+    popover.classList.toggle("above", above);
+    const arrow = popover.querySelector(".v146-popover-arrow");
+    if (arrow) {
+      const center = rect.left + rect.width / 2 - left;
+      arrow.style.left = `${Math.max(22, Math.min(desiredWidth - 22, center))}px`;
+    }
+  };
+
+  const close = () => {
+    window.removeEventListener("resize", positionPopover);
+    window.removeEventListener("scroll", positionPopover, true);
+    layer.remove();
+  };
+
+  const saveSetting = () => {
+    const button = popover.querySelector("#v146ValidateSetting");
+    if (button) { button.disabled = true; button.textContent = "Enregistrement…"; }
+    const payload = {
       code: state.code,
       playerId: session.playerId,
-      rounds: values.rounds,
-      categoryCount: values.categoryCount,
-      categoryDifficulty: values.categoryDifficulty,
-      duration: values.duration
-    }, res => {
+      rounds: current.rounds,
+      duration: current.duration,
+      categoryCount: current.categoryCount,
+      categoryDifficulty: current.categoryDifficulty
+    };
+    payload[setting] = draft;
+    socket.emit("room:updateSettings", payload, res => {
       if (!res?.ok) {
-        saveBtn.disabled = false;
-        return toast(res?.error || "Impossible de modifier les paramètres.");
+        if (button) { button.disabled = false; button.textContent = "Valider"; }
+        return toast(res?.error || "Impossible de modifier ce paramètre.");
       }
       if (res.state) session.state = res.state;
       close();
-      toast("Paramètres mis à jour.");
       render();
     });
   };
+
+  layer.addEventListener("pointerdown", e => { if (e.target === layer) close(); });
+  window.addEventListener("resize", positionPopover);
+  window.addEventListener("scroll", positionPopover, true);
+  renderContent();
+  requestAnimationFrame(positionPopover);
 }
 
 function difficultyLabel(value) {
-  return value === "hard" ? "Difficile" : value === "medium" ? "Moyen" : "Débutant";
+  return value === "hard" ? "Difficile" : value === "medium" ? "Normal" : "Facile";
 }
 
 function renderCategorySelection() {
