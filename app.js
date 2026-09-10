@@ -11,7 +11,7 @@ const session = {
 };
 
 const GAME_COST = 5;
-const DEFAULT_COINS = 12;
+const DEFAULT_COINS = 25;
 const PROFILE_ICONS = ["🐼","🦊","🐯","🐸","🦁","🐨","🐙","🦄","🤖","😎","🧠","⭐"];
 
 function getProfile() {
@@ -139,57 +139,45 @@ function renderHome() {
   if (session.state) return render();
   const profile = getProfile();
   const coins = getCoins();
-  const displayName = profile.name || "Joueur";
+  const decorativePool = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("");
+  const decorativeLetters = [];
+  while (decorativeLetters.length < 3) {
+    const i = Math.floor(Math.random() * decorativePool.length);
+    decorativeLetters.push(decorativePool.splice(i, 1)[0]);
+  }
 
   setScreen(`
     <main class="screen home-v2-screen">
       <div class="home-v2-blob home-v2-blob-a"></div>
       <div class="home-v2-blob home-v2-blob-b"></div>
       <div class="home-v2-blob home-v2-blob-c"></div>
-      <div class="home-v2-letter home-v2-a">A</div>
-      <div class="home-v2-letter home-v2-b">B</div>
-      <div class="home-v2-letter home-v2-c">C</div>
+      <div class="home-v2-letter home-v2-a">${decorativeLetters[0]}</div>
+      <div class="home-v2-letter home-v2-b">${decorativeLetters[1]}</div>
+      <div class="home-v2-letter home-v2-c">${decorativeLetters[2]}</div>
 
-      <header class="home-v2-topbar">
-        <button class="home-v2-square" id="settingsBtn" aria-label="Réglages">⚙️</button>
-        <button class="home-v2-square" id="crownBtn" aria-label="Récompenses">👑</button>
-      </header>
-
-      <section class="home-v2-hero">
+      <section class="home-v2-hero home-v2-hero-clean">
         <img src="petit-bac-logo.png" class="home-v2-logo" alt="P’tit Bac">
         <p>Le jeu de mots qui rassemble<br>tout le monde !</p>
         <span class="home-v2-underline"></span>
       </section>
 
-      <section class="home-v2-dashboard">
-        <button class="home-v2-panel profile-panel" id="profileBtn">
-          <span class="home-v2-panel-icon">👤</span>
-          <span class="home-v2-panel-copy">
-            <strong>Mon profil</strong>
-            <small>Choisis ton pseudo<br>et ton icône</small>
-          </span>
-          <span class="home-v2-chevron">›</span>
-          <span class="home-v2-profile-preview">
-            <span class="home-v2-avatar">${escapeHtml(profile.icon)}</span>
-            <b>${escapeHtml(displayName)}</b>
-            <span>›</span>
-          </span>
+      <section class="home-v2-dashboard home-v2-dashboard-compact">
+        <button class="home-v2-panel home-v2-panel-compact profile-panel" id="profileBtn">
+          <span class="home-v2-avatar home-v2-avatar-large">${escapeHtml(profile.icon)}</span>
+          <strong>Mon profil</strong>
+          <span class="home-v2-chevron home-v2-chevron-center">›</span>
         </button>
 
-        <button class="home-v2-panel coin-panel" id="coinsBtn">
-          <span class="home-v2-panel-icon coin-stack">🪙</span>
-          <span class="home-v2-panel-copy">
-            <strong>Mes pièces</strong>
-            <small>Ton solde pour<br>jouer</small>
-          </span>
-          <span class="home-v2-chevron">›</span>
-          <span class="home-v2-coin-preview"><span class="coin-medal">👑</span><b>${coins}</b></span>
+        <button class="home-v2-panel home-v2-panel-compact coin-panel" id="coinsBtn">
+          <span class="coin-medal home-v2-main-coin">👑</span>
+          <span class="home-v2-coin-copy"><strong>Mes pièces</strong><b>${coins}</b></span>
+          <span class="home-v2-chevron home-v2-chevron-center">›</span>
         </button>
       </section>
 
-      <button class="home-v2-category-card" id="categoriesBtn">
-        <span class="home-v2-category-icon">🧩</span>
-        <span><strong>12 catégories</strong><small>Toujours variées</small></span>
+      <button class="home-v2-category-card home-v2-rewards-card" id="rewardsBtn">
+        <span class="home-v2-category-icon home-v2-rewards-icon">🎁</span>
+        <span><strong>Récompenses</strong><small>Bientôt disponible !</small></span>
         <span>›</span>
       </button>
 
@@ -216,10 +204,7 @@ function renderHome() {
         <span>›</span>
       </button>
 
-      <footer class="home-v2-footer">
-        <strong>💜 P’tit Bac</strong>
-        <span>Des mots, des rires, des souvenirs !</span>
-      </footer>
+      <footer class="home-v2-footer home-v2-beta">Version bêta</footer>
     </main>
   `);
 
@@ -233,10 +218,8 @@ function renderHome() {
   };
   document.getElementById("profileBtn").onclick = renderProfile;
   document.getElementById("coinsBtn").onclick = renderCoins;
-  document.getElementById("categoriesBtn").onclick = renderCategoriesInfo;
+  document.getElementById("rewardsBtn").onclick = () => toast("Récompenses bientôt disponibles.");
   document.getElementById("howToBtn").onclick = renderHowTo;
-  document.getElementById("settingsBtn").onclick = () => toast("Réglages bientôt disponibles.");
-  document.getElementById("crownBtn").onclick = () => toast("Récompenses bientôt disponibles.");
 }
 
 function renderProfile() {

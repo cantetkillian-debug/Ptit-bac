@@ -1131,3 +1131,81 @@ body {
   .home-v2-footer { margin-top:18px; }
   .profile-icon-grid { grid-template-columns:repeat(4,1fr); }
 }
+
+/* ===== HOME V1.17 — accueil final ===== */
+.home-v2-hero-clean {
+  margin-top: 8px;
+}
+.home-v2-dashboard-compact {
+  gap: 14px;
+}
+.home-v2-panel-compact {
+  min-height: 96px;
+  padding: 14px 44px 14px 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+}
+.home-v2-panel-compact strong {
+  font-size: clamp(1rem, 4vw, 1.2rem);
+  font-weight: 900;
+  line-height: 1.05;
+}
+.home-v2-avatar-large {
+  width: 54px;
+  height: 54px;
+  font-size: 1.9rem;
+}
+.home-v2-chevron-center {
+  top: 50%;
+  transform: translateY(-50%);
+  right: 16px;
+}
+.home-v2-main-coin {
+  width: 54px;
+  height: 54px;
+  font-size: 1.2rem;
+  border-width: 3px;
+}
+.home-v2-coin-copy {
+  display: grid;
+  gap: 3px;
+  align-content: center;
+}
+.home-v2-coin-copy strong {
+  display: block;
+}
+.home-v2-coin-copy b {
+  font-size: 1.55rem;
+  line-height: 1;
+  color: #17123f;
+}
+.home-v2-rewards-card {
+  min-height: 84px;
+}
+.home-v2-rewards-icon {
+  background: #f5efff;
+}
+.home-v2-beta {
+  margin-top: 22px;
+  color: #7756ee;
+  font-weight: 900;
+  font-size: .9rem;
+}
+
+@media (max-width: 420px) {
+  .home-v2-panel-compact {
+    min-height: 86px;
+    padding: 11px 36px 11px 12px;
+    gap: 10px;
+  }
+  .home-v2-avatar-large,
+  .home-v2-main-coin {
+    width: 48px;
+    height: 48px;
+  }
+  .home-v2-avatar-large { font-size: 1.65rem; }
+  .home-v2-panel-compact strong { font-size: .95rem; }
+  .home-v2-coin-copy b { font-size: 1.35rem; }
+}
