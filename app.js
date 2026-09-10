@@ -237,7 +237,26 @@ function renderHome() {
 
   document.getElementById("createBtn").onclick = () => {
     if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
-    renderNameForm("create");
+    const profile = getProfile();
+    const name = String(profile.name || "").trim();
+    if (!name) {
+      toast("Choisis d’abord ton pseudo.");
+      return renderProfile();
+    }
+    socket.emit("room:create", {
+      name,
+      rounds: 1,
+      categoryCount: 6,
+      duration: 60,
+      avatar: profile.icon,
+      walletToken: session.walletToken
+    }, res => {
+      if (!res?.ok) return toast(res?.error || "Impossible de créer la partie.");
+      if (res.walletToken) setWalletState(res.walletToken, res.balance);
+      saveSession(res.code, res.playerId);
+      session.state = res.state;
+      render();
+    });
   };
   document.getElementById("joinBtn").onclick = () => {
     if (!canAffordGame()) return toast(`Il te faut ${GAME_COST} pièces.`);
@@ -645,6 +664,13 @@ function statIcon(type) {
   return icons[type] || "";
 }
 
+function formatDuration(seconds) {
+  const value = Number(seconds) || 0;
+  if (value === 90) return "1m30";
+  if (value === 60) return "60s";
+  return `${value}s`;
+}
+
 function renderLobby() {
   clearInterval(session.timerHandle);
   session.localAnswers = {};
@@ -697,7 +723,7 @@ function renderLobby() {
         </div>
         <div class="ref-stat-card">
           <span class="ref-stat-icon">${statIcon("timer")}</span>
-          <div><strong>${state.duration}s</strong><span>chrono</span></div>
+          <div><strong>${formatDuration(state.duration)}</strong><span>chrono</span></div>
         </div>
       </section>
 
@@ -717,6 +743,11 @@ function renderLobby() {
             <span>🤖</span>
             <strong>${hasBot ? "Bot test ajouté" : "Ajouter un bot test"}</strong>
           </button>
+          <button class="lobby-settings-btn" id="roomSettingsBtn">
+            <span>⚙️</span>
+            <strong>Paramètres de la partie</strong>
+            <span class="lobby-settings-arrow">›</span>
+          </button>
         ` : ""}
 
         ${user?.isHost ? `
@@ -729,18 +760,6 @@ function renderLobby() {
         `}
       </section>
 
-      <section class="ref-categories">
-        <p class="ref-eyebrow">Cette partie</p>
-        <h2>6 catégories</h2>
-        <div class="ref-category-grid">
-          ${state.categories.map(c => `
-            <div class="ref-category-card">
-              <span class="ref-category-icon">${categoryIcon(c)}</span>
-              <span>${escapeHtml(c)}</span>
-            </div>
-          `).join("")}
-        </div>
-      </section>
     </main>
   `);
 
@@ -768,6 +787,9 @@ function renderLobby() {
       };
     }
 
+    const settingsBtn = document.getElementById("roomSettingsBtn");
+    if (settingsBtn) settingsBtn.onclick = renderRoomSettings;
+
     const startBtn = document.getElementById("startBtn");
     if (startBtn) {
       startBtn.onclick = () => socket.emit("game:start", { code: state.code, playerId: session.playerId });
@@ -781,6 +803,86 @@ function renderLobby() {
       });
     });
   }
+}
+
+function renderRoomSettings() {
+  const state = session.state;
+  const user = me();
+  if (!state || !user?.isHost || state.phase !== "lobby") return;
+
+  const overlay = document.createElement("div");
+  overlay.className = "room-settings-overlay";
+  overlay.innerHTML = `
+    <section class="room-settings-sheet" role="dialog" aria-modal="true" aria-label="Paramètres de la partie">
+      <div class="room-settings-handle"></div>
+      <div class="room-settings-head">
+        <div><p class="ref-eyebrow">Salon</p><h2>Paramètres de la partie</h2></div>
+        <button class="room-settings-close" id="closeRoomSettings" aria-label="Fermer">×</button>
+      </div>
+
+      <fieldset class="room-settings-group">
+        <legend>Nombre de manches</legend>
+        <div class="room-settings-options">
+          ${[1,3,5].map(v => `<button type="button" data-setting="rounds" data-value="${v}" class="room-setting-choice ${state.rounds === v ? "selected" : ""}">${v}</button>`).join("")}
+        </div>
+      </fieldset>
+
+      <fieldset class="room-settings-group">
+        <legend>Nombre de catégories</legend>
+        <div class="room-settings-options room-settings-five">
+          ${[6,7,8,9,10].map(v => `<button type="button" data-setting="categoryCount" data-value="${v}" class="room-setting-choice ${(state.categoryCount || state.categories.length) === v ? "selected" : ""}">${v}</button>`).join("")}
+        </div>
+      </fieldset>
+
+      <fieldset class="room-settings-group">
+        <legend>Temps par manche</legend>
+        <div class="room-settings-options">
+          ${[[30,"30s"],[60,"60s"],[90,"1m30"]].map(([v,label]) => `<button type="button" data-setting="duration" data-value="${v}" class="room-setting-choice ${state.duration === v ? "selected" : ""}">${label}</button>`).join("")}
+        </div>
+      </fieldset>
+
+      <button class="btn btn-primary room-settings-save" id="saveRoomSettings">Enregistrer</button>
+    </section>
+  `;
+  document.body.appendChild(overlay);
+
+  const values = {
+    rounds: state.rounds,
+    categoryCount: state.categoryCount || state.categories.length || 6,
+    duration: state.duration
+  };
+
+  overlay.querySelectorAll("[data-setting]").forEach(btn => {
+    btn.onclick = () => {
+      const setting = btn.dataset.setting;
+      values[setting] = Number(btn.dataset.value);
+      overlay.querySelectorAll(`[data-setting="${setting}"]`).forEach(item => item.classList.toggle("selected", item === btn));
+    };
+  });
+
+  const close = () => overlay.remove();
+  document.getElementById("closeRoomSettings").onclick = close;
+  overlay.onclick = e => { if (e.target === overlay) close(); };
+  document.getElementById("saveRoomSettings").onclick = () => {
+    const saveBtn = document.getElementById("saveRoomSettings");
+    saveBtn.disabled = true;
+    socket.emit("room:updateSettings", {
+      code: state.code,
+      playerId: session.playerId,
+      rounds: values.rounds,
+      categoryCount: values.categoryCount,
+      duration: values.duration
+    }, res => {
+      if (!res?.ok) {
+        saveBtn.disabled = false;
+        return toast(res?.error || "Impossible de modifier les paramètres.");
+      }
+      if (res.state) session.state = res.state;
+      close();
+      toast("Paramètres mis à jour.");
+      render();
+    });
+  };
 }
 
 function answerKey(category) {
@@ -1109,7 +1211,7 @@ function renderFinished() {
       <section class="result-stats-v123">
         <div><span>${statIcon("player")}</span><strong>${ranked.length}</strong><small>Joueur${ranked.length > 1 ? "s" : ""}</small></div>
         <div><span>${statIcon("round")}</span><strong>${state.rounds}</strong><small>Manche${state.rounds > 1 ? "s" : ""}</small></div>
-        <div><span>${statIcon("timer")}</span><strong>${state.duration === 60 ? "1 min" : `${state.duration}s`}</strong><small>Durée</small></div>
+        <div><span>${statIcon("timer")}</span><strong>${state.duration === 90 ? "1m30" : state.duration === 60 ? "1 min" : `${state.duration}s`}</strong><small>Durée</small></div>
       </section>
 
       <section class="my-coins-result-v123">

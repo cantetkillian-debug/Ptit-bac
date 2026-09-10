@@ -158,6 +158,7 @@ function publicRoom(room, viewerPlayerId = null) {
     phase: room.phase,
     players: room.players.map(publicPlayer),
     categories: room.categories,
+    categoryCount: room.categoryCount || room.categories.length,
     rounds: room.rounds,
     duration: room.duration,
     letters: room.letters,
@@ -487,10 +488,11 @@ io.on("connection", socket => {
     saveWallets();
     cb({ ok: true, token: result.token, balance: result.wallet.coins });
   });
-  socket.on("room:create", ({ name, rounds, duration, avatar, walletToken }, cb = () => {}) => {
+  socket.on("room:create", ({ name, rounds = 1, duration = 60, categoryCount = 6, avatar, walletToken }, cb = () => {}) => {
     const safeName = cleanName(name);
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
-    const safeDuration = [30, 60].includes(Number(duration)) ? Number(duration) : 60;
+    const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : 60;
+    const safeCategoryCount = [6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : 6;
     if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
     const walletResult = ensureWallet(walletToken || socket.data.walletToken);
     socket.data.walletToken = walletResult.token;
@@ -515,7 +517,8 @@ io.on("connection", socket => {
       code,
       phase: "lobby",
       players: [player],
-      categories: sample(CATEGORIES, 6),
+      categoryCount: safeCategoryCount,
+      categories: sample(CATEGORIES, safeCategoryCount),
       rounds: safeRounds,
       duration: safeDuration,
       letters: sample(LETTERS, safeRounds),
@@ -535,6 +538,25 @@ io.on("connection", socket => {
     rooms.set(code, room);
     setPlayerSocket(room, player, socket);
     cb({ ok: true, code, playerId: player.id, walletToken: walletResult.token, balance: walletResult.wallet.coins, state: publicRoom(room, player.id) });
+    emitRoom(room);
+  });
+
+  socket.on("room:updateSettings", ({ code, playerId, rounds, duration, categoryCount }, cb = () => {}) => {
+    const { room, player } = requireMember(socket, { code, playerId });
+    if (!room || !player?.isHost) return cb({ ok: false, error: "Seul l’hôte peut modifier les paramètres." });
+    if (room.phase !== "lobby") return cb({ ok: false, error: "Les paramètres ne peuvent être modifiés que dans le salon." });
+
+    const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : room.rounds;
+    const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : room.duration;
+    const safeCategoryCount = [6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : (room.categoryCount || room.categories.length || 6);
+
+    room.rounds = safeRounds;
+    room.duration = safeDuration;
+    room.categoryCount = safeCategoryCount;
+    room.categories = sample(CATEGORIES, safeCategoryCount);
+    room.letters = sample(LETTERS, safeRounds);
+
+    cb({ ok: true, state: publicRoom(room, player.id) });
     emitRoom(room);
   });
 
@@ -728,7 +750,7 @@ io.on("connection", socket => {
     if (!room || !player?.isHost) return;
 
     room.phase = "lobby";
-    room.categories = sample(CATEGORIES, 6);
+    room.categories = sample(CATEGORIES, room.categoryCount || 6);
     room.letters = sample(LETTERS, room.rounds);
     room.roundIndex = -1;
     room.roundEndsAt = null;
