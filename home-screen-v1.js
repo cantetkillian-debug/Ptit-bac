@@ -199,7 +199,7 @@
 
         <section class="home-plaque-brand" aria-label="P'tit Bac">
           <div class="home-plaque-logo-glow"></div>
-          <img src="/ptit-bac-logo-v3.png" alt="P'tit Bac" class="home-plaque-logo">
+          <img src="/ptitbac.logo.png" alt="P'tit Bac" class="home-plaque-logo">
         </section>
 
         <section class="home-plaque-actions">
@@ -273,11 +273,9 @@
     homeTimer = setInterval(refreshHomeResources, 1000);
   }
 
-  // Remplace uniquement l'accueil historique. Toutes les autres pages de app.js restent inchangées.
   window.renderHome = renderPlaquetteHome;
   try { renderHome = renderPlaquetteHome; } catch {}
 
-  // Si l'ancien accueil a déjà été rendu avant le chargement de ce fichier, on le remplace.
   if (!session.state && document.getElementById("app")?.children.length) {
     renderPlaquetteHome();
   }

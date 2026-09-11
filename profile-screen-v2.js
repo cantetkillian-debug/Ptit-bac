@@ -94,7 +94,7 @@
 
         <footer class="profile-v2-footer">
           <div class="profile-v2-footer-crown">♛</div>
-          <strong>P’tit Bac</strong>
+          <img src="/ptitbac.logo.png" alt="P’tit Bac" class="profile-v2-footer-logo" style="display:block;width:118px;max-width:38vw;height:auto;object-fit:contain;margin:3px auto 2px;">
           <small>Version bêta</small>
         </footer>
 
