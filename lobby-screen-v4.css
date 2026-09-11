@@ -1730,3 +1730,158 @@ body:has(.lobby-v4) {
     font-size:.40rem !important;
   }
 }
+
+
+/* =========================================================
+   Salon V9 — ajustements visuels demandés
+   Base : lobby-screen-v4.css actuel du GitHub
+   ========================================================= */
+
+/* 1) Bouton du code :
+   on garde EXACTEMENT sa forme et ses dimensions,
+   on agrandit uniquement le code et l'icône copie. */
+.lobby-v4-code strong {
+  font-size:.64rem !important;
+  letter-spacing:.13em !important;
+}
+
+.lobby-v4-code img {
+  width:21px !important;
+  height:21px !important;
+  right:8px !important;
+}
+
+/* 2) Bloc nombre de joueurs :
+   centré verticalement par rapport à l'ensemble code + texte. */
+.lobby-v4-count {
+  top:50% !important;
+  transform:translateY(-50%) !important;
+}
+
+/* 3) Cartes joueurs :
+   un peu plus compactes et légèrement moins larges afin
+   de créer davantage d'espace avec la colonne paramètres. */
+.lobby-v4-player-list {
+  padding-right:5px !important;
+}
+
+.lobby-v4-player {
+  min-height:51px !important;
+  padding-top:5px !important;
+  padding-bottom:5px !important;
+}
+
+.lobby-v4-avatar {
+  width:36px !important;
+  height:36px !important;
+}
+
+.lobby-v4-avatar img,
+.lobby-v4-avatar > span {
+  width:30px !important;
+  height:30px !important;
+  font-size:.92rem !important;
+}
+
+.lobby-v4-add-player,
+.lobby-v4-empty-player {
+  width:calc(100% - 5px) !important;
+  min-height:51px !important;
+  margin-right:5px !important;
+}
+
+.lobby-v4-plus {
+  width:32px !important;
+  height:32px !important;
+  font-size:1.10rem !important;
+}
+
+/* 4) Bouton lancer :
+   cadre plus petit, texte volontairement inchangé. */
+.lobby-v4-start,
+.lobby-v4-wait-host {
+  width:210px !important;
+  min-height:41px !important;
+  border-radius:17px !important;
+}
+
+.lobby-v4-start {
+  padding-left:16px !important;
+  padding-right:16px !important;
+}
+
+/* 5) Exit :
+   suppression complète du cadre autour du PNG. */
+.lobby-v4-leave-top {
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  padding:0 !important;
+}
+
+.lobby-v4-leave-top img {
+  width:30px !important;
+  height:30px !important;
+  filter:drop-shadow(0 0 7px rgba(154,77,255,.24)) !important;
+}
+
+/* 6) Logo du jeu en bas :
+   force son affichage au-dessus des vagues avec le PNG GitHub existant. */
+.lobby-v4-footer {
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  z-index:20 !important;
+  bottom:max(48px,calc(env(safe-area-inset-bottom) + 40px)) !important;
+  pointer-events:none !important;
+}
+
+.lobby-v4-footer img {
+  display:block !important;
+  width:54px !important;
+  height:auto !important;
+  max-height:48px !important;
+  opacity:1 !important;
+}
+
+.lobby-v4-footer small {
+  display:block !important;
+  margin-top:2px !important;
+}
+
+/* Réglages téléphone étroit */
+@media (max-width:380px) {
+  .lobby-v4-code strong {
+    font-size:.59rem !important;
+  }
+
+  .lobby-v4-code img {
+    width:19px !important;
+    height:19px !important;
+  }
+
+  .lobby-v4-start,
+  .lobby-v4-wait-host {
+    width:196px !important;
+    min-height:39px !important;
+  }
+
+  .lobby-v4-footer img {
+    width:49px !important;
+    max-height:43px !important;
+  }
+}
+
+/* Le footer reste visible même sur les petits écrans en hauteur. */
+@media (max-height:680px) {
+  .lobby-v4-footer {
+    display:flex !important;
+    bottom:max(34px,calc(env(safe-area-inset-bottom) + 28px)) !important;
+  }
+
+  .lobby-v4-footer img {
+    width:44px !important;
+    max-height:38px !important;
+  }
+}
