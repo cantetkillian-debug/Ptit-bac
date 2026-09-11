@@ -74,16 +74,16 @@
       const canKick = user?.isHost && !p.isHost && p.id !== session.playerId;
 
       return `
-        <article class="lobby-v4-player">
+        <article class="lobby-v4-player ${canKick ? "has-kick" : ""}">
           ${lobbyV4Avatar(p, index)}
           <div class="lobby-v4-player-copy">
             <div class="lobby-v4-player-name">
               <strong>${escapeHtml(p.name)}</strong>
+              <i class="lobby-v4-online ${online ? "on" : ""}"></i>
               ${p.isHost ? `<span>Hôte</span>` : ""}
             </div>
             <small>${online ? "Prêt" : "Déconnecté"}</small>
           </div>
-          <i class="lobby-v4-online ${online ? "on" : ""}"></i>
           ${canKick ? `<button class="lobby-v4-kick" data-kick-id="${p.id}" type="button" aria-label="Retirer ${escapeHtml(p.name)}">×</button>` : ""}
         </article>`;
     }).join("");

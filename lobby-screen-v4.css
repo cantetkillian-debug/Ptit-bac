@@ -1551,3 +1551,182 @@ body:has(.lobby-v4) {
     max-height:39px !important;
   }
 }
+
+
+/* =========================================================
+   Salon V8 — centrage du code + colonnes ouvertes
+   ========================================================= */
+
+/* Code du salon vraiment centré sous le titre, indépendamment du compteur. */
+.lobby-v4-room-row {
+  position:relative !important;
+  display:block !important;
+  min-height:72px !important;
+  margin-top:1px !important;
+}
+
+.lobby-v4-code-wrap {
+  width:max-content !important;
+  max-width:calc(100% - 82px) !important;
+  margin:0 auto !important;
+}
+
+.lobby-v4-code {
+  width:132px !important;
+  min-height:35px !important;
+  padding:0 31px 0 13px !important;
+  position:relative !important;
+  gap:0 !important;
+}
+
+/* Le code est volontairement plus discret que le texte d'aide. */
+.lobby-v4-code strong {
+  width:100% !important;
+  text-align:center !important;
+  font-size:.50rem !important;
+  letter-spacing:.13em !important;
+}
+
+.lobby-v4-code img {
+  position:absolute !important;
+  right:10px !important;
+  top:50% !important;
+  transform:translateY(-50%) !important;
+  width:17px !important;
+  height:17px !important;
+}
+
+.lobby-v4-code-wrap p {
+  margin-top:6px !important;
+  font-size:.56rem !important;
+  font-weight:700 !important;
+}
+
+/* Compteur joueurs plus petit et plus léger visuellement. */
+.lobby-v4-count {
+  position:absolute !important;
+  right:0 !important;
+  top:0 !important;
+  width:62px !important;
+  min-height:51px !important;
+  border-radius:16px !important;
+}
+
+.lobby-v4-count strong {
+  font-size:.88rem !important;
+}
+
+.lobby-v4-count span {
+  margin-top:4px !important;
+  font-size:.43rem !important;
+}
+
+/* Supprime les gros cadres extérieurs des deux colonnes.
+   Les cartes internes restent bien visibles. */
+.lobby-v4-players-panel,
+.lobby-v4-settings {
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+
+.lobby-v4-players-panel {
+  padding-bottom:0 !important;
+}
+
+.lobby-v4-settings {
+  padding-bottom:0 !important;
+}
+
+/* Un peu plus d'air pour les titres sans le cadre extérieur. */
+.lobby-v4-players-panel > h2,
+.lobby-v4-settings > h2 {
+  padding-left:4px !important;
+  padding-right:4px !important;
+}
+
+/* Les cartes enfants utilisent toute la largeur disponible. */
+.lobby-v4-player-list {
+  padding-left:0 !important;
+  padding-right:0 !important;
+}
+
+.lobby-v4-add-player,
+.lobby-v4-empty-player,
+.lobby-v4-setting {
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+
+/* Point vert juste après le prénom. */
+.lobby-v4-player {
+  grid-template-columns:42px minmax(0,1fr) !important;
+}
+
+.lobby-v4-player.has-kick {
+  padding-right:35px !important;
+}
+
+.lobby-v4-player-name {
+  gap:5px !important;
+  justify-content:flex-start !important;
+}
+
+.lobby-v4-online {
+  position:static !important;
+  flex:0 0 auto !important;
+  width:7px !important;
+  height:7px !important;
+  margin:0 1px !important;
+}
+
+/* Bouton exclusion centré verticalement à droite. */
+.lobby-v4-kick {
+  top:50% !important;
+  right:8px !important;
+  transform:translateY(-50%) !important;
+  width:23px !important;
+  height:23px !important;
+  display:grid !important;
+  place-items:center !important;
+  padding:0 !important;
+  line-height:1 !important;
+}
+
+/* Ajustement compact pour téléphone étroit. */
+@media (max-width:380px) {
+  .lobby-v4-room-row {
+    min-height:68px !important;
+  }
+
+  .lobby-v4-code-wrap {
+    max-width:calc(100% - 72px) !important;
+  }
+
+  .lobby-v4-code {
+    width:122px !important;
+    min-height:33px !important;
+  }
+
+  .lobby-v4-code strong {
+    font-size:.47rem !important;
+  }
+
+  .lobby-v4-code-wrap p {
+    font-size:.51rem !important;
+  }
+
+  .lobby-v4-count {
+    width:56px !important;
+    min-height:47px !important;
+  }
+
+  .lobby-v4-count strong {
+    font-size:.82rem !important;
+  }
+
+  .lobby-v4-count span {
+    font-size:.40rem !important;
+  }
+}
