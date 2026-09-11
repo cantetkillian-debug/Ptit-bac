@@ -3,6 +3,24 @@
 
   const LOBBY_MAX_PLAYERS = 6;
 
+  const DIFFICULTY_ICON_URLS = {
+    beginner: "/difficulty-easy.png?v=lobby11",
+    medium: "/difficulty-normal.png?v=lobby11",
+    hard: "/difficulty-hard.png?v=lobby11"
+  };
+
+  let lobbyLastDifficulty = null;
+  let lobbyLastCode = "";
+  let lobbyDifficultyLockUntil = 0;
+
+  // Précharge/décode les 3 icônes pour éviter un freeze au premier changement.
+  Object.values(DIFFICULTY_ICON_URLS).forEach(src => {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = src;
+    if (typeof img.decode === "function") img.decode().catch(() => {});
+  });
+
   function lobbyV4Avatar(player, index = 0) {
     const raw = player?.avatar || "";
     const isImage = window.PtitBacProfilePhoto?.isImageAvatar?.(raw) || /^data:image\//i.test(String(raw));
@@ -25,18 +43,26 @@
 
   function difficultyInfo(value) {
     if (value === "hard") {
-      return { label: "Difficile", icon: "/difficulty-hard.png" };
+      return { label: "Difficile", icon: DIFFICULTY_ICON_URLS.hard };
     }
     if (value === "medium") {
-      return { label: "Normal", icon: "/difficulty-normal.png" };
+      return { label: "Normal", icon: DIFFICULTY_ICON_URLS.medium };
     }
-    return { label: "Facile", icon: "/difficulty-easy.png" };
+    return { label: "Facile", icon: DIFFICULTY_ICON_URLS.beginner };
   }
 
-  function lobbyV4SettingRow({ key, label, value, icon, iconClass = "" }, isHost) {
+  function lobbyV4SettingRow({ key, label, value, icon, iconClass = "", animate = false }, isHost) {
     return `
-      <div class="lobby-v4-setting">
-        <img class="lobby-v4-setting-icon ${iconClass}" src="${icon}" alt="">
+      <div class="lobby-v4-setting lobby-v4-setting-${key} ${animate ? "is-swapping" : ""}">
+        <img
+          class="lobby-v4-setting-icon ${iconClass}"
+          src="${icon}"
+          alt=""
+          width="64"
+          height="64"
+          decoding="async"
+          draggable="false"
+        >
         <div class="lobby-v4-setting-main">
           <small>${label}</small>
           <div class="lobby-v4-stepper ${isHost ? "" : "readonly"}">
@@ -45,7 +71,7 @@
                   <img src="/lobby-minus.png" alt="">
                 </button>`
               : `<span class="lobby-v4-step-spacer"></span>`}
-            <strong>${value}</strong>
+            <strong class="lobby-v4-setting-value">${value}</strong>
             ${isHost
               ? `<button type="button" data-lobby-v4-step="${key}" data-dir="1" aria-label="Augmenter">
                   <img src="/lobby-plus.png" alt="">
@@ -68,6 +94,14 @@
     const botCount = state.players.filter(p => p.isBot).length;
     const categoryCount = Number(state.categoryCount || state.categories?.length || 6);
     const difficulty = difficultyInfo(state.categoryDifficulty);
+
+    if (state.code !== lobbyLastCode) {
+      lobbyLastCode = state.code;
+      lobbyLastDifficulty = state.categoryDifficulty;
+    }
+    const difficultyChanged =
+      lobbyLastDifficulty !== null &&
+      lobbyLastDifficulty !== state.categoryDifficulty;
 
     const players = state.players.map((p, index) => {
       const online = p.connected || p.isBot;
@@ -180,7 +214,8 @@
               label: "Difficulté",
               value: difficulty.label,
               icon: difficulty.icon,
-              iconClass: "difficulty"
+              iconClass: "difficulty",
+              animate: difficultyChanged
             }, user?.isHost)}
 
             ${lobbyV4SettingRow({
@@ -214,6 +249,8 @@
         <div class="lobby-v4-wave wave-2"></div>
       </main>
     `);
+
+    lobbyLastDifficulty = state.categoryDifficulty;
 
     const leave = () => {
       socket.emit("room:leave", { code: state.code, playerId: session.playerId });
@@ -249,6 +286,12 @@
     const updateSetting = (setting, dir) => {
       if (!user?.isHost) return;
 
+      if (setting === "categoryDifficulty") {
+        const now = Date.now();
+        if (now < lobbyDifficultyLockUntil) return;
+        lobbyDifficultyLockUntil = now + 320;
+      }
+
       const rounds = [1, 3, 5];
       const durations = [30, 60, 90];
       const difficulties = ["beginner", "medium", "hard"];
@@ -277,9 +320,14 @@
         categoryCount: nextCategoryCount,
         categoryDifficulty: nextDifficulty
       }, res => {
-        if (!res?.ok) return toast(res?.error || "Impossible de modifier ce paramètre.");
+        if (!res?.ok) {
+          lobbyDifficultyLockUntil = 0;
+          return toast(res?.error || "Impossible de modifier ce paramètre.");
+        }
+        // Ne pas appeler render() ici :
+        // le serveur envoie juste après room:state, qui déclenche déjà le rendu global.
+        // Cela évite deux reconstructions complètes de la page par clic.
         if (res.state) session.state = res.state;
-        render();
       });
     };
 

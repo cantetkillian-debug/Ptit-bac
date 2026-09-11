@@ -1974,3 +1974,79 @@ body:has(.lobby-v4) {
     margin-top:15px !important;
   }
 }
+
+
+/* =========================================================
+   Salon V11 — difficulté fluide + animation d’icône
+   ========================================================= */
+
+/* La case difficulté garde exactement la même géométrie
+   quel que soit le PNG affiché. */
+.lobby-v4-setting-categoryDifficulty {
+  contain:layout paint;
+}
+
+.lobby-v4-setting-categoryDifficulty .lobby-v4-setting-icon.difficulty {
+  width:35px !important;
+  height:35px !important;
+  min-width:35px !important;
+  min-height:35px !important;
+  max-width:35px !important;
+  max-height:35px !important;
+  aspect-ratio:1 / 1;
+  object-fit:contain !important;
+  transform-origin:center;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  will-change:transform, opacity, filter;
+}
+
+/* Animation uniquement quand la difficulté change vraiment. */
+.lobby-v4-setting-categoryDifficulty.is-swapping .lobby-v4-setting-icon.difficulty {
+  animation:lobbyDifficultyIconSwap .32s cubic-bezier(.2,.8,.25,1) both;
+}
+
+.lobby-v4-setting-categoryDifficulty.is-swapping .lobby-v4-setting-value {
+  animation:lobbyDifficultyValueSwap .28s cubic-bezier(.2,.8,.25,1) both;
+}
+
+@keyframes lobbyDifficultyIconSwap {
+  0% {
+    opacity:.18;
+    transform:scale(.70) rotate(-9deg);
+    filter:drop-shadow(0 0 0 rgba(176,83,255,0));
+  }
+  62% {
+    opacity:1;
+    transform:scale(1.10) rotate(2deg);
+    filter:drop-shadow(0 0 9px rgba(176,83,255,.55));
+  }
+  100% {
+    opacity:1;
+    transform:scale(1) rotate(0);
+    filter:drop-shadow(0 0 4px rgba(146,70,255,.18));
+  }
+}
+
+@keyframes lobbyDifficultyValueSwap {
+  0% {
+    opacity:.25;
+    transform:translateY(4px) scale(.94);
+  }
+  70% {
+    opacity:1;
+    transform:translateY(-1px) scale(1.03);
+  }
+  100% {
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+/* Pas d’animation excessive si l’utilisateur préfère les mouvements réduits. */
+@media (prefers-reduced-motion: reduce) {
+  .lobby-v4-setting-categoryDifficulty.is-swapping .lobby-v4-setting-icon.difficulty,
+  .lobby-v4-setting-categoryDifficulty.is-swapping .lobby-v4-setting-value {
+    animation:none !important;
+  }
+}
