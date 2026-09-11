@@ -21,7 +21,7 @@ const originalLoader = Module._extensions[".js"];
 
 function need(source, search, replacement, label) {
   if (!source.includes(search)) {
-    throw new Error("[Economy V2.3] Patch introuvable: " + label);
+    throw new Error("[Economy V2.4] Patch introuvable: " + label);
   }
   return source.replace(search, replacement);
 }
@@ -29,7 +29,7 @@ function need(source, search, replacement, label) {
 function needRegex(source, regex, replacement, label) {
   regex.lastIndex = 0;
   if (!regex.test(source)) {
-    throw new Error("[Economy V2.3] Patch introuvable: " + label);
+    throw new Error("[Economy V2.4] Patch introuvable: " + label);
   }
   regex.lastIndex = 0;
   return source.replace(regex, replacement);
@@ -93,7 +93,7 @@ async function ensureEconomySchema() {
     await pgPool.query('CREATE INDEX IF NOT EXISTS economy_transactions_wallet_idx ON public.economy_transactions(wallet_token, created_at DESC)');
 
     economySchemaReady = true;
-    console.log("Economie V2.3 active: 50 pieces, 5 vies, recharge 30 min.");
+    console.log("Economie V2.4 active: 50 pieces, 5 vies, recharge 30 min.");
   })().catch(err => {
     economySchemaPromise = null;
     throw err;
@@ -451,13 +451,13 @@ Module._extensions[".js"] = function patchedLoader(mod, filename) {
     return originalLoader(mod, filename);
   }
 
-  console.log("[Economy V2.3] patch de:", filename);
+  console.log("[Economy V2.4] patch de:", filename);
   let source = fs.readFileSync(filename, "utf8");
 
   source = need(
     source,
     'const GAME_COST = 5;',
-    'const GAME_COST = 0; // Economie V2.3: entree payee en vies',
+    'const GAME_COST = 0; // Economie V2.4: entree payee en vies',
     "GAME_COST"
   );
 
@@ -471,7 +471,7 @@ Module._extensions[".js"] = function patchedLoader(mod, filename) {
   source = needRegex(
     source,
     /function emitWallet\(player\) \{[\s\S]*?\n\}\n/,
-    match => match + HELPERS + "\n",
+    match => match + HELPERS.replace(/\\`/g, "`") + "\n",
     "helpers"
   );
 
@@ -638,11 +638,25 @@ function distributeRewards`,
   source = need(
     source,
     'io.on("connection", socket => {',
-    'io.on("connection", socket => {\n' + SOCKETS,
+    'io.on("connection", socket => {\n' + SOCKETS.replace(/\\`/g, "`"),
     "economy sockets"
   );
 
-  mod._compile(source, filename);
+  try {
+    mod._compile(source, filename);
+  } catch (err) {
+    const line = Number(String(err?.stack || "").match(/server\.js:(\d+)/)?.[1] || 0);
+    if (line) {
+      const lines = source.split("\n");
+      const from = Math.max(0, line - 4);
+      const to = Math.min(lines.length, line + 3);
+      console.error("[Economy V2.4] Extrait du server.js transforme:");
+      for (let i = from; i < to; i++) {
+        console.error(String(i + 1).padStart(5, " ") + " | " + lines[i]);
+      }
+    }
+    throw err;
+  }
 };
 
-console.log("[Economy V2.3] runtime patch charge.");
+console.log("[Economy V2.4] runtime patch charge.");
