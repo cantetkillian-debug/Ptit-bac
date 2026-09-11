@@ -90,6 +90,11 @@
 
     setScreen(`
       <main class="screen lobby-v4">
+        <span class="lobby-v4-bg-letter lobby-v4-bg-a">A</span>
+        <span class="lobby-v4-bg-letter lobby-v4-bg-b">B</span>
+        <span class="lobby-v4-bg-letter lobby-v4-bg-c">C</span>
+        <span class="lobby-v4-bg-letter lobby-v4-bg-d">D</span>
+        <span class="lobby-v4-bg-letter lobby-v4-bg-e">E</span>
         <header class="lobby-v4-header">
           <button id="lobbyV4LeaveTop" class="lobby-v4-leave-top" type="button" aria-label="Quitter le salon">
             <img src="/lobby-exit.png" alt="">
@@ -101,12 +106,10 @@
         <section class="lobby-v4-room-row">
           <div class="lobby-v4-code-wrap">
             <button id="copyCode" class="lobby-v4-code" type="button" aria-label="Copier le code du salon">
-              <div class="lobby-v4-code-copy">
-                <strong>${escapeHtml(state.code)}</strong>
-                <small>Partage ce code à tes amis</small>
-              </div>
+              <strong>${escapeHtml(state.code)}</strong>
               <img src="/lobby-copy.png" alt="">
             </button>
+            <p>Partage ce code à tes amis</p>
           </div>
 
           <div class="lobby-v4-count" aria-label="${playerCount} joueurs sur ${LOBBY_MAX_PLAYERS}">
