@@ -72,7 +72,8 @@
   function patchCurrentScreen() {
     // L'ancien app.js affiche encore 5 pièces : on remplace toute l'UI par les vies.
     document.querySelectorAll(".home-v129-cost").forEach(el => {
-      el.innerHTML = `<span class="economy-heart">♥</span><b>1</b>`;
+      const wanted = `<span class="economy-heart">♥</span><b>1</b>`;
+      if (el.innerHTML !== wanted) el.innerHTML = wanted;
     });
 
     document.querySelectorAll(".home-v129-no-coins").forEach(el => el.remove());
@@ -90,13 +91,15 @@
     if (shopCard) {
       const p = shopCard.querySelector(".shop-reward-copy p");
       const value = shopCard.querySelector(".shop-reward-value b");
-      if (p) p.innerHTML = `Regarde une courte publicité et reçois <strong>80 pièces</strong>.`;
-      if (value) value.textContent = "+80";
+      const rewardText = `Regarde une courte publicité et reçois <strong>80 pièces</strong>.`;
+      if (p && p.innerHTML !== rewardText) p.innerHTML = rewardText;
+      if (value && value.textContent !== "+80") value.textContent = "+80";
     }
 
     const info = document.querySelector(".shop-info");
     if (info) {
-      info.innerHTML = `ⓘ Les parties multijoueur coûtent <strong>1 vie</strong>. Une vie revient toutes les <strong>30 minutes</strong>.`;
+      const infoText = `ⓘ Les parties multijoueur coûtent <strong>1 vie</strong>. Une vie revient toutes les <strong>30 minutes</strong>.`;
+      if (info.innerHTML !== infoText) info.innerHTML = infoText;
     }
 
     // Ancien panneau admin caché: cohérence visuelle avec 50 pièces.
@@ -142,9 +145,21 @@
     localToast(`Plus de vie. Prochaine vie dans ${fmt(eco.secondsToNext)}.`);
   }, true);
 
-  new MutationObserver(() => {
-    patchCurrentScreen();
-  }).observe(document.documentElement, {subtree:true, childList:true});
+  // Important: pas de MutationObserver ici.
+  // patchCurrentScreen() modifie lui-même le DOM ; l'observer provoquerait une
+  // boucle de mutations pouvant bloquer Safari et laisser un écran vide.
+  setInterval(patchCurrentScreen, 500);
+
+  // Filet de sécurité: l'accueil ne doit jamais rester vide uniquement parce
+  // que Socket.IO / le portefeuille met du temps à répondre.
+  setTimeout(() => {
+    const app = document.getElementById("app");
+    if (app && !app.children.length && typeof window.renderHome === "function") {
+      try { window.renderHome(); } catch (err) {
+        console.warn("Affichage accueil de secours:", err?.message || err);
+      }
+    }
+  }, 1200);
 
   setInterval(() => {
     if (eco.lives < eco.maxLives && eco.nextLifeAt) {
