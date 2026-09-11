@@ -804,3 +804,331 @@ body:has(.friends-v2) [data-economy-hud] {
   letter-spacing:.22em;
   font-size:.8rem;
 }
+
+
+/* =========================================================
+   Amis V4 — optimisation 2026
+   ========================================================= */
+
+.friends-v2 {
+  gap:11px;
+}
+
+.friends-v2-tabs b.friends-v4-friend-count {
+  position:static;
+  min-width:19px;
+  height:19px;
+  margin-left:1px;
+  padding:0 5px;
+  background:#332880;
+  color:#fff;
+  font-size:.54rem;
+}
+
+.friends-v4-friends-panel {
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.friends-v4-tools {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 132px;
+  gap:9px;
+}
+
+.friends-v4-search,
+.friends-v4-sort {
+  min-height:46px;
+  border:1.2px solid #4d3cba;
+  border-radius:16px;
+  background:rgba(7,26,73,.9);
+  display:flex;
+  align-items:center;
+}
+
+.friends-v4-search {
+  padding:0 12px;
+  gap:9px;
+}
+
+.friends-v4-search svg {
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  fill:none;
+  stroke:#a67bff;
+  stroke-width:2;
+  stroke-linecap:round;
+}
+
+.friends-v4-search input {
+  width:100%;
+  min-width:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#fff;
+  font:inherit;
+  font-size:.67rem;
+}
+
+.friends-v4-search input::placeholder {
+  color:#8e86b8;
+}
+
+.friends-v4-sort {
+  padding:0 9px;
+  gap:5px;
+  color:#ac89ff;
+}
+
+.friends-v4-sort > span {
+  font-size:1rem;
+  font-weight:900;
+}
+
+.friends-v4-sort select {
+  width:100%;
+  min-width:0;
+  border:0;
+  outline:0;
+  appearance:none;
+  -webkit-appearance:none;
+  background:transparent;
+  color:#d9d0ff;
+  font:inherit;
+  font-size:.56rem;
+  font-weight:800;
+}
+
+.friends-v4-list {
+  position:relative;
+  display:grid;
+  gap:8px;
+  min-height:0;
+}
+
+.friends-v4-card {
+  position:relative;
+  min-height:70px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 9px 8px 10px;
+  border:1.2px solid #4a3ab4;
+  border-radius:17px;
+  background:
+    linear-gradient(145deg,rgba(10,35,93,.98),rgba(6,27,75,.98));
+  box-shadow:inset 0 0 18px rgba(89,54,205,.04);
+}
+
+.friends-v4-main {
+  min-width:0;
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:0;
+  padding:0;
+  background:transparent;
+  color:#fff;
+  text-align:left;
+}
+
+.friends-v4-main:active {
+  opacity:.86;
+}
+
+.friends-v4-avatar-wrap {
+  position:relative;
+  flex:0 0 49px;
+  width:49px;
+  height:49px;
+}
+
+.friends-v4-avatar-wrap .friends-v2-avatar {
+  width:49px;
+  height:49px;
+  border-width:2px;
+}
+
+.friends-v4-avatar-wrap > i {
+  position:absolute;
+  right:-1px;
+  bottom:1px;
+  width:12px;
+  height:12px;
+  border:2px solid #081a4d;
+  border-radius:50%;
+  background:#706b8e;
+}
+
+.friends-v4-avatar-wrap > i.online {
+  background:#42d99a;
+  box-shadow:0 0 8px rgba(66,217,154,.65);
+}
+
+.friends-v4-card .friends-v2-card-main strong {
+  font-size:.83rem;
+}
+
+.friends-v4-card .friends-v2-status {
+  margin-top:4px;
+  font-size:.59rem;
+}
+
+.friends-v4-actions {
+  flex:0 0 auto;
+  display:flex;
+  gap:6px;
+}
+
+.friends-v4-chat-btn,
+.friends-v4-more-btn {
+  width:38px;
+  height:38px;
+  border:1px solid rgba(105,81,221,.50);
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:rgba(12,31,82,.76);
+  color:#d8caff;
+}
+
+.friends-v4-chat-btn svg {
+  width:21px;
+  height:21px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linejoin:round;
+}
+
+.friends-v4-more-btn {
+  font-size:1.25rem;
+  line-height:1;
+  color:#b998ff;
+}
+
+.friends-v4-context {
+  position:absolute;
+  z-index:20;
+  right:8px;
+  top:56px;
+  width:190px;
+  padding:5px;
+  border:1.2px solid #5b43ce;
+  border-radius:15px;
+  background:#0a205c;
+  box-shadow:0 16px 42px rgba(0,0,0,.36);
+}
+
+.friends-v4-context button {
+  width:100%;
+  min-height:40px;
+  padding:0 11px;
+  border:0;
+  border-bottom:1px solid rgba(94,77,179,.32);
+  background:transparent;
+  color:#eee8ff;
+  text-align:left;
+  font:inherit;
+  font-size:.61rem;
+  font-weight:800;
+}
+
+.friends-v4-context button:last-child {
+  border-bottom:0;
+}
+
+.friends-v4-context button.danger {
+  color:#ff5c83;
+}
+
+.friends-v4-no-result {
+  min-height:110px;
+  display:grid;
+  place-items:center;
+  color:#948dbd;
+  text-align:center;
+  font-size:.65rem;
+}
+
+.friends-v4-add-shortcut {
+  width:100%;
+  min-height:72px;
+  margin-top:auto;
+  padding:10px 14px;
+  border:1.4px dashed #7c4fff;
+  border-radius:18px;
+  display:grid;
+  grid-template-columns:46px 1fr 24px;
+  align-items:center;
+  gap:10px;
+  background:linear-gradient(110deg,rgba(47,35,116,.24),rgba(7,27,75,.72));
+  color:#fff;
+  text-align:left;
+}
+
+.friends-v4-add-icon {
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  color:#8b4cff;
+}
+
+.friends-v4-add-icon svg {
+  width:34px;
+  height:34px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+}
+
+.friends-v4-add-shortcut strong {
+  display:block;
+  color:#a965ff;
+  font-size:.74rem;
+  font-weight:900;
+}
+
+.friends-v4-add-shortcut small {
+  display:block;
+  margin-top:4px;
+  color:#a7a0cd;
+  font-size:.56rem;
+}
+
+.friends-v4-add-shortcut > b {
+  color:#9b5eff;
+  font-size:1.9rem;
+  line-height:1;
+}
+
+@media (max-width:390px) {
+  .friends-v4-tools {
+    grid-template-columns:minmax(0,1fr) 116px;
+  }
+
+  .friends-v4-sort select {
+    font-size:.52rem;
+  }
+
+  .friends-v4-card {
+    padding-left:8px;
+    padding-right:7px;
+  }
+
+  .friends-v4-chat-btn,
+  .friends-v4-more-btn {
+    width:35px;
+    height:35px;
+  }
+
+  .friends-v4-context {
+    width:178px;
+  }
+}
