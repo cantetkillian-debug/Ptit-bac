@@ -15,6 +15,7 @@
   };
   let friendsOpen = false;
   let bootstrapTimer = null;
+  let openedFriendId = "";
 
   function identityPayload(extra = {}) {
     return {
@@ -140,6 +141,9 @@
       friendsState.friends = res.friends || [];
       friendsState.incoming = res.incoming || [];
       friendsState.outgoing = res.outgoing || [];
+      if (openedFriendId && !friendsState.friends.some(item => String(item.id) === String(openedFriendId))) {
+        openedFriendId = "";
+      }
       if (friendsOpen) renderFriends();
     });
   }
@@ -152,19 +156,17 @@
   }
 
   function friendCard(user) {
-    const roomCode = (localStorage.getItem("petitbac_code") || "").trim().toUpperCase();
     return `
-      <article class="friends-v2-card">
+      <button class="friends-v2-card friends-v3-friend-card" type="button"
+        data-friend-profile="${escapeHtml(user.id)}"
+        aria-label="Voir le profil de ${escapeHtml(user.username)}">
         <div class="friends-v2-avatar">${avatarMarkup(user.avatar, "friends-v2-avatar-img")}</div>
         <div class="friends-v2-card-main">
           <strong>${escapeHtml(user.username)}</strong>
           ${statusMarkup(user)}
         </div>
-        <div class="friends-v2-card-actions">
-          ${roomCode ? `<button class="friends-v2-icon-btn invite-friend" data-id="${escapeHtml(user.id)}" title="Inviter dans le salon">↗</button>` : ""}
-          <button class="friends-v2-icon-btn danger remove-friend" data-id="${escapeHtml(user.id)}" title="Supprimer">×</button>
-        </div>
-      </article>`;
+        <span class="friends-v3-card-chevron" aria-hidden="true">›</span>
+      </button>`;
   }
 
   function incomingCard(item) {
@@ -199,13 +201,8 @@
   function emptyFriendsState() {
     return `
       <div class="friends-v2-empty">
-        <div class="friends-v2-empty-icon">
-          <svg viewBox="0 0 72 72" aria-hidden="true">
-            <circle cx="28" cy="28" r="12"></circle>
-            <path d="M9 57c2-13 9-19 19-19s17 6 19 19"></path>
-            <circle cx="49" cy="30" r="10"></circle>
-            <path d="M43 40c9 0 15 6 17 16"></path>
-          </svg>
+        <div class="friends-v2-empty-icon friends-v3-empty-icon">
+          <img src="/friends.png" alt="" aria-hidden="true">
         </div>
         <strong>Pas encore d'amis</strong>
         <p>Ajoute quelqu'un avec son code ami<br>pour commencer !</p>
@@ -222,6 +219,62 @@
         <span class="friends-v2-empty-emoji">${icon}</span>
         <strong>${escapeHtml(title)}</strong>
         <p>${escapeHtml(text)}</p>
+      </div>`;
+  }
+
+  function friendProfileModal() {
+    if (!openedFriendId) return "";
+
+    const user = friendsState.friends.find(item => String(item.id) === String(openedFriendId));
+    if (!user) {
+      openedFriendId = "";
+      return "";
+    }
+
+    const roomCode = (localStorage.getItem("petitbac_code") || "").trim().toUpperCase();
+
+    return `
+      <div class="friends-v3-modal-backdrop" id="friendsProfileBackdrop">
+        <section class="friends-v3-profile-modal" role="dialog" aria-modal="true" aria-label="Profil de ${escapeHtml(user.username)}">
+          <button class="friends-v3-modal-close" id="friendsProfileClose" type="button" aria-label="Fermer">×</button>
+
+          <div class="friends-v3-modal-avatar-wrap">
+            <div class="friends-v3-modal-avatar">
+              ${avatarMarkup(user.avatar, "friends-v3-modal-avatar-img")}
+            </div>
+            <i class="${user.online ? "online" : ""}"></i>
+          </div>
+
+          <h2>${escapeHtml(user.username)}</h2>
+          ${statusMarkup(user)}
+
+          <div class="friends-v3-friend-code">
+            <div>
+              <small>Code ami</small>
+              <strong>${escapeHtml(user.friendCode || "—")}</strong>
+            </div>
+            <button id="copyOpenedFriendCode" type="button" ${user.friendCode ? "" : "disabled"} aria-label="Copier le code ami">
+              ${copyIcon()}
+            </button>
+          </div>
+
+          <div class="friends-v3-modal-actions">
+            <button id="inviteOpenedFriend" class="primary" type="button" ${roomCode ? "" : "disabled"}>
+              <span class="friends-v3-action-icon">🎮</span>
+              <span>${roomCode ? "Inviter dans une partie" : "Aucun salon à inviter"}</span>
+            </button>
+
+            <button id="messageOpenedFriend" type="button">
+              <span class="friends-v3-action-icon">💬</span>
+              <span>Envoyer un message</span>
+            </button>
+
+            <button id="removeOpenedFriend" class="danger" type="button">
+              <span class="friends-v3-action-icon">👤</span>
+              <span>Supprimer l'ami</span>
+            </button>
+          </div>
+        </section>
       </div>`;
   }
 
@@ -256,7 +309,7 @@
     }
 
     return `
-      <section class="friends-v2-list">
+      <section class="friends-v2-list ${friendsState.friends.length ? "friends-v3-list-populated" : ""}">
         ${friendsState.friends.length
           ? friendsState.friends.map(friendCard).join("")
           : emptyFriendsState()}
@@ -285,7 +338,6 @@
 
           <div class="friends-v2-title">
             <h1>Amis</h1>
-            <p>${friendsState.friends.length} ami${friendsState.friends.length > 1 ? "s" : ""}</p>
           </div>
 
           <div class="friends-v2-header-spacer" aria-hidden="true"></div>
@@ -328,6 +380,8 @@
           <img src="/ptitbac.logo.png" alt="P'tit Bac">
           <small>Version bêta</small>
         </footer>
+
+        ${friendProfileModal()}
       </main>`;
 
     bindFriendsUI();
@@ -335,6 +389,10 @@
 
   function bindFriendsUI() {
     document.getElementById("friendsBackBtn")?.addEventListener("click", () => {
+      if (openedFriendId) {
+        openedFriendId = "";
+        return renderFriends();
+      }
       friendsOpen = false;
       if (typeof window.renderHome === "function") {
         window.renderHome();
@@ -361,9 +419,76 @@
 
     document.querySelectorAll("[data-friend-tab]").forEach(btn => {
       btn.addEventListener("click", () => {
+        openedFriendId = "";
         friendsState.activeTab = btn.dataset.friendTab;
         renderFriends();
       });
+    });
+
+    document.querySelectorAll("[data-friend-profile]").forEach(card => {
+      card.addEventListener("click", () => {
+        openedFriendId = card.dataset.friendProfile || "";
+        renderFriends();
+      });
+    });
+
+    const closeFriendProfile = () => {
+      openedFriendId = "";
+      renderFriends();
+    };
+
+    document.getElementById("friendsProfileClose")?.addEventListener("click", closeFriendProfile);
+
+    document.getElementById("friendsProfileBackdrop")?.addEventListener("click", event => {
+      if (event.target.id === "friendsProfileBackdrop") closeFriendProfile();
+    });
+
+    document.getElementById("copyOpenedFriendCode")?.addEventListener("click", async () => {
+      const user = friendsState.friends.find(item => String(item.id) === String(openedFriendId));
+      const code = user?.friendCode;
+      if (!code) return;
+      try {
+        await navigator.clipboard.writeText(code);
+        localToast("Code ami copié !");
+      } catch {
+        localToast(code);
+      }
+    });
+
+    document.getElementById("inviteOpenedFriend")?.addEventListener("click", () => {
+      const user = friendsState.friends.find(item => String(item.id) === String(openedFriendId));
+      const roomCode = (localStorage.getItem("petitbac_code") || "").trim();
+      if (!user || !roomCode) return localToast("Crée ou rejoins d'abord un salon.");
+
+      friendSocket.emit(
+        "friends:invite",
+        identityPayload({ friendId: user.id, roomCode }),
+        res => {
+          if (!res?.ok) return localToast(res?.error || "Invitation impossible.");
+          localToast(res.delivered ? "Invitation envoyée !" : "Ami hors ligne pour le moment.");
+        }
+      );
+    });
+
+    document.getElementById("messageOpenedFriend")?.addEventListener("click", () => {
+      localToast("La messagerie arrive bientôt.");
+    });
+
+    document.getElementById("removeOpenedFriend")?.addEventListener("click", () => {
+      const user = friendsState.friends.find(item => String(item.id) === String(openedFriendId));
+      if (!user) return;
+      if (!confirm(`Supprimer ${user.username || "cet ami"} ?`)) return;
+
+      friendSocket.emit(
+        "friends:remove",
+        identityPayload({ friendId: user.id }),
+        res => {
+          if (!res?.ok) return localToast(res?.error || "Suppression impossible.");
+          openedFriendId = "";
+          localToast("Ami supprimé.");
+          refreshFriends();
+        }
+      );
     });
 
     const input = document.getElementById("friendCodeInput");

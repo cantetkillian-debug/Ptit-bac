@@ -523,3 +523,251 @@ body:has(.friends-v2) [data-economy-hud] {
     min-width:205px;
   }
 }
+
+
+/* =========================================================
+   Amis V3 — profil d'ami + liste haute + icône friends.png
+   ========================================================= */
+
+.friends-v2-title {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.friends-v2-title p {
+  display:none !important;
+}
+
+.friends-v3-empty-icon img {
+  width:76px;
+  height:76px;
+  object-fit:contain;
+  display:block;
+  filter:drop-shadow(0 0 12px rgba(151,74,255,.30));
+}
+
+.friends-v3-list-populated {
+  min-height:100%;
+  align-content:start;
+  grid-auto-rows:max-content;
+  padding:10px;
+  border:1.3px solid #5140bf;
+  border-radius:22px;
+  background:linear-gradient(180deg,rgba(8,30,83,.82),rgba(5,23,66,.86));
+  box-shadow:inset 0 0 32px rgba(80,51,200,.05);
+}
+
+.friends-v3-friend-card {
+  width:100%;
+  min-height:72px;
+  text-align:left;
+  cursor:pointer;
+}
+
+.friends-v3-friend-card:active {
+  transform:scale(.992);
+}
+
+.friends-v3-card-chevron {
+  flex:0 0 24px;
+  color:#d4c5ff;
+  font-size:1.9rem;
+  font-weight:700;
+  line-height:1;
+  text-align:center;
+}
+
+.friends-v3-modal-backdrop {
+  position:absolute;
+  inset:0;
+  z-index:50;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:22px;
+  background:rgba(2,8,31,.72);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+
+.friends-v3-profile-modal {
+  position:relative;
+  width:min(100%,350px);
+  padding:28px 18px 18px;
+  border:1.6px solid #7447ff;
+  border-radius:25px;
+  background:
+    radial-gradient(circle at 50% 8%,rgba(113,62,255,.22),transparent 26%),
+    linear-gradient(180deg,#09205d 0%,#071846 100%);
+  box-shadow:
+    0 20px 70px rgba(0,0,0,.38),
+    0 0 24px rgba(115,66,255,.25),
+    inset 0 0 24px rgba(107,67,255,.06);
+  text-align:center;
+}
+
+.friends-v3-modal-close {
+  position:absolute;
+  top:11px;
+  right:11px;
+  width:36px;
+  height:36px;
+  border:0;
+  border-radius:12px;
+  background:transparent;
+  color:#c5b2ff;
+  font-size:1.45rem;
+  font-weight:800;
+}
+
+.friends-v3-modal-avatar-wrap {
+  position:relative;
+  width:105px;
+  height:105px;
+  margin:3px auto 12px;
+}
+
+.friends-v3-modal-avatar {
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  background:radial-gradient(circle at 43% 35%,#9f5eff,#6437d5 57%,#301f84 100%);
+  border:3px solid #7953ff;
+  box-shadow:0 0 24px rgba(122,57,255,.45);
+  font-size:3rem;
+}
+
+.friends-v3-modal-avatar-img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.friends-v3-modal-avatar-wrap > i {
+  position:absolute;
+  right:5px;
+  bottom:4px;
+  width:20px;
+  height:20px;
+  border:3px solid #08194b;
+  border-radius:50%;
+  background:#66628b;
+}
+
+.friends-v3-modal-avatar-wrap > i.online {
+  background:#42d99a;
+  box-shadow:0 0 10px rgba(66,217,154,.6);
+}
+
+.friends-v3-profile-modal h2 {
+  margin:0;
+  font-size:1.35rem;
+  font-weight:900;
+}
+
+.friends-v3-profile-modal > .friends-v2-status {
+  justify-content:center;
+  margin-top:6px;
+  font-size:.7rem;
+}
+
+.friends-v3-friend-code {
+  min-height:62px;
+  margin-top:18px;
+  padding:10px 12px;
+  border:1.2px solid #4939b8;
+  border-radius:15px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  text-align:left;
+  background:rgba(8,27,74,.74);
+}
+
+.friends-v3-friend-code small {
+  display:block;
+  color:#aaa5d8;
+  font-size:.56rem;
+  font-weight:800;
+}
+
+.friends-v3-friend-code strong {
+  display:block;
+  margin-top:3px;
+  font-size:.82rem;
+  letter-spacing:.05em;
+}
+
+.friends-v3-friend-code button {
+  width:40px;
+  height:40px;
+  border:1px solid #7447ff;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#6d31e8,#913ef6);
+  color:#fff;
+}
+
+.friends-v3-friend-code .friends-v2-copy-svg {
+  width:20px;
+  height:20px;
+}
+
+.friends-v3-modal-actions {
+  display:grid;
+  gap:9px;
+  margin-top:13px;
+}
+
+.friends-v3-modal-actions button {
+  min-height:48px;
+  border:1.2px solid #4d3db7;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  background:rgba(9,29,80,.86);
+  color:#fff;
+  font-size:.7rem;
+  font-weight:900;
+}
+
+.friends-v3-modal-actions button.primary {
+  border-color:#9c5eff;
+  background:linear-gradient(110deg,#7131e9,#9841ff 70%,#aa50ff);
+}
+
+.friends-v3-modal-actions button.danger {
+  border-color:#ff4e79;
+  color:#ff5d86;
+  background:rgba(91,19,52,.10);
+}
+
+.friends-v3-modal-actions button:disabled {
+  opacity:.45;
+}
+
+.friends-v3-action-icon {
+  width:24px;
+  text-align:center;
+  font-size:1rem;
+}
+
+@media (max-width:390px) {
+  .friends-v3-modal-backdrop {
+    padding:16px;
+  }
+
+  .friends-v3-profile-modal {
+    padding-left:15px;
+    padding-right:15px;
+  }
+}
