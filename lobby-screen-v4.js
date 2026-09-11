@@ -243,8 +243,8 @@
 
               <div class="lobby-v4-player-list">${players}</div>
 
-              ${user?.isHost ? `
-                <button class="lobby-v4-add-player" id="addBotBtn" type="button" ${playerCount >= LOBBY_MAX_PLAYERS ? "disabled" : ""}>
+              ${user?.isHost && playerCount < LOBBY_MAX_PLAYERS ? `
+                <button class="lobby-v4-add-player" id="addBotBtn" type="button">
                   <span class="lobby-v4-plus">＋</span>
                   <span>
                     <strong>Ajouter un joueur</strong>
