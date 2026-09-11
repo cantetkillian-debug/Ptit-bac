@@ -2050,3 +2050,100 @@ body:has(.lobby-v4) {
     animation:none !important;
   }
 }
+
+
+/* =========================================================
+   Salon V12 — viewport verrouillé + espacement compact
+   ========================================================= */
+
+/* Bloque le lobby à la hauteur réelle/stable du téléphone.
+   100svh évite que Safari agrandisse/rétrécisse la page
+   quand ses barres changent de hauteur. */
+html:has(.lobby-v4),
+body:has(.lobby-v4),
+#app:has(.lobby-v4) {
+  width:100% !important;
+  height:100svh !important;
+  min-height:100svh !important;
+  max-height:100svh !important;
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+}
+
+body:has(.lobby-v4) {
+  position:fixed !important;
+  inset:0 !important;
+}
+
+.lobby-v4 {
+  position:fixed !important;
+  inset:0 !important;
+  width:min(100%,430px) !important;
+  height:100svh !important;
+  min-height:100svh !important;
+  max-height:100svh !important;
+  margin:0 auto !important;
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+  box-sizing:border-box !important;
+
+  /* Un peu moins de marge basse : le footer est déjà absolu. */
+  padding-bottom:max(82px,calc(env(safe-area-inset-bottom) + 70px)) !important;
+}
+
+/* Rapproche franchement le code des deux colonnes sans toucher
+   à la taille du bouton code ni au texte. */
+.lobby-v4-room-row {
+  min-height:55px !important;
+  margin-bottom:-7px !important;
+}
+
+.lobby-v4-grid {
+  margin-top:0 !important;
+}
+
+/* Empêche le footer et les vagues d'augmenter la hauteur calculée. */
+.lobby-v4-footer,
+.lobby-v4-wave,
+.lobby-v4-bg-letter {
+  pointer-events:none !important;
+}
+
+/* Les cartes restent compactes lorsque la hauteur disponible est faible. */
+@media (max-height:760px) {
+  .lobby-v4 {
+    gap:6px !important;
+    padding-bottom:max(72px,calc(env(safe-area-inset-bottom) + 62px)) !important;
+  }
+
+  .lobby-v4-room-row {
+    min-height:51px !important;
+    margin-bottom:-8px !important;
+  }
+
+  .lobby-v4-header {
+    min-height:41px !important;
+  }
+
+  .lobby-v4-setting {
+    min-height:55px !important;
+  }
+
+  .lobby-v4-player,
+  .lobby-v4-add-player,
+  .lobby-v4-empty-player {
+    min-height:47px !important;
+  }
+}
+
+/* Fallback pour navigateurs sans svh. */
+@supports not (height:100svh) {
+  html:has(.lobby-v4),
+  body:has(.lobby-v4),
+  #app:has(.lobby-v4),
+  .lobby-v4 {
+    height:100dvh !important;
+    min-height:100dvh !important;
+    max-height:100dvh !important;
+  }
+}

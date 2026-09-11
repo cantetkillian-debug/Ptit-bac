@@ -1,7 +1,7 @@
 /*
- * P'tit Bac — limite des salons à 6 joueurs.
- * Ce preload modifie uniquement les deux contrôles de capacité dans server.js
- * sans toucher au reste du serveur.
+ * P'tit Bac — correctifs serveur légers du salon.
+ * - limite des salons à 6 joueurs
+ * - conserve les photos de profil importées au lieu de tronquer "data:image..."
  */
 "use strict";
 
@@ -26,6 +26,10 @@ Module._extensions[".js"] = function ptitBacRoomLimitLoader(module, filename) {
     .replace(
       /if\s*\(room\.players\.length\s*>=\s*12\)\s*\{\s*return socket\.emit\("toast",\s*"Le salon est complet \(12 joueurs maximum\)\."\);\s*\}/g,
       'if (room.players.length >= 6) { return socket.emit("toast", "Le salon est complet (6 joueurs maximum)."); }'
+    )
+    .replace(
+      /avatar:\s*String\(avatar\s*\|\|\s*""\)\.slice\(0,\s*8\),/g,
+      'avatar: (typeof avatar === "string" && /^data:image\\/(?:png|jpeg|webp);base64,/i.test(avatar) && avatar.length <= 450000) ? avatar : Array.from(String(avatar || "")).slice(0, 8).join(""),'
     );
 
   module._compile(source, filename);
