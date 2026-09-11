@@ -24,6 +24,17 @@
     return `<img src="${src}" alt="" aria-hidden="true" style="width:38px;height:38px;object-fit:contain;display:block;">`;
   }
 
+  function isPhotoAvatar(value) {
+    return !!window.PtitBacProfilePhoto?.isImageAvatar?.(value);
+  }
+
+  function avatarVisual(value, className = "") {
+    if (isPhotoAvatar(value)) {
+      return `<img src="${value}" class="${className}" alt="" draggable="false">`;
+    }
+    return `<span>${escapeHtml(value || "🧠")}</span>`;
+  }
+
   function renderProfileV2() {
     if (session?.state) return render();
 
@@ -46,13 +57,13 @@
 
         <section class="profile-v2-identity">
           <div class="profile-v2-avatar">
-            <span>${escapeHtml(p.icon || "🧠")}</span>
+            ${avatarVisual(p.icon || "🧠", "profile-v2-avatar-photo")}
           </div>
 
           <h2>${escapeHtml(p.name || "Joueur")}</h2>
 
           <button id="profileV2CopyId" class="profile-v2-id" type="button" aria-label="Copier mon identifiant">
-            ${publicId()} <span>▣</span>
+            ${publicId()}
           </button>
         </section>
 
@@ -94,7 +105,7 @@
 
         <footer class="profile-v2-footer">
           <div class="profile-v2-footer-crown">♛</div>
-          <img src="/ptitbac.logo.png" alt="P’tit Bac" class="profile-v2-footer-logo" style="display:block;width:118px;max-width:38vw;height:auto;object-fit:contain;margin:3px auto 2px;">
+          <img src="/ptitbac.logo.png" alt="P’tit Bac" class="profile-v2-footer-logo">
           <small>Version bêta</small>
         </footer>
 
@@ -188,17 +199,28 @@
               </button>
             `).join("")}
 
-            <button type="button" class="profile-edit-v8-avatar is-coming" disabled aria-label="Plus d'avatars à venir">
-              <span>＋</span>
-              <small>Plus à venir</small>
+            <button
+              type="button"
+              id="profileEditImport"
+              class="profile-edit-v8-avatar profile-edit-v8-import ${isPhotoAvatar(selectedAvatar) ? "is-selected" : ""}"
+              aria-label="Importer une photo"
+            >
+              <span class="profile-edit-v8-import-preview">
+                ${isPhotoAvatar(selectedAvatar)
+                  ? `<img src="${selectedAvatar}" alt="" draggable="false">`
+                  : `<span class="profile-edit-v8-camera" aria-hidden="true">▧</span>`}
+              </span>
+              <small>Importer</small>
+              <i>✓</i>
             </button>
+
+            <input id="profileEditPhotoInput" class="profile-edit-v8-file-input" type="file" accept="image/png,image/jpeg,image/webp" tabindex="-1">
           </div>
         </section>
 
         <div class="profile-edit-v8-actions">
           <button id="profileEditCancel" class="profile-edit-v8-cancel" type="button">Annuler</button>
           <button id="profileEditSave" class="profile-edit-v8-save" type="button">
-            <span>▣</span>
             Enregistrer
           </button>
         </div>
@@ -208,11 +230,34 @@
     const input = document.getElementById("profileEditName");
     const count = document.getElementById("profileEditCount");
     const grid = document.getElementById("profileEditGrid");
+    const importButton = document.getElementById("profileEditImport");
+    const photoInput = document.getElementById("profileEditPhotoInput");
+
+    let importedPhoto = isPhotoAvatar(selectedAvatar) ? selectedAvatar : "";
 
     const updateCounter = () => {
       const value = String(input?.value || "").slice(0,16);
       if (input && input.value !== value) input.value = value;
       if (count) count.textContent = `${value.length}/16`;
+    };
+
+    const refreshSelection = () => {
+      grid?.querySelectorAll("[data-avatar]").forEach(el => {
+        const selected = el.dataset.avatar === selectedAvatar;
+        el.classList.toggle("is-selected", selected);
+      });
+
+      if (importButton) {
+        const selected = isPhotoAvatar(selectedAvatar);
+        importButton.classList.toggle("is-selected", selected);
+
+        const preview = importButton.querySelector(".profile-edit-v8-import-preview");
+        if (preview) {
+          preview.innerHTML = importedPhoto
+            ? `<img src="${importedPhoto}" alt="" draggable="false">`
+            : `<span class="profile-edit-v8-camera" aria-hidden="true">▧</span>`;
+        }
+      }
     };
 
     input?.addEventListener("input", updateCounter);
@@ -229,15 +274,44 @@
       if (!btn) return;
 
       selectedAvatar = btn.dataset.avatar || selectedAvatar;
-      grid.querySelectorAll("[data-avatar]").forEach(el => {
-        el.classList.toggle("is-selected", el === btn);
-      });
+      window.PtitBacProfilePhoto?.markEmoji?.(selectedAvatar);
+      refreshSelection();
+    });
+
+    importButton?.addEventListener("click", () => {
+      // Si une photo a déjà été importée, un premier clic la sélectionne.
+      // Un nouveau choix reste possible via le sélecteur de fichiers.
+      if (importedPhoto) {
+        selectedAvatar = importedPhoto;
+        refreshSelection();
+      }
+      photoInput?.click();
+    });
+
+    photoInput?.addEventListener("change", async () => {
+      const file = photoInput.files?.[0];
+      if (!file) return;
+
+      importButton?.classList.add("is-loading");
+
+      try {
+        const dataUrl = await window.PtitBacProfilePhoto.fileToProcessedDataUrl(file);
+        importedPhoto = dataUrl;
+        selectedAvatar = dataUrl;
+        refreshSelection();
+        toast("Photo prête à être enregistrée.");
+      } catch (err) {
+        toast(err?.message || "Impossible d'importer cette photo.");
+      } finally {
+        importButton?.classList.remove("is-loading");
+        photoInput.value = "";
+      }
     });
 
     document.getElementById("profileEditBack")?.addEventListener("click", renderProfileV2);
     document.getElementById("profileEditCancel")?.addEventListener("click", renderProfileV2);
 
-    document.getElementById("profileEditSave")?.addEventListener("click", () => {
+    document.getElementById("profileEditSave")?.addEventListener("click", async () => {
       const name = String(input?.value || "").trim();
 
       if (!name) {
@@ -252,12 +326,23 @@
         return;
       }
 
-      saveProfile(name, selectedAvatar);
-      toast("Profil enregistré !");
-      renderProfileV2();
+      try {
+        if (isPhotoAvatar(selectedAvatar)) {
+          await window.PtitBacProfilePhoto?.savePhoto?.(selectedAvatar);
+        } else {
+          window.PtitBacProfilePhoto?.markEmoji?.(selectedAvatar);
+        }
+
+        saveProfile(name, selectedAvatar);
+        toast("Profil enregistré !");
+        renderProfileV2();
+      } catch {
+        toast("Impossible d'enregistrer la photo.");
+      }
     });
 
-    input?.focus({ preventScroll:true });
+    // Important : aucun focus automatique ici.
+    // Le clavier s'ouvre uniquement après un appui du joueur dans le champ pseudo.
   }
 
   window.renderProfile = renderProfileV2;

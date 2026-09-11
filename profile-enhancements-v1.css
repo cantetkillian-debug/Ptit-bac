@@ -1,0 +1,111 @@
+/* P'tit Bac — compléments profil/photo */
+
+.profile-v2-avatar > .profile-v2-avatar-photo {
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  object-fit:cover;
+  display:block;
+}
+
+.profile-v2-footer-logo {
+  display:block;
+  width:54px;
+  max-width:18vw;
+  height:auto;
+  object-fit:contain;
+  margin:1px auto 2px;
+  filter:drop-shadow(0 0 6px rgba(120,68,255,.28));
+}
+
+.profile-edit-v8-file-input {
+  position:fixed !important;
+  width:1px !important;
+  height:1px !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+  overflow:hidden !important;
+}
+
+.profile-edit-v8-import {
+  display:flex !important;
+  flex-direction:column;
+  gap:4px;
+  overflow:hidden;
+}
+
+.profile-edit-v8-import-preview {
+  width:100%;
+  height:100%;
+  min-height:36px;
+  display:grid;
+  place-items:center;
+  position:absolute;
+  inset:0;
+  border-radius:13px;
+  overflow:hidden;
+}
+
+.profile-edit-v8-import-preview > img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.profile-edit-v8-import > small {
+  position:absolute;
+  left:4px;
+  right:4px;
+  bottom:5px;
+  z-index:2;
+  color:#c4b4ff;
+  font-size:.43rem;
+  text-align:center;
+  font-weight:800;
+  text-shadow:0 1px 4px rgba(4,9,40,.95);
+}
+
+.profile-edit-v8-camera {
+  color:#a66cff;
+  font-size:1.65rem;
+  font-weight:900;
+  line-height:1;
+}
+
+.profile-edit-v8-import.is-selected {
+  border:2px solid #974dff;
+  box-shadow:0 0 15px rgba(132,59,255,.24), inset 0 0 16px rgba(126,60,255,.14);
+}
+
+.profile-edit-v8-import.is-selected > i {
+  display:grid;
+  z-index:5;
+}
+
+.profile-edit-v8-import.is-loading {
+  opacity:.65;
+  pointer-events:none;
+}
+
+.profile-edit-v8-save {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.profile-edit-v8-save > span {
+  display:none !important;
+}
+
+/* Le champ pseudo ne reçoit aucun focus automatique :
+   le clavier mobile reste fermé à l'ouverture de la page. */
+
+/* Photo personnalisée dans l'avatar de l'accueil */
+.home-plaque-avatar-photo {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:50%;
+  display:block;
+}

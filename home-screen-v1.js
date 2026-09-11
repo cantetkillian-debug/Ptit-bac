@@ -192,7 +192,9 @@
           </div>
 
           <button class="home-plaque-avatar" id="homePlaqueAvatar" type="button" aria-label="Mon profil">
-            <span>${escapeHtml(profile.icon || "🐼")}</span>
+            ${window.PtitBacProfilePhoto?.isImageAvatar?.(profile.icon)
+              ? `<img class="home-plaque-avatar-photo" src="${profile.icon}" alt="" draggable="false">`
+              : `<span>${escapeHtml(profile.icon || "🐼")}</span>`}
             <i></i>
           </button>
         </header>
