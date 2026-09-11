@@ -254,11 +254,6 @@
                   </span>
                 </button>
 
-                ${playerCount < LOBBY_MAX_PLAYERS ? `
-                  <div class="lobby-v4-empty-player">
-                    <span class="lobby-v4-plus muted">＋</span>
-                    <small>En attente d’un joueur…</small>
-                  </div>` : ""}
               ` : ""}
             </section>
 
@@ -311,7 +306,10 @@
 
         <section class="lobby-v4-actions">
           ${user?.isHost
-            ? `<button class="lobby-v4-start" id="startBtn" type="button" ${playerCount < 2 ? "disabled" : ""}>
+            ? `${playerCount === 1
+                ? `<small class="lobby-v4-alone-wait">En attente d’un joueur…</small>`
+                : ""}
+              <button class="lobby-v4-start" id="startBtn" type="button" ${playerCount < 2 ? "disabled" : ""}>
                 <span>▶</span>
                 <strong>Lancer la partie</strong>
               </button>`

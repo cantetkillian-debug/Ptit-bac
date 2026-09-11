@@ -2535,3 +2535,56 @@ body:has(.lobby-v4) {
     transform:scale(.94) !important;
   }
 }
+
+
+/* =========================================================
+   Salon V16 — colonne joueurs allégée + labels paramètres
+   ========================================================= */
+
+/* Le bloc vide "En attente d'un joueur" n'existe plus dans le DOM.
+   On supprime aussi tout espace résiduel éventuel. */
+.lobby-v4-empty-player {
+  display:none !important;
+}
+
+/* Le message n'apparaît qu'au-dessus de Lancer la partie
+   lorsque l'hôte est seul. */
+.lobby-v4-actions {
+  flex-direction:column !important;
+  align-items:center !important;
+}
+
+.lobby-v4-alone-wait {
+  display:block !important;
+  margin:0 0 7px !important;
+  color:#aaa4ce !important;
+  font-size:.48rem !important;
+  font-weight:650 !important;
+  line-height:1 !important;
+  text-align:center !important;
+}
+
+/* Descend légèrement le titre de chaque paramètre dans sa carte
+   sans déplacer les icônes ni agrandir le cadre. */
+.lobby-v4-setting-main > small {
+  position:relative !important;
+  top:4px !important;
+  margin-bottom:7px !important;
+}
+
+/* Garde les cartes compactes malgré le déplacement du label. */
+.lobby-v4-setting {
+  align-items:center !important;
+}
+
+@media (max-height:760px) {
+  .lobby-v4-setting-main > small {
+    top:3px !important;
+    margin-bottom:6px !important;
+  }
+
+  .lobby-v4-alone-wait {
+    margin-bottom:5px !important;
+    font-size:.45rem !important;
+  }
+}
