@@ -688,3 +688,58 @@ body:has(.lobby-v4) .economy-hud {
     display:none;
   }
 }
+
+
+/* =========================================================
+   Salon V5 — icônes quitter / plus / moins validées
+   ========================================================= */
+
+/* Bouton quitter : reprend exactement l'icône validée,
+   sans rajouter de glyphe ni de détail. */
+.lobby-v4-leave-top {
+  padding:4px !important;
+  overflow:hidden !important;
+}
+
+.lobby-v4-leave-top img {
+  width:30px !important;
+  height:30px !important;
+  object-fit:contain !important;
+  display:block !important;
+}
+
+/* Les boutons gardent leur zone tactile mais l'icône elle-même
+   n'a aucun cercle autour : uniquement le + ou le -. */
+.lobby-v4-stepper button {
+  display:grid !important;
+  place-items:center !important;
+  padding:4px !important;
+}
+
+.lobby-v4-stepper button img {
+  width:20px !important;
+  height:20px !important;
+  object-fit:contain !important;
+  display:block !important;
+  pointer-events:none !important;
+}
+
+/* Réduit un peu le glow du bouton pour laisser les nouveaux
+   pictos plus lisibles sur téléphone. */
+.lobby-v4-stepper button {
+  box-shadow:
+    inset 0 0 7px rgba(255,255,255,.07),
+    0 0 6px rgba(145,57,255,.11) !important;
+}
+
+@media (max-width:380px) {
+  .lobby-v4-leave-top img {
+    width:27px !important;
+    height:27px !important;
+  }
+
+  .lobby-v4-stepper button img {
+    width:18px !important;
+    height:18px !important;
+  }
+}

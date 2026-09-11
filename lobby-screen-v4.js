@@ -41,11 +41,15 @@
           <small>${label}</small>
           <div class="lobby-v4-stepper ${isHost ? "" : "readonly"}">
             ${isHost
-              ? `<button type="button" data-lobby-v4-step="${key}" data-dir="-1" aria-label="Diminuer">−</button>`
+              ? `<button type="button" data-lobby-v4-step="${key}" data-dir="-1" aria-label="Diminuer">
+                  <img src="/lobby-minus.png" alt="">
+                </button>`
               : `<span class="lobby-v4-step-spacer"></span>`}
             <strong>${value}</strong>
             ${isHost
-              ? `<button type="button" data-lobby-v4-step="${key}" data-dir="1" aria-label="Augmenter">＋</button>`
+              ? `<button type="button" data-lobby-v4-step="${key}" data-dir="1" aria-label="Augmenter">
+                  <img src="/lobby-plus.png" alt="">
+                </button>`
               : `<span class="lobby-v4-step-spacer"></span>`}
           </div>
         </div>
@@ -88,7 +92,7 @@
       <main class="screen lobby-v4">
         <header class="lobby-v4-header">
           <button id="lobbyV4LeaveTop" class="lobby-v4-leave-top" type="button" aria-label="Quitter le salon">
-            <span>⇥</span>
+            <img src="/lobby-exit.png" alt="">
           </button>
           <h1>Salon</h1>
           <span></span>
