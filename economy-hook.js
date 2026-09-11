@@ -21,7 +21,7 @@ const originalLoader = Module._extensions[".js"];
 
 function need(source, search, replacement, label) {
   if (!source.includes(search)) {
-    throw new Error("[Economy V2.1] Patch introuvable: " + label);
+    throw new Error("[Economy V2.2] Patch introuvable: " + label);
   }
   return source.replace(search, replacement);
 }
@@ -29,7 +29,7 @@ function need(source, search, replacement, label) {
 function needRegex(source, regex, replacement, label) {
   regex.lastIndex = 0;
   if (!regex.test(source)) {
-    throw new Error("[Economy V2.1] Patch introuvable: " + label);
+    throw new Error("[Economy V2.2] Patch introuvable: " + label);
   }
   regex.lastIndex = 0;
   return source.replace(regex, replacement);
@@ -93,7 +93,7 @@ async function ensureEconomySchema() {
     await pgPool.query('CREATE INDEX IF NOT EXISTS economy_transactions_wallet_idx ON public.economy_transactions(wallet_token, created_at DESC)');
 
     economySchemaReady = true;
-    console.log("Economie V2.1 active: 50 pieces, 5 vies, recharge 30 min.");
+    console.log("Economie V2.2 active: 50 pieces, 5 vies, recharge 30 min.");
   })().catch(err => {
     economySchemaPromise = null;
     throw err;
@@ -442,17 +442,22 @@ const SOCKETS = String.raw`
     });
 `;
 
+const TARGET_SERVER_FILE = path.resolve(__dirname, "server.js");
+
 Module._extensions[".js"] = function patchedLoader(mod, filename) {
-  if (path.basename(filename) !== "server.js") {
+  // Ne patcher QUE le server.js du projet.
+  // Des dépendances comme engine.io possèdent aussi un fichier nommé server.js.
+  if (path.resolve(filename) !== TARGET_SERVER_FILE) {
     return originalLoader(mod, filename);
   }
 
+  console.log("[Economy V2.2] patch de:", filename);
   let source = fs.readFileSync(filename, "utf8");
 
   source = need(
     source,
     'const GAME_COST = 5;',
-    'const GAME_COST = 0; // Economie V2.1: entree payee en vies',
+    'const GAME_COST = 0; // Economie V2.2: entree payee en vies',
     "GAME_COST"
   );
 
@@ -640,4 +645,4 @@ function distributeRewards`,
   mod._compile(source, filename);
 };
 
-console.log("[Economy V2.1] runtime patch charge.");
+console.log("[Economy V2.2] runtime patch charge.");
