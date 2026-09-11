@@ -513,7 +513,7 @@
 
     document.getElementById("friendsMessagesBtn")?.addEventListener("click", () => {
       if (!window.PtitBacChat?.openList) return localToast("Messagerie indisponible.");
-      window.PtitBacChat.openList();
+      window.PtitBacChat.openList({ from: "friends" });
     });
 
     document.getElementById("copyFriendCode")?.addEventListener("click", async () => {

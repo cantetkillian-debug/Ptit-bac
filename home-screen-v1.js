@@ -28,22 +28,98 @@
     const state = economyState();
     const coin = document.getElementById("homePlaqueCoins");
     const lives = document.getElementById("homePlaqueLives");
-    const recharge = document.getElementById("homePlaqueRecharge");
-
     if (coin) coin.textContent = String(Math.max(0, Number(state.coins) || 0));
     if (lives) lives.textContent = `${Math.max(0, Number(state.lives) || 0)}/${Math.max(1, Number(state.maxLives) || 5)}`;
 
-    if (recharge) {
-      const isFull = Number(state.lives) >= Number(state.maxLives || 5);
-      recharge.textContent = isFull ? "Vies au maximum" : `Recharge dans ${formatRecharge(state.secondsToNext)}`;
-      recharge.classList.toggle("is-full", isFull);
-    }
+    refreshResourcePopup();
 
     const quick = document.getElementById("homePlaqueQuick");
     if (quick) {
       quick.disabled = Number(state.lives) < 1;
       quick.setAttribute("aria-disabled", Number(state.lives) < 1 ? "true" : "false");
     }
+  }
+
+  function closeResourcePopup() {
+    document.getElementById("homeResourcePopover")?.remove();
+  }
+
+  function resourcePopupContent(type) {
+    const state = economyState();
+    const coins = Math.max(0, Number(state.coins) || 0);
+    const lives = Math.max(0, Number(state.lives) || 0);
+    const maxLives = Math.max(1, Number(state.maxLives) || 5);
+    const isFull = lives >= maxLives;
+
+    if (type === "coins") {
+      return `
+        <div class="home-resource-popup-card" role="dialog" aria-label="Mes pièces">
+          <strong class="home-resource-popup-value">${coins} pièce${coins > 1 ? "s" : ""}</strong>
+          <button id="homeResourceShop" type="button">Ajouter des pièces</button>
+        </div>`;
+    }
+
+    return `
+      <div class="home-resource-popup-card" role="dialog" aria-label="Mes vies">
+        <strong class="home-resource-popup-value">${lives}/${maxLives} vies</strong>
+        <small>
+          ${isFull
+            ? "Vies rechargées"
+            : `Prochaine vie dans ${formatRecharge(state.secondsToNext)}`}
+        </small>
+      </div>`;
+  }
+
+  function openResourcePopup(type, anchorEl) {
+    const current = document.getElementById("homeResourcePopover");
+    if (current?.dataset.type === type) {
+      current.remove();
+      return;
+    }
+
+    current?.remove();
+
+    const layer = document.createElement("div");
+    layer.id = "homeResourcePopover";
+    layer.className = "home-resource-popover";
+    layer.dataset.type = type;
+    layer.innerHTML = resourcePopupContent(type);
+
+    document.querySelector(".home-plaque-v1")?.appendChild(layer);
+
+    const rect = anchorEl?.getBoundingClientRect?.();
+    const host = document.querySelector(".home-plaque-v1")?.getBoundingClientRect?.();
+    if (rect && host) {
+      const center = rect.left - host.left + rect.width / 2;
+      layer.style.setProperty("--popup-center", `${center}px`);
+    }
+
+    layer.addEventListener("click", event => {
+      if (event.target === layer) closeResourcePopup();
+    });
+
+    document.getElementById("homeResourceShop")?.addEventListener("click", () => {
+      closeResourcePopup();
+      renderShop();
+    });
+  }
+
+  function refreshResourcePopup() {
+    const popup = document.getElementById("homeResourcePopover");
+    if (!popup) return;
+    const type = popup.dataset.type;
+    const oldCard = popup.querySelector(".home-resource-popup-card");
+    if (!oldCard) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = resourcePopupContent(type);
+    const newCard = wrapper.firstElementChild;
+    oldCard.replaceWith(newCard);
+
+    document.getElementById("homeResourceShop")?.addEventListener("click", () => {
+      closeResourcePopup();
+      renderShop();
+    });
   }
 
   function bindHomeActions(profile) {
@@ -58,7 +134,19 @@
     };
 
     document.getElementById("homePlaqueAvatar")?.addEventListener("click", renderProfile);
-    document.getElementById("homePlaqueCoinsBtn")?.addEventListener("click", renderShop);
+
+    const coinsButton = document.getElementById("homePlaqueCoinsBtn");
+    const livesButton = document.getElementById("homePlaqueLivesBtn");
+
+    coinsButton?.addEventListener("click", event => {
+      event.stopPropagation();
+      openResourcePopup("coins", coinsButton);
+    });
+
+    livesButton?.addEventListener("click", event => {
+      event.stopPropagation();
+      openResourcePopup("lives", livesButton);
+    });
 
     document.getElementById("homePlaqueQuick")?.addEventListener("click", () => {
       const p = ensureProfile();
@@ -160,9 +248,6 @@
     const eco = economyState();
     const lives = Math.max(0, Number(eco.lives) || 0);
     const maxLives = Math.max(1, Number(eco.maxLives) || 5);
-    const rechargeText = lives >= maxLives
-      ? "Vies au maximum"
-      : `Recharge dans ${formatRecharge(eco.secondsToNext)}`;
 
     setScreen(`
       <main class="screen home-plaque-v1">
@@ -182,17 +267,16 @@
               <strong id="homePlaqueCoins">${coins}</strong>
             </button>
 
-            <div class="home-plaque-life-wrap">
-              <div class="home-plaque-chip life-chip">
-                <img class="pb-icon pb-icon-heart" src="/heart.png" alt="">
-                <strong id="homePlaqueLives">${lives}/${maxLives}</strong>
-              </div>
-              <small id="homePlaqueRecharge" class="${lives >= maxLives ? "is-full" : ""}">${rechargeText}</small>
-            </div>
+            <button class="home-plaque-chip life-chip" id="homePlaqueLivesBtn" type="button" aria-label="Voir mes vies">
+              <img class="pb-icon pb-icon-heart" src="/heart.png" alt="">
+              <strong id="homePlaqueLives">${lives}/${maxLives}</strong>
+            </button>
           </div>
 
           <button class="home-plaque-avatar" id="homePlaqueAvatar" type="button" aria-label="Mon profil">
-            <span>${escapeHtml(profile.icon || "🐼")}</span>
+            ${window.PtitBacProfilePhoto?.isImageAvatar?.(profile.icon)
+              ? `<img class="home-plaque-avatar-photo" src="${profile.icon}" alt="" draggable="false">`
+              : `<span>${escapeHtml(profile.icon || "🐼")}</span>`}
             <i></i>
           </button>
         </header>

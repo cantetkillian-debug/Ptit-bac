@@ -486,3 +486,224 @@ body:has(.home-plaque-v1) {
     font-size:.47rem !important;
   }
 }
+
+
+/* =========================================================
+   Accueil V4 — ressources, avatar et actions plus compactes
+   Le bas de page V3 reste inchangé.
+   ========================================================= */
+
+/* Plus aucun libellé permanent sous les vies. */
+.home-plaque-life-wrap,
+#homePlaqueRecharge {
+  display:none !important;
+}
+
+#homePlaqueLivesBtn {
+  cursor:pointer;
+}
+
+/* Avatar importé/photo : remplissage réel du cercle, jamais de texte data:. */
+.home-plaque-avatar {
+  overflow:hidden !important;
+}
+
+.home-plaque-avatar-photo {
+  position:absolute;
+  inset:3px;
+  width:calc(100% - 6px) !important;
+  height:calc(100% - 6px) !important;
+  border-radius:50% !important;
+  object-fit:cover !important;
+  display:block !important;
+}
+
+.home-plaque-avatar > i {
+  z-index:3;
+}
+
+/* Popup pièces / vies */
+.home-resource-popover {
+  --popup-center:90px;
+  position:absolute;
+  inset:0;
+  z-index:80;
+  pointer-events:none;
+}
+
+.home-resource-popup-card {
+  position:absolute;
+  top:max(58px,calc(env(safe-area-inset-top) + 50px));
+  left:clamp(12px,calc(var(--popup-center) - 92px),220px);
+  width:184px;
+  min-height:92px;
+  padding:14px;
+  border:1.4px solid #6f4af2;
+  border-radius:17px;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(115,62,255,.18),transparent 55%),
+    linear-gradient(180deg,#0b2464,#071a4b);
+  box-shadow:
+    0 14px 38px rgba(0,0,0,.34),
+    0 0 18px rgba(110,62,255,.19),
+    inset 0 0 18px rgba(100,63,229,.06);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:9px;
+  text-align:center;
+  pointer-events:auto;
+}
+
+.home-resource-popup-card::before {
+  content:"";
+  position:absolute;
+  top:-7px;
+  left:50%;
+  width:13px;
+  height:13px;
+  background:#0b2464;
+  border-left:1.4px solid #6f4af2;
+  border-top:1.4px solid #6f4af2;
+  transform:translateX(-50%) rotate(45deg);
+}
+
+.home-resource-popup-value {
+  position:relative;
+  z-index:1;
+  color:#fff;
+  font-size:.88rem;
+  font-weight:900;
+}
+
+.home-resource-popup-card small {
+  position:relative;
+  z-index:1;
+  color:#aaa5d8;
+  font-size:.6rem;
+  font-weight:750;
+}
+
+.home-resource-popup-card button {
+  position:relative;
+  z-index:1;
+  min-height:36px;
+  border:1px solid #985cff;
+  border-radius:11px;
+  background:linear-gradient(110deg,#7633e8,#9a41ff);
+  color:#fff;
+  font:inherit;
+  font-size:.62rem;
+  font-weight:900;
+}
+
+/* Le logo reste tel quel. On descend légèrement les actions
+   tout en les rendant plus fines. */
+.home-plaque-actions {
+  margin-top:20px !important;
+  gap:7px !important;
+}
+
+.home-plaque-main {
+  min-height:50px !important;
+  grid-template-columns:39px minmax(0,1fr) 18px !important;
+  padding:6px 13px !important;
+  border-radius:17px !important;
+}
+
+.home-plaque-main.quick {
+  min-height:59px !important;
+}
+
+.home-plaque-action-icon {
+  width:34px !important;
+  height:34px !important;
+}
+
+.pb-icon-action {
+  width:31px !important;
+  height:31px !important;
+}
+
+.home-plaque-action-copy strong {
+  font-size:.92rem !important;
+}
+
+.home-plaque-action-copy small {
+  font-size:.57rem !important;
+}
+
+.pb-icon-life-inline {
+  width:15px !important;
+  height:15px !important;
+}
+
+.home-plaque-chevron {
+  font-size:1.55rem !important;
+}
+
+.home-plaque-join {
+  min-height:70px !important;
+  grid-template-columns:39px minmax(0,1fr) !important;
+  padding:8px 11px !important;
+  border-radius:17px !important;
+}
+
+.pb-icon-join {
+  width:29px !important;
+  height:29px !important;
+}
+
+.home-plaque-join-main {
+  gap:5px !important;
+}
+
+.home-plaque-join-main > strong {
+  font-size:.82rem !important;
+}
+
+.home-plaque-code-row input,
+.home-plaque-code-row button {
+  height:34px !important;
+}
+
+.home-plaque-code-row button {
+  min-width:82px !important;
+  padding:0 11px !important;
+}
+
+@media (max-height:760px) {
+  .home-plaque-actions {
+    margin-top:12px !important;
+  }
+
+  .home-plaque-main.quick {
+    min-height:54px !important;
+  }
+
+  .home-plaque-main {
+    min-height:47px !important;
+  }
+
+  .home-plaque-join {
+    min-height:66px !important;
+  }
+}
+
+@media (max-height:680px) {
+  .home-plaque-actions {
+    margin-top:7px !important;
+  }
+
+  .home-plaque-main.quick {
+    min-height:49px !important;
+  }
+
+  .home-plaque-main {
+    min-height:44px !important;
+  }
+
+  .home-plaque-join {
+    min-height:61px !important;
+  }
+}

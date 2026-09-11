@@ -10,6 +10,7 @@
     messages: [],
     screen: "",
     previousScreen: "friends",
+    listPreviousScreen: "friends",
     menuOpen: false,
     search: ""
   };
@@ -167,8 +168,17 @@
     `;
 
     document.getElementById("chatListBack")?.addEventListener("click", () => {
-      if (window.PtitBacFriends?.open) return window.PtitBacFriends.open();
-      if (typeof window.renderHome === "function") window.renderHome();
+      if (state.listPreviousScreen === "friends" && window.PtitBacFriends?.open) {
+        return window.PtitBacFriends.open();
+      }
+
+      if (state.listPreviousScreen === "profile" && typeof window.renderProfile === "function") {
+        return window.renderProfile();
+      }
+
+      if (typeof window.renderHome === "function") {
+        window.renderHome();
+      }
     });
 
     document.getElementById("chatCompose")?.addEventListener("click", renderNewMessage);
@@ -451,7 +461,8 @@
   chatSocket.on("connect", bootstrap);
 
   window.PtitBacChat = {
-    openList() {
+    openList(options = {}) {
+      state.listPreviousScreen = options.from || state.listPreviousScreen || "friends";
       refresh(ok => ok && renderList());
     },
     openConversation(friend) {
