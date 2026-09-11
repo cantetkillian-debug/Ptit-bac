@@ -1,0 +1,105 @@
+/* =========================================================
+   P'tit Bac — Accueil final V2
+   Raccourcis collés en bas + texte "Version bêta"
+   ========================================================= */
+
+body:has(.home-plaque-v1) {
+  overflow:hidden !important;
+}
+
+.home-plaque-v1 {
+  padding-bottom:max(150px, calc(env(safe-area-inset-bottom) + 145px)) !important;
+}
+
+.home-plaque-shortcuts {
+  position:absolute !important;
+  left:14px !important;
+  right:14px !important;
+  bottom:max(50px, calc(env(safe-area-inset-bottom) + 46px)) !important;
+  margin:0 !important;
+  z-index:40 !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:8px !important;
+}
+
+.home-plaque-shortcuts button {
+  min-height:70px !important;
+  height:70px !important;
+  padding:7px 3px 6px !important;
+  border-radius:15px !important;
+}
+
+.home-plaque-shortcuts button > span {
+  height:30px !important;
+}
+
+.home-plaque-shortcuts .pb-icon-shortcut {
+  width:30px !important;
+  height:30px !important;
+}
+
+.home-plaque-shortcuts strong {
+  font-size:.62rem !important;
+}
+
+.home-plaque-shortcuts small {
+  display:none !important;
+}
+
+.home-plaque-footer {
+  position:absolute !important;
+  left:16px !important;
+  right:16px !important;
+  bottom:max(8px, env(safe-area-inset-bottom)) !important;
+  margin:0 !important;
+  padding:0 !important;
+  z-index:40 !important;
+  gap:1px !important;
+}
+
+.home-plaque-footer p {
+  font-size:.52rem !important;
+  color:#aaa5d6 !important;
+  margin:0 !important;
+}
+
+.home-plaque-footer > div {
+  width:100% !important;
+}
+
+.home-plaque-crown {
+  width:24px !important;
+  height:22px !important;
+  padding:1px !important;
+}
+
+@media (max-height:760px) {
+  .home-plaque-v1 {
+    padding-bottom:max(135px, calc(env(safe-area-inset-bottom) + 130px)) !important;
+  }
+
+  .home-plaque-shortcuts {
+    bottom:max(44px, calc(env(safe-area-inset-bottom) + 40px)) !important;
+  }
+
+  .home-plaque-shortcuts button {
+    min-height:62px !important;
+    height:62px !important;
+  }
+
+  .home-plaque-shortcuts .pb-icon-shortcut {
+    width:26px !important;
+    height:26px !important;
+  }
+}
+
+@media (max-height:680px) {
+  .home-plaque-shortcuts button {
+    min-height:56px !important;
+    height:56px !important;
+  }
+
+  .home-plaque-shortcuts strong {
+    font-size:.54rem !important;
+  }
+}
