@@ -2588,3 +2588,46 @@ body:has(.lobby-v4) {
     font-size:.45rem !important;
   }
 }
+
+
+/* =========================================================
+   Salon V18 — avatar joueur plus compact
+   ========================================================= */
+
+/* Réduit uniquement le cadre rond de l'avatar dans la liste joueurs. */
+.lobby-v4-player {
+  grid-template-columns:34px minmax(0,1fr) !important;
+  gap:7px !important;
+}
+
+.lobby-v4-avatar {
+  width:30px !important;
+  height:30px !important;
+  border-width:1.5px !important;
+}
+
+/* L'image reste entièrement visible à l'intérieur du cercle. */
+.lobby-v4-avatar img {
+  width:24px !important;
+  height:24px !important;
+  max-width:24px !important;
+  max-height:24px !important;
+  object-fit:contain !important;
+}
+
+.lobby-v4-avatar > span {
+  width:24px !important;
+  height:24px !important;
+  max-width:24px !important;
+  max-height:24px !important;
+  font-size:.72rem !important;
+}
+
+/* Petit indicateur vert adapté au nouveau diamètre. */
+.lobby-v4-avatar > i {
+  right:-1px !important;
+  bottom:-1px !important;
+  width:7px !important;
+  height:7px !important;
+  border-width:1.5px !important;
+}
