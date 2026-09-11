@@ -65,7 +65,7 @@
         <header class="profile-v2-top">
           <button id="profileV2Back" class="profile-v2-topbtn" type="button" aria-label="Retour">‹</button>
           <h1>Mon profil</h1>
-          <button id="profileV2EditTop" class="profile-v2-topbtn edit" type="button" aria-label="Modifier">✎</button>
+          <span class="profile-v2-top-spacer" aria-hidden="true"></span>
         </header>
 
         <section class="profile-v2-hero">
@@ -80,13 +80,11 @@
           <div class="profile-v2-user">
             <div class="profile-v2-avatar">
               <span>${escapeHtml(p.icon || "🧠")}</span>
-              <i></i>
             </div>
             <h2>${escapeHtml(p.name || "Joueur")}</h2>
             <button id="profileV2CopyId" class="profile-v2-id" type="button">
               ${publicId()} <span>▣</span>
             </button>
-            <div class="profile-v2-online"><i></i>En ligne</div>
           </div>
 
           <div class="profile-v2-resource">
@@ -138,7 +136,6 @@
       }
     };
 
-    document.getElementById("profileV2EditTop")?.addEventListener("click", editProfile);
     document.getElementById("profileV2EditRow")?.addEventListener("click", editProfile);
 
     document.getElementById("profileV2CopyId")?.addEventListener("click", async () => {
