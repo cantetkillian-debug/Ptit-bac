@@ -10,8 +10,8 @@
 
 .profile-v2-footer-logo {
   display:block;
-  width:54px;
-  max-width:18vw;
+  width: 36px;
+  max-width: 12vw;
   height:auto;
   object-fit:contain;
   margin:1px auto 2px;
@@ -107,5 +107,16 @@
   height:100%;
   object-fit:cover;
   border-radius:50%;
+  display:block;
+}
+
+.profile-edit-v8-section-icon-image {
+  padding:5px;
+}
+
+.profile-edit-v8-section-icon-image > img {
+  width:100%;
+  height:100%;
+  object-fit:contain;
   display:block;
 }

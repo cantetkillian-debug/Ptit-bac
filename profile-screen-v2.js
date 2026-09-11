@@ -104,7 +104,6 @@
         </div>
 
         <footer class="profile-v2-footer">
-          <div class="profile-v2-footer-crown">♛</div>
           <img src="/ptitbac.logo.png" alt="P’tit Bac" class="profile-v2-footer-logo">
           <small>Version bêta</small>
         </footer>
@@ -181,7 +180,7 @@
 
         <section class="profile-edit-v8-card profile-edit-v8-avatar-card">
           <div class="profile-edit-v8-card-title avatars-title">
-            <div class="profile-edit-v8-section-icon">👤</div>
+            <div class="profile-edit-v8-section-icon profile-edit-v8-section-icon-image"><img src="/profile-icon.png" alt="" aria-hidden="true"></div>
             <strong>Photo de profil</strong>
             <span>Choisis un avatar</span>
           </div>
