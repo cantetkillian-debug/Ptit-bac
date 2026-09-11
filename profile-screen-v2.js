@@ -20,6 +20,10 @@
     `;
   }
 
+  function profileMenuImage(src) {
+    return `<img src="${src}" alt="" aria-hidden="true" style="width:38px;height:38px;object-fit:contain;display:block;">`;
+  }
+
   function renderProfileV2() {
     if (session?.state) return render();
 
@@ -54,7 +58,7 @@
 
         <nav class="profile-v2-menu">
           <button id="profileV2EditRow" type="button">
-            <span class="profile-v2-menu-icon">👤</span>
+            <span class="profile-v2-menu-icon">${profileMenuImage("/profile-icon.png")}</span>
             <span class="profile-v2-menu-copy">
               <strong>Modifier mon profil</strong>
               <small>Pseudo et avatar</small>
@@ -63,7 +67,7 @@
           </button>
 
           <button data-nav="friends" type="button">
-            <span class="profile-v2-menu-icon">👥</span>
+            <span class="profile-v2-menu-icon">${profileMenuImage("/friends.png")}</span>
             <span class="profile-v2-menu-copy">
               <strong>Mes amis</strong>
               <small>Voir et gérer mes amis</small>
@@ -72,7 +76,7 @@
           </button>
 
           <button id="profileV2Settings" type="button">
-            <span class="profile-v2-menu-icon">⚙</span>
+            <span class="profile-v2-menu-icon">${profileMenuImage("/settings.png")}</span>
             <span class="profile-v2-menu-copy">
               <strong>Paramètres</strong>
               <small>Son, notifications, confidentialité...</small>
@@ -99,9 +103,7 @@
       </main>
     `);
 
-    // Retour = exactement l'écran précédent dans ce parcours : l'accueil.
     document.getElementById("profileV2Back")?.addEventListener("click", () => window.renderHome());
-
     document.getElementById("profileV2EditRow")?.addEventListener("click", renderProfileEditV8);
 
     document.getElementById("profileV2CopyId")?.addEventListener("click", async () => {
@@ -232,7 +234,6 @@
       });
     });
 
-    // Important : ici la flèche revient au profil, car c'est l'écran juste avant.
     document.getElementById("profileEditBack")?.addEventListener("click", renderProfileV2);
     document.getElementById("profileEditCancel")?.addEventListener("click", renderProfileV2);
 
