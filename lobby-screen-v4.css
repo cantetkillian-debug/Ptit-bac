@@ -1885,3 +1885,92 @@ body:has(.lobby-v4) {
     max-height:38px !important;
   }
 }
+
+
+/* =========================================================
+   Salon V10 — ajustements après rendu IMG_2970
+   ========================================================= */
+
+/* 1) Icône exit plus grande, toujours sans cadre */
+.lobby-v4-leave-top {
+  width:42px !important;
+  height:42px !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+
+.lobby-v4-leave-top img {
+  width:38px !important;
+  height:38px !important;
+  object-fit:contain !important;
+}
+
+/* 2) Suppression complète du compteur joueurs en haut à droite */
+.lobby-v4-count {
+  display:none !important;
+}
+
+/* Le bloc code reprend tout l'espace disponible et reste parfaitement centré */
+.lobby-v4-room-row {
+  display:block !important;
+  min-height:70px !important;
+}
+
+.lobby-v4-code-wrap {
+  max-width:none !important;
+  width:max-content !important;
+  margin:0 auto !important;
+}
+
+/* 3) Bouton Inviter des amis : environ moitié moins haut */
+.lobby-v4-invite {
+  min-height:28px !important;
+  height:28px !important;
+  padding:0 8px !important;
+  grid-template-columns:20px 1fr 8px !important;
+  gap:5px !important;
+  border-radius:12px !important;
+}
+
+.lobby-v4-invite-icon {
+  width:17px !important;
+  height:17px !important;
+}
+
+.lobby-v4-invite strong {
+  font-size:.49rem !important;
+}
+
+.lobby-v4-invite b {
+  font-size:.90rem !important;
+}
+
+/* 4) Espace clair entre le bas des colonnes et Lancer la partie */
+.lobby-v4-actions {
+  margin-top:18px !important;
+  padding-top:0 !important;
+}
+
+/* Téléphones plus étroits */
+@media (max-width:380px) {
+  .lobby-v4-leave-top {
+    width:39px !important;
+    height:39px !important;
+  }
+
+  .lobby-v4-leave-top img {
+    width:35px !important;
+    height:35px !important;
+  }
+
+  .lobby-v4-invite {
+    min-height:27px !important;
+    height:27px !important;
+  }
+
+  .lobby-v4-actions {
+    margin-top:15px !important;
+  }
+}
