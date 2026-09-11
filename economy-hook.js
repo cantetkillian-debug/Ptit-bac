@@ -21,7 +21,7 @@ const originalLoader = Module._extensions[".js"];
 
 function need(source, search, replacement, label) {
   if (!source.includes(search)) {
-    throw new Error("[Economy V2.4] Patch introuvable: " + label);
+    throw new Error("[Economy V2.5] Patch introuvable: " + label);
   }
   return source.replace(search, replacement);
 }
@@ -29,7 +29,7 @@ function need(source, search, replacement, label) {
 function needRegex(source, regex, replacement, label) {
   regex.lastIndex = 0;
   if (!regex.test(source)) {
-    throw new Error("[Economy V2.4] Patch introuvable: " + label);
+    throw new Error("[Economy V2.5] Patch introuvable: " + label);
   }
   regex.lastIndex = 0;
   return source.replace(regex, replacement);
@@ -93,7 +93,7 @@ async function ensureEconomySchema() {
     await pgPool.query('CREATE INDEX IF NOT EXISTS economy_transactions_wallet_idx ON public.economy_transactions(wallet_token, created_at DESC)');
 
     economySchemaReady = true;
-    console.log("Economie V2.4 active: 50 pieces, 5 vies, recharge 30 min.");
+    console.log("Economie V2.5 active: 50 pieces, 5 vies, recharge 30 min.");
   })().catch(err => {
     economySchemaPromise = null;
     throw err;
@@ -451,13 +451,13 @@ Module._extensions[".js"] = function patchedLoader(mod, filename) {
     return originalLoader(mod, filename);
   }
 
-  console.log("[Economy V2.4] patch de:", filename);
+  console.log("[Economy V2.5] patch de:", filename);
   let source = fs.readFileSync(filename, "utf8");
 
   source = need(
     source,
     'const GAME_COST = 5;',
-    'const GAME_COST = 0; // Economie V2.4: entree payee en vies',
+    'const GAME_COST = 0; // Economie V2.5: entree payee en vies',
     "GAME_COST"
   );
 
@@ -466,6 +466,13 @@ Module._extensions[".js"] = function patchedLoader(mod, filename) {
     'const DEFAULT_COINS = 25;',
     'const DEFAULT_COINS = 50;',
     "DEFAULT_COINS"
+  );
+
+  source = need(
+    source,
+    'const BUILD_VERSION = "1.42";',
+    'const BUILD_VERSION = "1.42";\napp.get("/health", (req, res) => res.status(200).json({ ok: true, version: BUILD_VERSION }));',
+    "health route"
   );
 
   source = needRegex(
@@ -650,7 +657,7 @@ function distributeRewards`,
       const lines = source.split("\n");
       const from = Math.max(0, line - 4);
       const to = Math.min(lines.length, line + 3);
-      console.error("[Economy V2.4] Extrait du server.js transforme:");
+      console.error("[Economy V2.5] Extrait du server.js transforme:");
       for (let i = from; i < to; i++) {
         console.error(String(i + 1).padStart(5, " ") + " | " + lines[i]);
       }
@@ -659,4 +666,4 @@ function distributeRewards`,
   }
 };
 
-console.log("[Economy V2.4] runtime patch charge.");
+console.log("[Economy V2.5] runtime patch charge.");
