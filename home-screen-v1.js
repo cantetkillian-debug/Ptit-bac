@@ -173,6 +173,7 @@
         categoryDifficulty: "beginner",
         duration: 60,
         avatar: p.icon,
+        friendCode: String(localStorage.getItem("petitbac_friendCode") || "").trim(),
         walletToken: session.walletToken
       }, res => {
         if (!res?.ok) return toast(res?.error || "Impossible de créer le salon.");
@@ -207,6 +208,7 @@
         code,
         name: p.name.trim(),
         avatar: p.icon,
+        friendCode: String(localStorage.getItem("petitbac_friendCode") || "").trim(),
         walletToken: session.walletToken
       }, res => {
         if (!res?.ok) return toast(res?.error || "Impossible de rejoindre.");

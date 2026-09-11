@@ -2292,3 +2292,246 @@ body:has(.lobby-v4) {
     min-height:34px !important;
   }
 }
+
+
+/* =========================================================
+   Salon V14 — avatars + fiche joueur + paramètres compacts
+   ========================================================= */
+
+/* Avatar : garde le cadre actuel, mais affiche l'image entière dedans. */
+.lobby-v4-avatar {
+  box-sizing:border-box !important;
+}
+
+.lobby-v4-avatar img {
+  width:calc(100% - 6px) !important;
+  height:calc(100% - 6px) !important;
+  max-width:calc(100% - 6px) !important;
+  max-height:calc(100% - 6px) !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:50% !important;
+  display:block !important;
+  margin:auto !important;
+}
+
+.lobby-v4-avatar > span {
+  width:calc(100% - 6px) !important;
+  height:calc(100% - 6px) !important;
+  max-width:calc(100% - 6px) !important;
+  max-height:calc(100% - 6px) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1 !important;
+  font-size:.86rem !important;
+  overflow:hidden !important;
+}
+
+/* Les cartes joueur sont maintenant cliquables sans changer leur taille. */
+.lobby-v4-player[data-lobby-player-profile] {
+  cursor:pointer !important;
+  outline:none !important;
+}
+
+.lobby-v4-player[data-lobby-player-profile]:focus-visible {
+  box-shadow:0 0 0 2px rgba(167,93,255,.55) !important;
+}
+
+/* Cadres individuels des paramètres plus petits. */
+.lobby-v4-setting {
+  min-height:48px !important;
+  padding:4px 7px !important;
+  margin-bottom:4px !important;
+  border-radius:14px !important;
+}
+
+.lobby-v4-setting-icon {
+  width:27px !important;
+  height:27px !important;
+}
+
+.lobby-v4-setting-icon.lightning,
+.lobby-v4-setting-icon.categories {
+  width:27px !important;
+  height:27px !important;
+}
+
+.lobby-v4-setting-icon.difficulty {
+  width:30px !important;
+  height:30px !important;
+  min-width:30px !important;
+  min-height:30px !important;
+  max-width:30px !important;
+  max-height:30px !important;
+}
+
+/* Fiche joueur */
+.lobby-player-modal-backdrop {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:500 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:18px !important;
+  background:rgba(2,8,31,.66) !important;
+  backdrop-filter:blur(7px) !important;
+  -webkit-backdrop-filter:blur(7px) !important;
+}
+
+.lobby-player-modal {
+  position:relative !important;
+  width:min(100%,292px) !important;
+  padding:20px 18px 16px !important;
+  border:1.5px solid #7848ef !important;
+  border-radius:24px !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(102,55,244,.17),transparent 43%),
+    linear-gradient(160deg,rgba(12,34,91,.99),rgba(6,22,65,.99)) !important;
+  box-shadow:
+    0 18px 55px rgba(0,0,0,.36),
+    0 0 25px rgba(121,60,255,.16) !important;
+  color:#fff !important;
+  text-align:center !important;
+}
+
+.lobby-player-modal-close {
+  position:absolute !important;
+  top:9px !important;
+  right:10px !important;
+  width:28px !important;
+  height:28px !important;
+  border:0 !important;
+  background:transparent !important;
+  color:#b98cff !important;
+  font-size:1.25rem !important;
+  line-height:1 !important;
+}
+
+.lobby-player-modal-avatar {
+  width:78px !important;
+  height:78px !important;
+  margin:3px auto 10px !important;
+  padding:4px !important;
+  border:3px solid #7047ea !important;
+  border-radius:50% !important;
+  background:linear-gradient(145deg,#7544ef,#282276) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-shadow:0 0 20px rgba(124,70,255,.25) !important;
+  overflow:hidden !important;
+}
+
+.lobby-player-modal-avatar img {
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  border-radius:50% !important;
+}
+
+.lobby-player-modal-avatar > span {
+  font-size:2.2rem !important;
+  line-height:1 !important;
+}
+
+.lobby-player-modal h2 {
+  margin:0 !important;
+  font-size:1.15rem !important;
+  font-weight:900 !important;
+}
+
+.lobby-player-modal-status {
+  margin:5px 0 13px !important;
+  color:#aaa5d1 !important;
+  font-size:.61rem !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:5px !important;
+}
+
+.lobby-player-modal-status i {
+  width:7px !important;
+  height:7px !important;
+  border-radius:50% !important;
+  background:#706a8d !important;
+}
+
+.lobby-player-modal-status i.on {
+  background:#31da99 !important;
+}
+
+.lobby-player-modal-code {
+  padding:10px 12px !important;
+  border:1px solid #344fa8 !important;
+  border-radius:14px !important;
+  background:rgba(9,31,82,.76) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+  text-align:left !important;
+}
+
+.lobby-player-modal-code small {
+  color:#aaa3d0 !important;
+  font-size:.52rem !important;
+}
+
+.lobby-player-modal-code strong {
+  color:#c9a4ff !important;
+  font-size:.73rem !important;
+  letter-spacing:.08em !important;
+}
+
+.lobby-player-modal-actions {
+  margin-top:12px !important;
+  display:grid !important;
+  gap:8px !important;
+}
+
+.lobby-player-modal-actions button {
+  min-height:39px !important;
+  border-radius:13px !important;
+  font-size:.62rem !important;
+  font-weight:850 !important;
+}
+
+.lobby-player-modal-actions .primary {
+  border:1px solid #9b62ff !important;
+  background:linear-gradient(110deg,#7440ec,#9e3df6) !important;
+  color:#fff !important;
+}
+
+.lobby-player-modal-actions .danger {
+  border:1px solid rgba(235,69,112,.62) !important;
+  background:rgba(153,31,71,.12) !important;
+  color:#ff7598 !important;
+}
+
+.lobby-player-modal-actions button:disabled {
+  opacity:.38 !important;
+}
+
+.lobby-player-modal-self {
+  margin-top:12px !important;
+  padding:9px 11px !important;
+  border-radius:12px !important;
+  background:rgba(21,40,94,.72) !important;
+  color:#aaa5cf !important;
+  font-size:.55rem !important;
+}
+
+@media (max-height:720px) {
+  .lobby-v4-setting {
+    min-height:44px !important;
+    padding-top:3px !important;
+    padding-bottom:3px !important;
+  }
+
+  .lobby-player-modal {
+    transform:scale(.94) !important;
+  }
+}

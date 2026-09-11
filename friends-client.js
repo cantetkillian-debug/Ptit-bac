@@ -800,5 +800,25 @@
     localToast(`${from?.username || "Un ami"} t'invite dans le salon ${roomCode}`);
   });
 
+  // API légère réutilisable depuis le salon.
+  window.PtitBacFriends = {
+    sendRequestByCode(friendCode, callback = () => {}) {
+      const code = String(friendCode || "").trim().replace(/\D/g, "").slice(0, 5);
+      if (!/^\d{5}$/.test(code)) {
+        callback({ ok: false, error: "Code ami indisponible." });
+        return;
+      }
+
+      friendSocket.emit("friends:send", identityPayload({ friendCode: code }), res => {
+        if (res?.ok) refreshFriends(false);
+        callback(res || { ok: false, error: "Demande impossible." });
+      });
+    },
+
+    myProfile() {
+      return friendsState.profile || null;
+    }
+  };
+
   bootstrap(true);
 })();

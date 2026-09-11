@@ -12,6 +12,7 @@
   let lobbyLastDifficulty = null;
   let lobbyLastCode = "";
   let lobbyDifficultyLockUntil = 0;
+  let lobbyOpenedPlayerId = "";
 
   // Précharge/décode les 3 icônes pour éviter un freeze au premier changement.
   Object.values(DIFFICULTY_ICON_URLS).forEach(src => {
@@ -38,6 +39,82 @@
       <div class="lobby-v4-avatar lobby-v4-avatar-${index % 6}">
         <span>${escapeHtml(value)}</span>
         <i></i>
+      </div>`;
+  }
+
+  function lobbyFriendCode(player) {
+    if (!player) return "";
+    if (player.id === session.playerId) {
+      const local = String(localStorage.getItem("petitbac_friendCode") || "").trim();
+      if (/^\d{5}$/.test(local)) return local;
+    }
+    const remote = String(player.friendCode || "").trim();
+    return /^\d{5}$/.test(remote) ? remote : "";
+  }
+
+  function lobbyProfileAvatar(player) {
+    const raw = player?.avatar || "";
+    const isImage =
+      window.PtitBacProfilePhoto?.isImageAvatar?.(raw) ||
+      /^data:image\//i.test(String(raw));
+
+    if (isImage) {
+      return `<img src="${raw}" alt="" draggable="false">`;
+    }
+
+    return `<span>${escapeHtml(raw || String(player?.name || "?").charAt(0).toUpperCase())}</span>`;
+  }
+
+  function lobbyPlayerProfileModal(state) {
+    if (!lobbyOpenedPlayerId) return "";
+
+    const player = state.players.find(p => String(p.id) === String(lobbyOpenedPlayerId));
+    if (!player) {
+      lobbyOpenedPlayerId = "";
+      return "";
+    }
+
+    const self = String(player.id) === String(session.playerId);
+    const code = lobbyFriendCode(player);
+    const canSocial = !self && !player.isBot && !!code;
+
+    return `
+      <div class="lobby-player-modal-backdrop" id="lobbyPlayerProfileBackdrop">
+        <section class="lobby-player-modal" role="dialog" aria-modal="true"
+          aria-label="Profil de ${escapeHtml(player.name || "Joueur")}">
+          <button id="lobbyPlayerProfileClose" class="lobby-player-modal-close"
+            type="button" aria-label="Fermer">×</button>
+
+          <div class="lobby-player-modal-avatar">
+            ${lobbyProfileAvatar(player)}
+          </div>
+
+          <h2>${escapeHtml(player.name || "Joueur")}</h2>
+          <p class="lobby-player-modal-status">
+            <i class="${player.connected || player.isBot ? "on" : ""}"></i>
+            ${player.isBot ? "Joueur test" : (player.connected ? "En ligne" : "Hors ligne")}
+          </p>
+
+          <div class="lobby-player-modal-code">
+            <small>Code ami</small>
+            <strong>${player.isBot ? "Joueur test" : (code || "Indisponible")}</strong>
+          </div>
+
+          ${self ? `
+            <div class="lobby-player-modal-self">C’est ton profil.</div>
+          ` : player.isBot ? `
+            <div class="lobby-player-modal-self">Les joueurs test ne peuvent pas recevoir de demande d’ami.</div>
+          ` : `
+            <div class="lobby-player-modal-actions">
+              <button id="lobbyPlayerAddFriend" class="primary" type="button" ${canSocial ? "" : "disabled"}>
+                Envoyer une demande d’ami
+              </button>
+              <button id="lobbyPlayerReport" class="danger" type="button" ${code ? "" : "disabled"}>
+                Signaler
+              </button>
+            </div>
+          `}
+        </section>
       </div>`;
   }
 
@@ -108,7 +185,11 @@
       const canKick = user?.isHost && !p.isHost && p.id !== session.playerId;
 
       return `
-        <article class="lobby-v4-player ${canKick ? "has-kick" : ""}">
+        <article class="lobby-v4-player ${canKick ? "has-kick" : ""}"
+          data-lobby-player-profile="${p.id}"
+          tabindex="0"
+          role="button"
+          aria-label="Voir le profil de ${escapeHtml(p.name)}">
           ${lobbyV4Avatar(p, index)}
           <div class="lobby-v4-player-copy">
             <div class="lobby-v4-player-name">
@@ -245,6 +326,8 @@
           <small>Version bêta</small>
         </footer>
 
+        ${lobbyPlayerProfileModal(state)}
+
         <div class="lobby-v4-wave wave-1"></div>
         <div class="lobby-v4-wave wave-2"></div>
       </main>
@@ -335,6 +418,69 @@
       btn.addEventListener("click", event => {
         event.preventDefault();
         updateSetting(btn.dataset.lobbyV4Step, Number(btn.dataset.dir) || 1);
+      });
+    });
+
+    const openPlayerProfile = playerId => {
+      lobbyOpenedPlayerId = String(playerId || "");
+      renderLobbyV4();
+    };
+
+    document.querySelectorAll("[data-lobby-player-profile]").forEach(card => {
+      card.addEventListener("click", event => {
+        if (event.target.closest("[data-kick-id]")) return;
+        openPlayerProfile(card.dataset.lobbyPlayerProfile);
+      });
+
+      card.addEventListener("keydown", event => {
+        if (!["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        openPlayerProfile(card.dataset.lobbyPlayerProfile);
+      });
+    });
+
+    const closePlayerProfile = () => {
+      lobbyOpenedPlayerId = "";
+      renderLobbyV4();
+    };
+
+    document.getElementById("lobbyPlayerProfileClose")?.addEventListener("click", closePlayerProfile);
+
+    document.getElementById("lobbyPlayerProfileBackdrop")?.addEventListener("click", event => {
+      if (event.target.id === "lobbyPlayerProfileBackdrop") closePlayerProfile();
+    });
+
+    document.getElementById("lobbyPlayerAddFriend")?.addEventListener("click", () => {
+      const target = state.players.find(p => String(p.id) === String(lobbyOpenedPlayerId));
+      const friendCode = lobbyFriendCode(target);
+      if (!friendCode) return toast("Code ami indisponible.");
+
+      if (!window.PtitBacFriends?.sendRequestByCode) {
+        return toast("Le système d’amis n’est pas encore prêt.");
+      }
+
+      window.PtitBacFriends.sendRequestByCode(friendCode, res => {
+        if (!res?.ok) return toast(res?.error || "Demande impossible.");
+        toast(`Demande envoyée à ${target?.name || "ce joueur"} !`);
+      });
+    });
+
+    document.getElementById("lobbyPlayerReport")?.addEventListener("click", () => {
+      const target = state.players.find(p => String(p.id) === String(lobbyOpenedPlayerId));
+      const friendCode = lobbyFriendCode(target);
+      if (!target || !friendCode) return toast("Ce joueur ne peut pas être signalé.");
+      if (!confirm(`Signaler ${target.name || "ce joueur"} ?`)) return;
+
+      socket.emit("players:report", {
+        walletToken: session.walletToken || localStorage.getItem("petitbac_walletToken") || "",
+        roomCode: state.code,
+        targetPlayerId: target.id,
+        targetFriendCode: friendCode,
+        targetName: target.name || ""
+      }, res => {
+        if (!res?.ok) return toast(res?.error || "Signalement impossible.");
+        toast("Signalement envoyé.");
+        closePlayerProfile();
       });
     });
 
