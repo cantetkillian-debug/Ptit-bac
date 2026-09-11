@@ -199,7 +199,7 @@
 
         <section class="home-plaque-brand" aria-label="P'tit Bac">
           <div class="home-plaque-logo-glow"></div>
-          <img src="/ptit-bac-logo-v2.png" alt="P'tit Bac" class="home-plaque-logo">
+          <img src="/ptit-bac-logo-v3.png" alt="P'tit Bac" class="home-plaque-logo">
         </section>
 
         <section class="home-plaque-actions">
