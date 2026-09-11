@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const BASE = "/assets/icons/";
+  const BASE = "/";
   const MAP = {
     settings: "settings.png",
     plus: "plus.png",
