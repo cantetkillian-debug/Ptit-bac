@@ -92,8 +92,8 @@
     if (rect && host) {
       const center = rect.left - host.left + rect.width / 2;
       const top = rect.bottom - host.top + 7;
-      layer.style.setProperty("--popup-center", `${center}px`);
-      layer.style.setProperty("--popup-top", `${top}px`);
+      layer.style.setProperty("--popup-center", `${center}px`, "important");
+      layer.style.setProperty("--popup-top", `${top}px`, "important");
     }
 
     layer.addEventListener("click", event => {

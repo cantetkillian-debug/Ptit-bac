@@ -1025,3 +1025,49 @@ body:has(.home-plaque-v1) {
     height:20px !important;
   }
 }
+
+
+/* =========================================================
+   Accueil V7 — alignement popups + avatar légèrement agrandi
+   ========================================================= */
+
+.home-plaque-avatar {
+  width:46px !important;
+  height:46px !important;
+  flex:0 0 46px !important;
+}
+
+.home-plaque-avatar > span {
+  width:38px !important;
+  height:38px !important;
+  font-size:1.08rem !important;
+}
+
+.home-plaque-avatar-photo {
+  inset:3px !important;
+  width:calc(100% - 6px) !important;
+  height:calc(100% - 6px) !important;
+}
+
+.home-plaque-avatar > i {
+  width:11px !important;
+  height:11px !important;
+  right:-1px !important;
+  bottom:1px !important;
+}
+
+@media (max-width:370px) {
+  .home-plaque-avatar {
+    width:43px !important;
+    height:43px !important;
+    flex-basis:43px !important;
+  }
+}
+
+@media (max-height:680px) {
+  .home-plaque-avatar {
+    width:42px !important;
+    height:42px !important;
+    flex-basis:42px !important;
+  }
+}
