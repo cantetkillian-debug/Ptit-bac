@@ -81,13 +81,12 @@
     if (icon) localStorage.setItem(ICON_KEY, icon);
   }
 
-  function fileToProcessedDataUrl(file, maxSize = 256, quality = 0.82) {
+  function fileToProcessedDataUrl(file, maxSize = 256, quality = 0.84) {
     return new Promise((resolve, reject) => {
       if (!file || !String(file.type || "").startsWith("image/")) {
         return reject(new Error("Choisis une image."));
       }
 
-      // 8 Mo max avant compression.
       if (Number(file.size || 0) > 8 * 1024 * 1024) {
         return reject(new Error("La photo est trop lourde (8 Mo maximum)."));
       }
@@ -100,21 +99,36 @@
 
         img.onerror = () => reject(new Error("Format d'image non pris en charge."));
         img.onload = () => {
-          const side = Math.min(img.naturalWidth, img.naturalHeight);
-          const sx = Math.max(0, (img.naturalWidth - side) / 2);
-          const sy = Math.max(0, (img.naturalHeight - side) / 2);
-
           const canvas = document.createElement("canvas");
           canvas.width = maxSize;
           canvas.height = maxSize;
 
-          const ctx = canvas.getContext("2d", { alpha: false });
-          ctx.fillStyle = "#0a1d58";
-          ctx.fillRect(0, 0, maxSize, maxSize);
-          ctx.drawImage(img, sx, sy, side, side, 0, 0, maxSize, maxSize);
+          const ctx = canvas.getContext("2d", { alpha: true });
+          ctx.clearRect(0, 0, maxSize, maxSize);
 
-          // JPEG réduit fortement la taille afin d'éviter de surcharger le profil.
-          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          // IMPORTANT : ne recadre plus l'image.
+          // On la réduit proportionnellement pour qu'elle soit visible EN ENTIER.
+          const padding = Math.max(8, Math.round(maxSize * 0.06));
+          const available = maxSize - padding * 2;
+          const scale = Math.min(
+            available / Math.max(1, img.naturalWidth),
+            available / Math.max(1, img.naturalHeight)
+          );
+
+          const drawWidth = Math.max(1, Math.round(img.naturalWidth * scale));
+          const drawHeight = Math.max(1, Math.round(img.naturalHeight * scale));
+          const dx = Math.round((maxSize - drawWidth) / 2);
+          const dy = Math.round((maxSize - drawHeight) / 2);
+
+          ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
+
+          // WebP garde la transparence des PNG/icônes et reste léger.
+          let dataUrl = canvas.toDataURL("image/webp", quality);
+
+          // Fallback défensif si WebP n'est pas produit par le navigateur.
+          if (!/^data:image\/webp;base64,/i.test(dataUrl)) {
+            dataUrl = canvas.toDataURL("image/png");
+          }
 
           if (dataUrl.length > 450_000) {
             return reject(new Error("La photo reste trop lourde après compression."));
@@ -147,6 +161,5 @@
     avatarHtml
   };
 
-  // Restaure la photo sélectionnée depuis IndexedDB avant les prochaines ouvertures d'écran.
   hydrateSelectedPhoto().catch(() => {});
 })();

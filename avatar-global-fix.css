@@ -1,0 +1,235 @@
+/* =========================================================
+   P'tit Bac — correction globale des avatars V20
+   But :
+   - cadres moins gros
+   - image toujours visible en entier
+   - aucun object-fit: cover sur les avatars
+   ========================================================= */
+
+/* ---------------- ACCUEIL ---------------- */
+
+.home-plaque-avatar {
+  width:38px !important;
+  height:38px !important;
+  min-width:38px !important;
+  min-height:38px !important;
+  flex:0 0 38px !important;
+  border-width:1.5px !important;
+  overflow:visible !important;
+  display:grid !important;
+  place-items:center !important;
+}
+
+.home-plaque-avatar-photo {
+  position:static !important;
+  inset:auto !important;
+  width:26px !important;
+  height:26px !important;
+  max-width:26px !important;
+  max-height:26px !important;
+  border-radius:0 !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  overflow:visible !important;
+  display:block !important;
+  margin:auto !important;
+}
+
+.home-plaque-avatar > span {
+  width:26px !important;
+  height:26px !important;
+  max-width:26px !important;
+  max-height:26px !important;
+  font-size:.82rem !important;
+  overflow:visible !important;
+}
+
+.home-plaque-avatar > i {
+  width:8px !important;
+  height:8px !important;
+  border-width:1.5px !important;
+}
+
+/* ---------------- PAGE PROFIL ---------------- */
+
+.profile-v2-avatar {
+  width:106px !important;
+  height:106px !important;
+  min-width:106px !important;
+  min-height:106px !important;
+  border-width:2px !important;
+  overflow:visible !important;
+  display:grid !important;
+  place-items:center !important;
+}
+
+.profile-v2-avatar > .profile-v2-avatar-photo {
+  width:72px !important;
+  height:72px !important;
+  max-width:72px !important;
+  max-height:72px !important;
+  border-radius:0 !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  display:block !important;
+}
+
+.profile-v2-avatar > span {
+  font-size:3rem !important;
+}
+
+/* Import / aperçu dans Modifier le profil */
+.profile-edit-v8-import-preview {
+  padding:5px !important;
+}
+
+.profile-edit-v8-import-preview > img {
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:8px !important;
+}
+
+/* ---------------- AMIS ---------------- */
+
+.friends-v2-avatar {
+  flex:0 0 38px !important;
+  width:38px !important;
+  height:38px !important;
+  border-width:1.5px !important;
+  overflow:visible !important;
+  display:grid !important;
+  place-items:center !important;
+}
+
+.friends-v2-avatar-img {
+  width:26px !important;
+  height:26px !important;
+  max-width:26px !important;
+  max-height:26px !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:0 !important;
+  display:block !important;
+}
+
+/* Modal profil d'un ami */
+.friends-v3-modal-avatar-img {
+  width:70% !important;
+  height:70% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:0 !important;
+}
+
+/* ---------------- MESSAGES ---------------- */
+
+.chat-list-avatar,
+.chat-header-avatar {
+  flex:0 0 38px !important;
+  width:38px !important;
+  height:38px !important;
+  border-width:1.5px !important;
+  overflow:visible !important;
+  display:grid !important;
+  place-items:center !important;
+}
+
+.chat-avatar-img {
+  width:26px !important;
+  height:26px !important;
+  max-width:26px !important;
+  max-height:26px !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:0 !important;
+  display:block !important;
+}
+
+.chat-list-avatar i,
+.chat-header-avatar i {
+  width:8px !important;
+  height:8px !important;
+  border-width:1.5px !important;
+}
+
+/* ---------------- SALON ---------------- */
+
+.lobby-v4-player {
+  grid-template-columns:29px minmax(0,1fr) !important;
+}
+
+.lobby-v4-avatar {
+  width:25px !important;
+  height:25px !important;
+  min-width:25px !important;
+  min-height:25px !important;
+  border-width:1.25px !important;
+  overflow:visible !important;
+  display:grid !important;
+  place-items:center !important;
+}
+
+.lobby-v4-avatar img {
+  width:17px !important;
+  height:17px !important;
+  max-width:17px !important;
+  max-height:17px !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:0 !important;
+  clip-path:none !important;
+  display:block !important;
+}
+
+.lobby-v4-avatar > span {
+  width:17px !important;
+  height:17px !important;
+  font-size:.58rem !important;
+  overflow:visible !important;
+}
+
+.lobby-v4-avatar > i {
+  width:6px !important;
+  height:6px !important;
+  border-width:1.25px !important;
+}
+
+/* Fiche joueur du salon */
+.lobby-player-modal-avatar {
+  width:66px !important;
+  height:66px !important;
+}
+
+.lobby-player-modal-avatar img {
+  width:44px !important;
+  height:44px !important;
+  max-width:44px !important;
+  max-height:44px !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:0 !important;
+}
+
+/* Empêche les anciens media queries de regrossir les avatars. */
+@media (max-width:390px), (max-height:760px), (max-height:680px) {
+  .home-plaque-avatar {
+    width:38px !important;
+    height:38px !important;
+    flex-basis:38px !important;
+  }
+
+  .home-plaque-avatar-photo {
+    width:26px !important;
+    height:26px !important;
+  }
+
+  .chat-list-avatar,
+  .chat-header-avatar,
+  .friends-v2-avatar {
+    width:38px !important;
+    height:38px !important;
+    flex-basis:38px !important;
+  }
+}
