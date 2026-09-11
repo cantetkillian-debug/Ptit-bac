@@ -5,8 +5,8 @@
   "description": "P'tit Bac multijoueur mobile — profils persistants, amis, chat, vies rechargeables et économie serveur.",
   "main": "server.js",
   "scripts": {
-    "start": "node -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js server.js",
-    "dev": "node -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js --watch server.js"
+    "start": "node -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js -r ./room-limit-hook.js server.js",
+    "dev": "node -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js -r ./room-limit-hook.js --watch server.js"
   },
   "engines": {
     "node": "22.x"
