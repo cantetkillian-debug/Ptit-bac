@@ -1,6 +1,6 @@
 /**
- * P'tit Bac — interface Amis V1
- * Extension cliente indépendante de app.js.
+ * P'tit Bac — interface Amis V2
+ * Design harmonisé avec les dernières pages Profil / Accueil.
  */
 (() => {
   "use strict";
@@ -33,6 +33,55 @@
       '"': "&quot;",
       "'": "&#039;"
     })[ch]);
+  }
+
+  function isImageAvatar(value) {
+    if (window.PtitBacProfilePhoto?.isImageAvatar) {
+      return window.PtitBacProfilePhoto.isImageAvatar(value);
+    }
+    return typeof value === "string" && /^data:image\//i.test(value);
+  }
+
+  function avatarMarkup(value, className = "") {
+    const avatar = value || "🐼";
+    if (isImageAvatar(avatar)) {
+      return `<img class="${className}" src="${avatar}" alt="" draggable="false">`;
+    }
+    return `<span>${escapeHtml(avatar)}</span>`;
+  }
+
+  function copyIcon() {
+    return `
+      <svg class="friends-v2-copy-svg" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="8" y="7" width="10" height="12" rx="2"></rect>
+        <path d="M6 16H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    `;
+  }
+
+  function tabIcon(type) {
+    const icons = {
+      friends: `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="9" cy="8" r="3"></circle>
+          <path d="M3.5 18a5.5 5.5 0 0 1 11 0"></path>
+          <circle cx="17" cy="9" r="2.3"></circle>
+          <path d="M15.5 14.5c2.7.1 4.7 1.4 5 3.7"></path>
+        </svg>`,
+      requests: `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="9" cy="8" r="3"></circle>
+          <path d="M3.5 18a5.5 5.5 0 0 1 11 0"></path>
+          <path d="M18 7v6M15 10h6"></path>
+        </svg>`,
+      add: `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="9" cy="8" r="3"></circle>
+          <path d="M3.5 18a5.5 5.5 0 0 1 11 0"></path>
+          <path d="M18 7v6M15 10h6"></path>
+        </svg>`
+    };
+    return icons[type] || icons.friends;
   }
 
   function localToast(message) {
@@ -97,23 +146,23 @@
 
   function statusMarkup(user) {
     if (user.online) {
-      return `<span class="friends-v1-status online"><i></i>En ligne</span>`;
+      return `<span class="friends-v2-status online"><i></i>En ligne</span>`;
     }
-    return `<span class="friends-v1-status"><i></i>${escapeHtml(prettyLastSeen(user.lastSeen))}</span>`;
+    return `<span class="friends-v2-status"><i></i>${escapeHtml(prettyLastSeen(user.lastSeen))}</span>`;
   }
 
   function friendCard(user) {
     const roomCode = (localStorage.getItem("petitbac_code") || "").trim().toUpperCase();
     return `
-      <article class="friends-v1-card">
-        <div class="friends-v1-avatar">${escapeHtml(user.avatar || "🐼")}</div>
-        <div class="friends-v1-card-main">
+      <article class="friends-v2-card">
+        <div class="friends-v2-avatar">${avatarMarkup(user.avatar, "friends-v2-avatar-img")}</div>
+        <div class="friends-v2-card-main">
           <strong>${escapeHtml(user.username)}</strong>
           ${statusMarkup(user)}
         </div>
-        <div class="friends-v1-card-actions">
-          ${roomCode ? `<button class="friends-v1-icon-btn invite-friend" data-id="${escapeHtml(user.id)}" title="Inviter dans le salon">↗</button>` : ""}
-          <button class="friends-v1-icon-btn danger remove-friend" data-id="${escapeHtml(user.id)}" title="Supprimer">×</button>
+        <div class="friends-v2-card-actions">
+          ${roomCode ? `<button class="friends-v2-icon-btn invite-friend" data-id="${escapeHtml(user.id)}" title="Inviter dans le salon">↗</button>` : ""}
+          <button class="friends-v2-icon-btn danger remove-friend" data-id="${escapeHtml(user.id)}" title="Supprimer">×</button>
         </div>
       </article>`;
   }
@@ -121,15 +170,15 @@
   function incomingCard(item) {
     const user = item.user;
     return `
-      <article class="friends-v1-card request">
-        <div class="friends-v1-avatar">${escapeHtml(user.avatar || "🐼")}</div>
-        <div class="friends-v1-card-main">
+      <article class="friends-v2-card request">
+        <div class="friends-v2-avatar">${avatarMarkup(user.avatar, "friends-v2-avatar-img")}</div>
+        <div class="friends-v2-card-main">
           <strong>${escapeHtml(user.username)}</strong>
           <small>${escapeHtml(user.friendCode || "")}</small>
         </div>
-        <div class="friends-v1-request-actions">
-          <button class="friends-v1-small-btn decline-request" data-request="${escapeHtml(item.requestId)}">Refuser</button>
-          <button class="friends-v1-small-btn primary accept-request" data-request="${escapeHtml(item.requestId)}">Accepter</button>
+        <div class="friends-v2-request-actions">
+          <button class="friends-v2-small-btn decline-request" data-request="${escapeHtml(item.requestId)}">Refuser</button>
+          <button class="friends-v2-small-btn primary accept-request" data-request="${escapeHtml(item.requestId)}">Accepter</button>
         </div>
       </article>`;
   }
@@ -137,20 +186,40 @@
   function outgoingCard(item) {
     const user = item.user;
     return `
-      <article class="friends-v1-card request">
-        <div class="friends-v1-avatar">${escapeHtml(user.avatar || "🐼")}</div>
-        <div class="friends-v1-card-main">
+      <article class="friends-v2-card request">
+        <div class="friends-v2-avatar">${avatarMarkup(user.avatar, "friends-v2-avatar-img")}</div>
+        <div class="friends-v2-card-main">
           <strong>${escapeHtml(user.username)}</strong>
           <small>${escapeHtml(user.friendCode || "")}</small>
         </div>
-        <span class="friends-v1-pending">En attente</span>
+        <span class="friends-v2-pending">En attente</span>
       </article>`;
   }
 
-  function emptyState(icon, title, text) {
+  function emptyFriendsState() {
     return `
-      <div class="friends-v1-empty">
-        <span>${icon}</span>
+      <div class="friends-v2-empty">
+        <div class="friends-v2-empty-icon">
+          <svg viewBox="0 0 72 72" aria-hidden="true">
+            <circle cx="28" cy="28" r="12"></circle>
+            <path d="M9 57c2-13 9-19 19-19s17 6 19 19"></path>
+            <circle cx="49" cy="30" r="10"></circle>
+            <path d="M43 40c9 0 15 6 17 16"></path>
+          </svg>
+        </div>
+        <strong>Pas encore d'amis</strong>
+        <p>Ajoute quelqu'un avec son code ami<br>pour commencer !</p>
+        <button id="friendsV2EmptyAdd" class="friends-v2-empty-add" type="button">
+          ${tabIcon("add")}
+          <span>Ajouter un ami</span>
+        </button>
+      </div>`;
+  }
+
+  function genericEmpty(icon, title, text) {
+    return `
+      <div class="friends-v2-empty compact">
+        <span class="friends-v2-empty-emoji">${icon}</span>
         <strong>${escapeHtml(title)}</strong>
         <p>${escapeHtml(text)}</p>
       </div>`;
@@ -160,14 +229,14 @@
     if (friendsState.activeTab === "requests") {
       const incoming = friendsState.incoming.length
         ? friendsState.incoming.map(incomingCard).join("")
-        : emptyState("💌", "Aucune demande", "Tes nouvelles demandes apparaîtront ici.");
+        : genericEmpty("💌", "Aucune demande", "Tes nouvelles demandes apparaîtront ici.");
 
       const outgoing = friendsState.outgoing.length
-        ? `<h3 class="friends-v1-subtitle">Envoyées</h3>${friendsState.outgoing.map(outgoingCard).join("")}`
+        ? `<h3 class="friends-v2-subtitle">Envoyées</h3>${friendsState.outgoing.map(outgoingCard).join("")}`
         : "";
 
       return `
-        <section class="friends-v1-list">
+        <section class="friends-v2-list">
           ${incoming}
           ${outgoing}
         </section>`;
@@ -175,11 +244,11 @@
 
     if (friendsState.activeTab === "add") {
       return `
-        <section class="friends-v1-add">
-          <div class="friends-v1-add-icon">＋</div>
+        <section class="friends-v2-add">
+          <div class="friends-v2-add-icon">${tabIcon("add")}</div>
           <h2>Ajouter un ami</h2>
           <p>Entre son code ami, par exemple <b>KIKI#4821</b>.</p>
-          <div class="friends-v1-add-row">
+          <div class="friends-v2-add-row">
             <input id="friendCodeInput" maxlength="24" autocomplete="off" autocapitalize="characters" placeholder="CODE#0000" />
             <button id="friendSendBtn">Ajouter</button>
           </div>
@@ -187,10 +256,10 @@
     }
 
     return `
-      <section class="friends-v1-list">
+      <section class="friends-v2-list">
         ${friendsState.friends.length
           ? friendsState.friends.map(friendCard).join("")
-          : emptyState("👥", "Pas encore d'amis", "Ajoute quelqu'un avec son code ami.")}
+          : emptyFriendsState()}
       </section>`;
   }
 
@@ -203,42 +272,62 @@
     const incomingCount = friendsState.incoming.length;
 
     app.innerHTML = `
-      <main class="screen friends-v1">
-        <div class="friends-v1-glow friends-v1-glow-a"></div>
-        <div class="friends-v1-glow friends-v1-glow-b"></div>
+      <main class="screen friends-v2">
+        <div class="friends-v2-bg-glow glow-a"></div>
+        <div class="friends-v2-bg-glow glow-b"></div>
+        <div class="friends-v2-wave wave-left"></div>
+        <div class="friends-v2-wave wave-right"></div>
 
-        <header class="friends-v1-header">
-          <button class="friends-v1-back" id="friendsBackBtn" aria-label="Retour">‹</button>
-          <div>
+        <header class="friends-v2-header">
+          <button class="friends-v2-back" id="friendsBackBtn" aria-label="Retour">
+            <img src="/back-arrow.png" alt="">
+          </button>
+
+          <div class="friends-v2-title">
             <h1>Amis</h1>
             <p>${friendsState.friends.length} ami${friendsState.friends.length > 1 ? "s" : ""}</p>
           </div>
-          <div class="friends-v1-mini-avatar">${escapeHtml(profile?.avatar || "🐼")}</div>
+
+          <div class="friends-v2-header-spacer" aria-hidden="true"></div>
         </header>
 
-        <section class="friends-v1-code">
+        <section class="friends-v2-code">
           <div>
             <small>Mon code ami</small>
             <strong>${escapeHtml(profile?.friendCode || "Chargement...")}</strong>
           </div>
-          <button id="copyFriendCode" ${profile?.friendCode ? "" : "disabled"}>Copier</button>
+          <button id="copyFriendCode" ${profile?.friendCode ? "" : "disabled"}>
+            ${copyIcon()}
+            <span>Copier</span>
+          </button>
         </section>
 
-        <nav class="friends-v1-tabs">
+        <nav class="friends-v2-tabs">
           <button data-friend-tab="friends" class="${friendsState.activeTab === "friends" ? "active" : ""}">
-            Mes amis
+            <span class="friends-v2-tab-icon">${tabIcon("friends")}</span>
+            <span>Mes amis</span>
           </button>
+
           <button data-friend-tab="requests" class="${friendsState.activeTab === "requests" ? "active" : ""}">
-            Demandes ${incomingCount ? `<b>${incomingCount}</b>` : ""}
+            <span class="friends-v2-tab-icon">${tabIcon("requests")}</span>
+            <span>Demandes</span>
+            ${incomingCount ? `<b>${incomingCount}</b>` : ""}
           </button>
+
           <button data-friend-tab="add" class="${friendsState.activeTab === "add" ? "active" : ""}">
-            Ajouter
+            <span class="friends-v2-tab-icon">${tabIcon("add")}</span>
+            <span>Ajouter</span>
           </button>
         </nav>
 
-        <div class="friends-v1-content">
+        <div class="friends-v2-content">
           ${currentPanel()}
         </div>
+
+        <footer class="friends-v2-footer">
+          <img src="/ptitbac.logo.png" alt="P'tit Bac">
+          <small>Version bêta</small>
+        </footer>
       </main>`;
 
     bindFriendsUI();
@@ -247,7 +336,11 @@
   function bindFriendsUI() {
     document.getElementById("friendsBackBtn")?.addEventListener("click", () => {
       friendsOpen = false;
-      window.location.reload();
+      if (typeof window.renderHome === "function") {
+        window.renderHome();
+      } else {
+        window.location.reload();
+      }
     });
 
     document.getElementById("copyFriendCode")?.addEventListener("click", async () => {
@@ -259,6 +352,11 @@
       } catch {
         localToast(code);
       }
+    });
+
+    document.getElementById("friendsV2EmptyAdd")?.addEventListener("click", () => {
+      friendsState.activeTab = "add";
+      renderFriends();
     });
 
     document.querySelectorAll("[data-friend-tab]").forEach(btn => {
@@ -350,7 +448,6 @@
     });
   }
 
-  // Intercepte l'onglet "Amis" de l'accueil AVANT le onclick historique de app.js.
   document.addEventListener("click", event => {
     const button = event.target.closest?.('[data-nav="friends"]');
     if (!button) return;
@@ -381,6 +478,5 @@
     localToast(`${from?.username || "Un ami"} t'invite dans le salon ${roomCode}`);
   });
 
-  // Si app.js a déjà reçu son walletToken, crée/synchronise le profil en arrière-plan.
   bootstrap(true);
 })();
