@@ -178,13 +178,13 @@
         <header class="home-plaque-top">
           <div class="home-plaque-resources">
             <button class="home-plaque-chip coin-chip" id="homePlaqueCoinsBtn" type="button" aria-label="Ouvrir la boutique">
-              <span class="home-plaque-coin">●</span>
+              <img class="pb-icon pb-icon-coin" src="/assets/icons/coin.png" alt="">
               <strong id="homePlaqueCoins">${coins}</strong>
             </button>
 
             <div class="home-plaque-life-wrap">
               <div class="home-plaque-chip life-chip">
-                <span class="home-plaque-heart">♥</span>
+                <img class="pb-icon pb-icon-heart" src="/assets/icons/heart.png" alt="">
                 <strong id="homePlaqueLives">${lives}/${maxLives}</strong>
               </div>
               <small id="homePlaqueRecharge" class="${lives >= maxLives ? "is-full" : ""}">${rechargeText}</small>
@@ -204,16 +204,16 @@
 
         <section class="home-plaque-actions">
           <button class="home-plaque-main quick" id="homePlaqueQuick" type="button" ${lives < 1 ? "disabled" : ""}>
-            <span class="home-plaque-action-icon lightning">⚡</span>
+            <span class="home-plaque-action-icon lightning"><img class="pb-icon pb-icon-action" src="/assets/icons/lightning.png" alt=""></span>
             <span class="home-plaque-action-copy">
               <strong>Partie rapide</strong>
-              <small><b>♥</b> 1 vie</small>
+              <small><img class="pb-icon pb-icon-life-inline" src="/assets/icons/heart.png" alt=""> 1 vie</small>
             </span>
             <span class="home-plaque-chevron">›</span>
           </button>
 
           <button class="home-plaque-main create" id="homePlaqueCreate" type="button">
-            <span class="home-plaque-action-icon plus">＋</span>
+            <span class="home-plaque-action-icon plus"><img class="pb-icon pb-icon-action" src="/assets/icons/plus.png" alt=""></span>
             <span class="home-plaque-action-copy">
               <strong>Créer un salon</strong>
             </span>
@@ -221,7 +221,7 @@
           </button>
 
           <section class="home-plaque-join">
-            <div class="home-plaque-join-icon">${uiIcon("users")}</div>
+            <div class="home-plaque-join-icon"><img class="pb-icon pb-icon-join" src="/assets/icons/join.png" alt=""></div>
             <div class="home-plaque-join-main">
               <strong>Rejoindre une partie</strong>
               <div class="home-plaque-code-row">
@@ -234,32 +234,32 @@
 
         <nav class="home-plaque-shortcuts" aria-label="Navigation">
           <button id="homePlaqueShop" type="button">
-            <span>${uiIcon("shop")}</span>
+            <span><img class="pb-icon pb-icon-shortcut" src="/assets/icons/shop.png" alt=""></span>
             <strong>Boutique</strong>
             <small>Achat de pièces</small>
           </button>
 
           <button id="homePlaqueRewards" type="button">
-            <span>${uiIcon("gift")}</span>
+            <span><img class="pb-icon pb-icon-shortcut" src="/assets/icons/rewards.png" alt=""></span>
             <strong>Récompenses</strong>
             <small>Gagner des pièces</small>
           </button>
 
           <button type="button" data-nav="friends">
-            <span>${uiIcon("users")}</span>
+            <span><img class="pb-icon pb-icon-shortcut" src="/assets/icons/friends.png" alt=""></span>
             <strong>Amis</strong>
             <small>Joue avec eux</small>
           </button>
 
           <button id="homePlaqueSettings" type="button">
-            <span>${uiIcon("settings")}</span>
+            <span><img class="pb-icon pb-icon-shortcut" src="/assets/icons/settings.png" alt=""></span>
             <strong>Paramètres</strong>
             <small>Personnaliser</small>
           </button>
         </nav>
 
         <footer class="home-plaque-footer">
-          <button id="homePlaqueCrown" class="home-plaque-crown" type="button" aria-label="Version bêta">♛</button>
+          <button id="homePlaqueCrown" class="home-plaque-crown" type="button" aria-label="Version bêta"><img class="pb-icon pb-icon-crown" src="/assets/icons/crown.png" alt=""></button>
           <div><span></span><p>Des lettres, des mots, des fous rires !</p><span></span></div>
         </footer>
 

@@ -510,3 +510,75 @@ body:has(.home-plaque-v1) .economy-hud { display:none !important; }
     max-height: 142px !important;
   }
 }
+
+
+/* =========================================================
+   Pack d'icônes PNG P'tit Bac
+   ========================================================= */
+.pb-icon {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+.pb-icon-coin { width:22px; height:22px; }
+.pb-icon-heart { width:20px; height:20px; }
+.pb-icon-action { width:38px; height:38px; }
+.pb-icon-life-inline {
+  display:inline-block;
+  width:13px;
+  height:13px;
+  vertical-align:-2px;
+  margin-right:2px;
+}
+.pb-icon-join { width:30px; height:30px; }
+.pb-icon-shortcut { width:25px; height:25px; }
+.pb-icon-crown { width:22px; height:22px; }
+
+.home-plaque-action-icon.lightning,
+.home-plaque-action-icon.plus {
+  filter:none !important;
+  text-shadow:none !important;
+}
+.home-plaque-shortcuts button > span {
+  height:27px !important;
+}
+.home-plaque-crown {
+  width:30px;
+  height:27px;
+  display:grid;
+  place-items:center;
+  padding:2px !important;
+}
+.home-plaque-coin,
+.home-plaque-heart {
+  display:none !important;
+}
+
+@media (max-height:700px) {
+  .pb-icon-action { width:32px; height:32px; }
+  .pb-icon-shortcut { width:21px; height:21px; }
+  .home-plaque-shortcuts button > span { height:22px !important; }
+}
+
+/* Icônes PNG partagées dans les autres pages du jeu */
+.pb-global-icon {
+  display:inline-grid !important;
+  place-items:center;
+}
+.pb-global-icon img,
+.pb-global-coin {
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+  pointer-events:none;
+}
+.home-coin:has(.pb-global-coin) {
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
