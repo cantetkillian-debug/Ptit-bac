@@ -61,7 +61,7 @@
 
     return `
       <div class="home-resource-popup-card" role="dialog" aria-label="Mes vies">
-        <strong class="home-resource-popup-value">${lives}/${maxLives} vies</strong>
+        <strong class="home-resource-popup-value home-resource-popup-lives"><img src="/heart.png" alt="">${lives}/${maxLives} vies</strong>
         <small>
           ${isFull
             ? "Vies rechargées"
@@ -91,7 +91,9 @@
     const host = document.querySelector(".home-plaque-v1")?.getBoundingClientRect?.();
     if (rect && host) {
       const center = rect.left - host.left + rect.width / 2;
+      const top = rect.bottom - host.top + 7;
       layer.style.setProperty("--popup-center", `${center}px`);
+      layer.style.setProperty("--popup-top", `${top}px`);
     }
 
     layer.addEventListener("click", event => {
@@ -261,24 +263,26 @@
         <i class="home-plaque-spark spark-3"></i>
 
         <header class="home-plaque-top">
-          <div class="home-plaque-resources">
-            <button class="home-plaque-chip coin-chip" id="homePlaqueCoinsBtn" type="button" aria-label="Ouvrir la boutique">
-              <img class="pb-icon pb-icon-coin" src="/coin.png" alt="">
-              <strong id="homePlaqueCoins">${coins}</strong>
+          <div class="home-plaque-top-left">
+            <button class="home-plaque-avatar" id="homePlaqueAvatar" type="button" aria-label="Mon profil">
+              ${window.PtitBacProfilePhoto?.isImageAvatar?.(profile.icon)
+                ? `<img class="home-plaque-avatar-photo" src="${profile.icon}" alt="" draggable="false">`
+                : `<span>${escapeHtml(profile.icon || "🐼")}</span>`}
+              <i></i>
             </button>
 
-            <button class="home-plaque-chip life-chip" id="homePlaqueLivesBtn" type="button" aria-label="Voir mes vies">
-              <img class="pb-icon pb-icon-heart" src="/heart.png" alt="">
-              <strong id="homePlaqueLives">${lives}/${maxLives}</strong>
-            </button>
+            <div class="home-plaque-resources">
+              <button class="home-plaque-chip coin-chip" id="homePlaqueCoinsBtn" type="button" aria-label="Voir mes pièces">
+                <img class="pb-icon pb-icon-coin" src="/coin.png" alt="">
+                <strong id="homePlaqueCoins">${coins}</strong>
+              </button>
+
+              <button class="home-plaque-chip life-chip" id="homePlaqueLivesBtn" type="button" aria-label="Voir mes vies">
+                <img class="pb-icon pb-icon-heart" src="/heart.png" alt="">
+                <strong id="homePlaqueLives">${lives}/${maxLives}</strong>
+              </button>
+            </div>
           </div>
-
-          <button class="home-plaque-avatar" id="homePlaqueAvatar" type="button" aria-label="Mon profil">
-            ${window.PtitBacProfilePhoto?.isImageAvatar?.(profile.icon)
-              ? `<img class="home-plaque-avatar-photo" src="${profile.icon}" alt="" draggable="false">`
-              : `<span>${escapeHtml(profile.icon || "🐼")}</span>`}
-            <i></i>
-          </button>
         </header>
 
         <section class="home-plaque-brand" aria-label="P'tit Bac">
@@ -291,7 +295,7 @@
             <span class="home-plaque-action-icon lightning"><img class="pb-icon pb-icon-action" src="/lightning.png" alt=""></span>
             <span class="home-plaque-action-copy">
               <strong>Partie rapide</strong>
-              <small><img class="pb-icon pb-icon-life-inline" src="/heart.png" alt=""> 1 vie</small>
+              <small class="home-quick-cost"><img class="pb-icon pb-icon-life-inline" src="/heart.png" alt=""><span>Coûte 1 vie</span></small>
             </span>
             <span class="home-plaque-chevron">›</span>
           </button>
