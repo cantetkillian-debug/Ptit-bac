@@ -707,3 +707,124 @@ body:has(.home-plaque-v1) {
     min-height:61px !important;
   }
 }
+
+
+/* =========================================================
+   Accueil V5 — position des actions + popups mobiles compacts
+   ========================================================= */
+
+/* Les actions de partie occupent la zone basse disponible,
+   juste au-dessus des 4 raccourcis. */
+.home-plaque-v1 {
+  grid-template-rows:auto minmax(145px,25dvh) minmax(0,1fr) auto auto !important;
+}
+
+.home-plaque-actions {
+  align-self:end !important;
+  margin-top:0 !important;
+  margin-bottom:154px !important;
+  gap:6px !important;
+}
+
+.home-plaque-main.quick {
+  min-height:54px !important;
+}
+
+.home-plaque-main {
+  min-height:46px !important;
+  padding:5px 12px !important;
+}
+
+.home-plaque-join {
+  min-height:64px !important;
+  padding:7px 10px !important;
+}
+
+/* Popup réellement centré sur le téléphone. */
+.home-resource-popover {
+  --popup-center:50% !important;
+}
+
+.home-resource-popup-card {
+  position:absolute !important;
+  top:max(58px,calc(env(safe-area-inset-top) + 50px)) !important;
+  left:50% !important;
+  width:142px !important;
+  min-height:66px !important;
+  padding:9px 10px !important;
+  gap:6px !important;
+  transform:translateX(-50%) !important;
+  border:1px solid rgba(127,89,255,.72) !important;
+  border-radius:14px !important;
+  background:rgba(8,27,74,.72) !important;
+  -webkit-backdrop-filter:blur(12px) saturate(125%) !important;
+  backdrop-filter:blur(12px) saturate(125%) !important;
+  box-shadow:
+    0 9px 25px rgba(0,0,0,.22),
+    0 0 12px rgba(111,65,255,.13),
+    inset 0 0 12px rgba(116,76,255,.04) !important;
+}
+
+.home-resource-popup-card::before {
+  display:none !important;
+}
+
+.home-resource-popup-value {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:5px !important;
+  font-size:.70rem !important;
+  line-height:1.1 !important;
+}
+
+.home-resource-popup-coins img {
+  width:18px !important;
+  height:18px !important;
+  object-fit:contain !important;
+}
+
+.home-resource-popup-card small {
+  font-size:.50rem !important;
+  line-height:1.2 !important;
+}
+
+.home-resource-popup-card button {
+  min-height:28px !important;
+  padding:0 8px !important;
+  border-radius:9px !important;
+  font-size:.50rem !important;
+}
+
+/* Le bas (4 raccourcis + barre bêta) n'est pas modifié. */
+
+@media (max-height:760px) {
+  .home-plaque-actions {
+    margin-bottom:137px !important;
+  }
+
+  .home-plaque-main.quick {
+    min-height:50px !important;
+  }
+
+  .home-plaque-main {
+    min-height:43px !important;
+  }
+
+  .home-plaque-join {
+    min-height:59px !important;
+  }
+}
+
+@media (max-height:680px) {
+  .home-plaque-actions {
+    margin-bottom:124px !important;
+    gap:5px !important;
+  }
+
+  .home-resource-popup-card {
+    width:134px !important;
+    min-height:61px !important;
+    padding:8px !important;
+  }
+}

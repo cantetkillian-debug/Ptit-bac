@@ -54,7 +54,7 @@
     if (type === "coins") {
       return `
         <div class="home-resource-popup-card" role="dialog" aria-label="Mes pièces">
-          <strong class="home-resource-popup-value">${coins} pièce${coins > 1 ? "s" : ""}</strong>
+          <strong class="home-resource-popup-value home-resource-popup-coins"><img src="/coin.png" alt="">${coins} pièce${coins > 1 ? "s" : ""}</strong>
           <button id="homeResourceShop" type="button">Ajouter des pièces</button>
         </div>`;
     }
