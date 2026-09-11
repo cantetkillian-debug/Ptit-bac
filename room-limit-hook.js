@@ -3,6 +3,9 @@
  * - limite à 6 joueurs
  * - conserve les photos de profil importées
  * - transmet le code ami dans l'état public du salon
+ *
+ * V15: correction du patch avatar qui provoquait une SyntaxError
+ * sur Render à cause d'un échappement invalide dans une regex injectée.
  */
 "use strict";
 
@@ -30,7 +33,7 @@ Module._extensions[".js"] = function ptitBacRoomPatchLoader(module, filename) {
       'if (room.players.length >= 6) { return socket.emit("toast", "Le salon est complet (6 joueurs maximum)."); }'
     )
 
-    // room:create / room:join reçoivent désormais friendCode
+    // room:create / room:join reçoivent aussi le code ami.
     .replace(
       /socket\.on\("room:create",\s*\(\{\s*name,\s*rounds = 1,\s*duration = 60,\s*categoryCount = 6,\s*categoryDifficulty = "beginner",\s*avatar,\s*walletToken\s*\}/,
       'socket.on("room:create", ({ name, rounds = 1, duration = 60, categoryCount = 6, categoryDifficulty = "beginner", avatar, friendCode, walletToken }'
@@ -40,13 +43,15 @@ Module._extensions[".js"] = function ptitBacRoomPatchLoader(module, filename) {
       'socket.on("room:join", ({ code, name, avatar, friendCode, walletToken }'
     )
 
-    // Photos data:image non tronquées + friend code stocké sur les humains
+    // Avatar importé + code ami.
+    // Important : aucun littéral RegExp n'est injecté ici, afin d'éviter
+    // tout problème d'échappement lorsque server.js est recompilé.
     .replace(
       /avatar:\s*String\(avatar\s*\|\|\s*""\)\.slice\(0,\s*8\),/g,
-      'avatar: (typeof avatar === "string" && /^data:image\\\\/(?:png|jpeg|webp);base64,/i.test(avatar) && avatar.length <= 450000) ? avatar : Array.from(String(avatar || "")).slice(0, 8).join(""),\n      friendCode: /^\\\\d{5}$/.test(String(friendCode || "").trim()) ? String(friendCode).trim() : "",'
+      'avatar: (typeof avatar === "string" && avatar.startsWith("data:image/") && avatar.includes(";base64,") && avatar.length <= 450000) ? avatar : Array.from(String(avatar || "")).slice(0, 8).join(""),\n      friendCode: (() => { const c = String(friendCode || "").trim(); return c.length === 5 && Array.from(c).every(ch => ch >= "0" && ch <= "9") ? c : ""; })(),'
     )
 
-    // Expose friendCode dans publicPlayer()
+    // Expose le code ami dans publicPlayer().
     .replace(
       /avatar:\s*p\.avatar\s*\|\|\s*""\s*\n\s*\};/,
       'avatar: p.avatar || "",\n    friendCode: p.friendCode || ""\n  };'
