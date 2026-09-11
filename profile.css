@@ -1,0 +1,116 @@
+*{box-sizing:border-box}
+:root{
+  --bg-top:#0b1849;
+  --bg-mid:#091b5d;
+  --bg-bottom:#071746;
+  --violet:#7d42ff;
+  --violet-2:#9a65ff;
+  --purple:#5e37f1;
+  --text:#ffffff;
+  --muted:#b9b5de;
+  --card:#0b2766;
+  --card-2:#0a225c;
+  --danger:#ff4f82;
+}
+html,body{margin:0;min-height:100%;background:#071746;color:var(--text);font-family:Inter,ui-rounded,"SF Pro Rounded","SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button{font:inherit}
+.profile-page{
+  position:relative;
+  min-height:100svh;
+  overflow:hidden;
+  padding:clamp(22px,4vw,44px) clamp(18px,4.2vw,40px) max(78px,env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 50% 28%,rgba(98,72,255,.15),transparent 30%),
+    linear-gradient(180deg,var(--bg-top) 0%,var(--bg-mid) 48%,var(--bg-bottom) 100%);
+}
+.topbar{display:grid;grid-template-columns:56px 1fr 56px;align-items:center;position:relative;z-index:3}
+.topbar h1{margin:0;text-align:center;font-size:clamp(28px,5.4vw,50px);font-weight:900;letter-spacing:-.04em}
+.icon-button{
+  width:52px;height:52px;border:0;background:transparent;color:#bd72ff;padding:6px;cursor:pointer;filter:drop-shadow(0 0 8px rgba(147,69,255,.75))
+}
+.icon-button svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.identity{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;margin-top:60px}
+.avatar-halo{
+  width:clamp(220px,31vw,290px);aspect-ratio:1;border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(145deg,#7542ff,#8e51ff 55%,#5f40ef);
+  border:5px solid #7954ff;
+  box-shadow:0 0 22px rgba(107,58,255,.78),0 0 60px rgba(87,61,255,.4),inset 0 0 30px rgba(255,255,255,.1)
+}
+.avatar{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 46% 34%,#7e4bf0 0 20%,#6940df 64%,#5d34c9 100%)}
+.avatar-emoji{font-size:clamp(88px,13vw,128px);filter:drop-shadow(0 10px 8px rgba(0,0,0,.22))}
+.identity h2{margin:31px 0 16px;font-size:clamp(44px,6vw,62px);line-height:1;font-weight:900}
+.player-id{
+  display:flex;align-items:center;gap:10px;border:0;background:transparent;color:#bb8dff;
+  font-size:clamp(24px,3.8vw,34px);font-weight:800;cursor:pointer
+}
+.player-id svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:2}
+.profile-menu{position:relative;z-index:3;display:grid;gap:18px;max-width:880px;margin:74px auto 0}
+.menu-card{
+  min-height:142px;width:100%;border:3px solid #7447ff;border-radius:42px;
+  display:grid;grid-template-columns:96px 1fr 50px;align-items:center;gap:18px;
+  padding:14px 25px;background:linear-gradient(90deg,rgba(11,40,103,.98),rgba(8,31,84,.98));
+  color:white;text-align:left;cursor:pointer;
+  box-shadow:inset 0 0 28px rgba(93,62,255,.08);
+  transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease
+}
+.menu-card:active{transform:scale(.987);border-color:#976eff;box-shadow:0 0 18px rgba(112,72,255,.28)}
+.menu-icon{
+  width:88px;height:88px;border-radius:28px;border:2px solid #8151ff;
+  display:grid;place-items:center;background:linear-gradient(145deg,rgba(40,67,129,.95),rgba(24,38,102,.96));
+  box-shadow:inset 0 0 22px rgba(123,80,255,.24)
+}
+.image-icon{padding:6px}
+.image-icon img{display:block;width:100%;height:100%;object-fit:contain}
+.glossy-icon{width:62px;height:62px;filter:drop-shadow(0 0 7px rgba(145,93,255,.42))}
+.menu-copy{min-width:0}
+.menu-copy strong{display:block;font-size:clamp(29px,4.5vw,40px);line-height:1.12;font-weight:900;letter-spacing:-.025em}
+.menu-copy small{display:block;margin-top:10px;color:var(--muted);font-size:clamp(20px,3vw,28px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chevron{justify-self:end;color:#b995ff;font-size:58px;line-height:1;font-weight:800}
+.logout-button{
+  position:relative;z-index:3;margin:24px auto 0;min-width:400px;max-width:72%;
+  min-height:100px;border-radius:31px;border:2px solid #ff4f82;
+  display:flex;align-items:center;justify-content:center;gap:20px;
+  background:linear-gradient(180deg,rgba(38,35,78,.9),rgba(30,31,73,.92));
+  color:#ff5e87;font-size:clamp(24px,3.6vw,32px);font-weight:900;cursor:pointer
+}
+.logout-icon{font-size:36px;color:#dff6ff;filter:drop-shadow(0 0 7px rgba(115,191,255,.45))}
+.brand-footer{position:relative;z-index:3;margin:130px auto 0;text-align:center}
+.crown{color:#9b54ff;font-size:27px;text-shadow:0 0 8px rgba(127,69,255,.6)}
+.brand{margin-top:12px;color:#9b5cff;font-weight:900;font-style:italic;font-size:clamp(32px,4.5vw,45px)}
+.beta{margin-top:7px;color:#a89fc8;font-size:clamp(18px,2.7vw,24px)}
+.decor{position:absolute;color:rgba(84,52,201,.25);font-size:56px;z-index:1}
+.decor-left{left:14%;top:20%}.decor-right{right:14%;top:20%}
+.diamond{width:15px;height:15px;background:#8952ff;transform:rotate(45deg);border-radius:3px;box-shadow:0 0 12px rgba(137,82,255,.55)}
+.diamond-left{left:9%;top:23%}.diamond-right{right:9%;top:24%}
+.wave{position:absolute;left:-10%;right:-10%;height:170px;bottom:-95px;border-radius:50% 50% 0 0/40% 40% 0 0;z-index:1;pointer-events:none}
+.wave-1{background:linear-gradient(180deg,#5436db,#2b2aa2);transform:rotate(2deg)}
+.wave-2{background:rgba(66,41,177,.62);bottom:-125px;transform:rotate(-2deg)}
+.toast{
+  position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));z-index:20;
+  transform:translate(-50%,25px);opacity:0;pointer-events:none;
+  padding:12px 18px;border-radius:999px;background:rgba(5,10,37,.92);border:1px solid rgba(151,106,255,.55);
+  color:white;font-weight:700;transition:.22s ease;backdrop-filter:blur(12px)
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:680px){
+  .profile-page{padding-left:20px;padding-right:20px}
+  .identity{margin-top:42px}
+  .profile-menu{margin-top:60px;gap:14px}
+  .menu-card{min-height:112px;border-radius:30px;grid-template-columns:72px 1fr 26px;padding:12px 18px;gap:14px}
+  .menu-icon{width:68px;height:68px;border-radius:22px}
+  .glossy-icon{width:48px;height:48px}
+  .chevron{font-size:44px}
+  .logout-button{min-width:0;width:70%;min-height:80px;border-radius:25px}
+  .brand-footer{margin-top:95px}
+}
+@media (max-width:390px){
+  .topbar{grid-template-columns:46px 1fr 46px}
+  .icon-button{width:44px;height:44px}
+  .profile-menu{margin-top:48px}
+  .menu-copy small{font-size:16px}
+  .menu-card{grid-template-columns:62px 1fr 22px}
+  .menu-icon{width:58px;height:58px}
+  .glossy-icon{width:42px;height:42px}
+}
