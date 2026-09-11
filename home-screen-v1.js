@@ -192,9 +192,7 @@
           </div>
 
           <button class="home-plaque-avatar" id="homePlaqueAvatar" type="button" aria-label="Mon profil">
-            ${window.PtitBacProfilePhoto?.isImageAvatar?.(profile.icon)
-              ? `<img class="home-plaque-avatar-photo" src="${profile.icon}" alt="" draggable="false">`
-              : `<span>${escapeHtml(profile.icon || "🐼")}</span>`}
+            <span>${escapeHtml(profile.icon || "🐼")}</span>
             <i></i>
           </button>
         </header>
@@ -238,31 +236,31 @@
           <button id="homePlaqueShop" type="button">
             <span><img class="pb-icon pb-icon-shortcut" src="/shop.png" alt=""></span>
             <strong>Boutique</strong>
-            <small>Achat de pièces</small>
           </button>
 
           <button id="homePlaqueRewards" type="button">
             <span><img class="pb-icon pb-icon-shortcut" src="/rewards.png" alt=""></span>
             <strong>Récompenses</strong>
-            <small>Gagner des pièces</small>
           </button>
 
           <button type="button" data-nav="friends">
             <span><img class="pb-icon pb-icon-shortcut" src="/friends.png" alt=""></span>
             <strong>Amis</strong>
-            <small>Joue avec eux</small>
           </button>
 
           <button id="homePlaqueSettings" type="button">
             <span><img class="pb-icon pb-icon-shortcut" src="/settings.png" alt=""></span>
             <strong>Paramètres</strong>
-            <small>Personnaliser</small>
           </button>
         </nav>
 
         <footer class="home-plaque-footer">
-          <button id="homePlaqueCrown" class="home-plaque-crown" type="button" aria-label="Version bêta"><img class="pb-icon pb-icon-crown" src="/crown.png" alt=""></button>
-          <div><span></span><p>Des lettres, des mots, des fous rires !</p><span></span></div>
+          <button id="homePlaqueCrown" class="home-plaque-beta-bar" type="button" aria-label="Version bêta">
+            <span class="home-plaque-beta-line"></span>
+            <i></i>
+            <span class="home-plaque-beta-line"></span>
+          </button>
+          <p>Version bêta</p>
         </footer>
 
         <div class="home-plaque-wave wave-1"></div>

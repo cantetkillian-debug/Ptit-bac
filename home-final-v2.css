@@ -1,105 +1,488 @@
 /* =========================================================
-   P'tit Bac — Accueil final V2
-   Raccourcis collés en bas + texte "Version bêta"
+   P'tit Bac — Accueil V3
+   Harmonisé avec Profil / Amis
    ========================================================= */
 
 body:has(.home-plaque-v1) {
   overflow:hidden !important;
+  background:#061642;
 }
 
 .home-plaque-v1 {
-  padding-bottom:max(150px, calc(env(safe-area-inset-bottom) + 145px)) !important;
+  --home-line:#6842ff;
+  --home-muted:#aaa5d8;
+  position:relative !important;
+  width:min(100%,430px) !important;
+  height:100dvh !important;
+  min-height:100dvh !important;
+  margin:0 auto !important;
+  padding:
+    max(10px,env(safe-area-inset-top))
+    15px
+    max(12px,env(safe-area-inset-bottom)) !important;
+  overflow:hidden !important;
+  display:grid !important;
+  grid-template-rows:auto minmax(150px,25dvh) auto minmax(0,1fr) auto !important;
+  gap:10px !important;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(92,44,232,.28),transparent 25%),
+    radial-gradient(circle at -10% 44%,rgba(63,42,210,.18),transparent 28%),
+    radial-gradient(circle at 108% 50%,rgba(69,43,219,.17),transparent 26%),
+    linear-gradient(180deg,#06133b 0%,#071a4d 57%,#06133b 100%) !important;
 }
 
-.home-plaque-shortcuts {
-  position:absolute !important;
-  left:14px !important;
-  right:14px !important;
-  bottom:max(50px, calc(env(safe-area-inset-bottom) + 46px)) !important;
-  margin:0 !important;
-  z-index:40 !important;
-  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+/* ---------- Barre supérieure ---------- */
+
+.home-plaque-top {
+  position:relative !important;
+  z-index:10 !important;
+  min-height:50px;
+  display:flex !important;
+  align-items:flex-start !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+}
+
+.home-plaque-resources {
+  display:flex !important;
+  align-items:flex-start !important;
   gap:8px !important;
 }
 
+.home-plaque-chip {
+  height:38px !important;
+  min-width:78px;
+  padding:0 12px !important;
+  border:1.4px solid #5643d7 !important;
+  border-radius:17px !important;
+  background:linear-gradient(180deg,rgba(8,31,88,.98),rgba(6,25,70,.98)) !important;
+  box-shadow:
+    inset 0 0 15px rgba(94,68,224,.08),
+    0 5px 14px rgba(0,0,0,.14) !important;
+  gap:8px !important;
+  font-size:.82rem !important;
+}
+
+.pb-icon-coin,
+.pb-icon-heart {
+  width:25px !important;
+  height:25px !important;
+  object-fit:contain;
+}
+
+.home-plaque-life-wrap {
+  gap:3px !important;
+}
+
+.home-plaque-life-wrap small {
+  font-size:.48rem !important;
+  color:#aaa5d8 !important;
+  font-weight:750 !important;
+}
+
+.home-plaque-avatar {
+  width:48px !important;
+  height:48px !important;
+  flex:0 0 48px !important;
+  border:2px solid #6546ef !important;
+  box-shadow:0 0 18px rgba(104,60,255,.34) !important;
+  overflow:visible !important;
+}
+
+.home-plaque-avatar > span,
+.home-plaque-avatar-photo {
+  width:40px !important;
+  height:40px !important;
+  border-radius:50% !important;
+  object-fit:cover !important;
+  display:grid !important;
+  place-items:center !important;
+  overflow:hidden !important;
+}
+
+.home-plaque-avatar > i {
+  width:11px !important;
+  height:11px !important;
+  right:-1px !important;
+  bottom:1px !important;
+  border:2px solid #071747 !important;
+}
+
+/* ---------- Logo central ---------- */
+
+.home-plaque-brand {
+  position:relative !important;
+  z-index:3 !important;
+  min-height:0 !important;
+  display:grid !important;
+  place-items:center !important;
+  margin:0 !important;
+}
+
+.home-plaque-logo-glow {
+  width:62% !important;
+  max-width:250px !important;
+  background:radial-gradient(circle,rgba(116,51,255,.33),rgba(69,39,220,.08) 55%,transparent 73%) !important;
+  filter:blur(6px) !important;
+}
+
+.home-plaque-logo {
+  width:min(56vw,220px) !important;
+  max-width:70% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  filter:drop-shadow(0 0 15px rgba(120,50,255,.52)) !important;
+}
+
+/* Lettres décoratives */
+.home-plaque-bg-letter {
+  color:rgba(77,49,211,.26) !important;
+  font-size:2.5rem !important;
+}
+.home-plaque-bg-letter.letter-a{top:14% !important;left:10% !important}
+.home-plaque-bg-letter.letter-b{top:29% !important;left:9% !important}
+.home-plaque-bg-letter.letter-c{top:14% !important;right:10% !important}
+.home-plaque-bg-letter.letter-d{top:25% !important;right:7% !important}
+.home-plaque-bg-letter.letter-e{display:none !important}
+
+/* ---------- Actions principales ---------- */
+
+.home-plaque-actions {
+  position:relative !important;
+  z-index:5 !important;
+  display:grid !important;
+  gap:8px !important;
+}
+
+.home-plaque-main,
+.home-plaque-join {
+  border:1.4px solid #5540cf !important;
+  border-radius:20px !important;
+  background:linear-gradient(150deg,rgba(10,34,91,.98),rgba(6,26,73,.98)) !important;
+  box-shadow:
+    inset 0 0 20px rgba(98,66,220,.05),
+    0 7px 20px rgba(0,0,0,.10) !important;
+}
+
+.home-plaque-main {
+  min-height:61px !important;
+  grid-template-columns:48px minmax(0,1fr) 22px !important;
+  padding:9px 15px !important;
+}
+
+.home-plaque-main.quick {
+  min-height:72px !important;
+  border-color:#965cff !important;
+  background:linear-gradient(110deg,#6730e4 0%,#8b34fb 63%,#a147ff 100%) !important;
+  box-shadow:
+    0 0 19px rgba(126,56,255,.27),
+    inset 0 0 20px rgba(255,255,255,.05) !important;
+}
+
+.home-plaque-action-icon {
+  width:42px;
+  height:42px;
+  display:grid !important;
+  place-items:center !important;
+}
+
+.pb-icon-action {
+  width:38px !important;
+  height:38px !important;
+  object-fit:contain !important;
+}
+
+.home-plaque-action-copy strong {
+  font-size:1.05rem !important;
+  font-weight:900 !important;
+}
+
+.home-plaque-action-copy small {
+  margin-top:2px;
+  font-size:.62rem !important;
+  color:#d9d0ff !important;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+
+.pb-icon-life-inline {
+  width:17px !important;
+  height:17px !important;
+}
+
+.home-plaque-chevron {
+  color:#d2c4ff !important;
+  font-size:1.8rem !important;
+  font-weight:800;
+}
+
+.home-plaque-join {
+  min-height:88px !important;
+  grid-template-columns:48px minmax(0,1fr) !important;
+  padding:11px 13px !important;
+  gap:8px !important;
+}
+
+.home-plaque-join-icon {
+  align-self:center;
+}
+
+.pb-icon-join {
+  width:34px !important;
+  height:34px !important;
+}
+
+.home-plaque-join-main {
+  gap:7px !important;
+}
+
+.home-plaque-join-main > strong {
+  font-size:.9rem !important;
+  font-weight:900 !important;
+}
+
+.home-plaque-code-row {
+  gap:7px !important;
+}
+
+.home-plaque-code-row input {
+  height:39px !important;
+  border:1.3px solid #3159bd !important;
+  border-radius:12px !important;
+  background:#071b50 !important;
+  padding:0 12px !important;
+  font-size:.67rem !important;
+}
+
+.home-plaque-code-row button {
+  height:39px !important;
+  min-width:92px !important;
+  padding:0 14px !important;
+  border:1px solid #9b5bff !important;
+  border-radius:12px !important;
+  background:linear-gradient(120deg,#7733e9,#9b40ff) !important;
+  font-size:.68rem !important;
+}
+
+/* ---------- Raccourcis ---------- */
+
+.home-plaque-shortcuts {
+  position:absolute !important;
+  left:15px !important;
+  right:15px !important;
+  bottom:max(58px,calc(env(safe-area-inset-bottom) + 54px)) !important;
+  z-index:20 !important;
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:8px !important;
+  margin:0 !important;
+}
+
 .home-plaque-shortcuts button {
-  min-height:70px !important;
-  height:70px !important;
-  padding:7px 3px 6px !important;
-  border-radius:15px !important;
+  min-width:0 !important;
+  height:82px !important;
+  min-height:82px !important;
+  padding:8px 3px 7px !important;
+  border:1.3px solid #3e43bd !important;
+  border-radius:18px !important;
+  background:linear-gradient(180deg,rgba(7,29,81,.98),rgba(5,23,64,.98)) !important;
+  color:white !important;
+  box-shadow:inset 0 0 16px rgba(75,61,190,.04) !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:5px !important;
 }
 
 .home-plaque-shortcuts button > span {
-  height:30px !important;
+  height:34px !important;
+  display:grid !important;
+  place-items:center !important;
 }
 
 .home-plaque-shortcuts .pb-icon-shortcut {
-  width:30px !important;
-  height:30px !important;
+  width:34px !important;
+  height:34px !important;
+  object-fit:contain !important;
 }
 
 .home-plaque-shortcuts strong {
+  max-width:100%;
   font-size:.62rem !important;
+  line-height:1.05 !important;
+  white-space:nowrap !important;
+  font-weight:850 !important;
 }
 
 .home-plaque-shortcuts small {
   display:none !important;
 }
 
+/* ---------- Nouveau pied de page ---------- */
+
 .home-plaque-footer {
   position:absolute !important;
-  left:16px !important;
-  right:16px !important;
-  bottom:max(8px, env(safe-area-inset-bottom)) !important;
-  margin:0 !important;
+  z-index:21 !important;
+  left:18px !important;
+  right:18px !important;
+  bottom:max(10px,env(safe-area-inset-bottom)) !important;
   padding:0 !important;
-  z-index:40 !important;
-  gap:1px !important;
-}
-
-.home-plaque-footer p {
-  font-size:.52rem !important;
-  color:#aaa5d6 !important;
   margin:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:4px !important;
 }
 
-.home-plaque-footer > div {
+.home-plaque-beta-bar {
+  width:min(210px,58vw);
+  height:16px;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  display:grid !important;
+  grid-template-columns:1fr 8px 1fr;
+  align-items:center;
+  gap:7px;
+}
+
+.home-plaque-beta-line {
+  display:block !important;
   width:100% !important;
+  height:2px !important;
+  border-radius:999px;
+  background:linear-gradient(90deg,transparent,#734cff) !important;
+  box-shadow:0 0 6px rgba(114,74,255,.32);
 }
 
-.home-plaque-crown {
-  width:24px !important;
-  height:22px !important;
-  padding:1px !important;
+.home-plaque-beta-line:last-child {
+  background:linear-gradient(90deg,#734cff,transparent) !important;
 }
+
+.home-plaque-beta-bar > i {
+  width:7px;
+  height:7px;
+  border-radius:2px;
+  transform:rotate(45deg);
+  background:#8b5cff;
+  box-shadow:0 0 9px rgba(137,85,255,.65);
+}
+
+.home-plaque-footer > p {
+  margin:0 !important;
+  color:#a69bd5 !important;
+  font-size:.52rem !important;
+  font-weight:650;
+}
+
+/* Waves cohérentes avec Profil / Amis */
+.home-plaque-wave {
+  bottom:-60px !important;
+  height:102px !important;
+  border-top:1px solid rgba(115,70,255,.42);
+  background:linear-gradient(180deg,rgba(63,41,205,.60),rgba(30,29,136,.31)) !important;
+}
+
+.home-plaque-wave.wave-1 {
+  left:-14% !important;
+  transform:rotate(4deg) !important;
+}
+
+.home-plaque-wave.wave-2 {
+  right:-14% !important;
+  transform:rotate(-5deg) !important;
+}
+
+/* ---------- Petits écrans ---------- */
 
 @media (max-height:760px) {
   .home-plaque-v1 {
-    padding-bottom:max(135px, calc(env(safe-area-inset-bottom) + 130px)) !important;
+    grid-template-rows:auto minmax(125px,21dvh) auto minmax(0,1fr) auto !important;
+    gap:7px !important;
+  }
+
+  .home-plaque-logo {
+    width:min(50vw,190px) !important;
+  }
+
+  .home-plaque-main.quick {
+    min-height:63px !important;
+  }
+
+  .home-plaque-main {
+    min-height:54px !important;
+  }
+
+  .home-plaque-join {
+    min-height:78px !important;
   }
 
   .home-plaque-shortcuts {
-    bottom:max(44px, calc(env(safe-area-inset-bottom) + 40px)) !important;
+    bottom:max(52px,calc(env(safe-area-inset-bottom) + 48px)) !important;
   }
 
   .home-plaque-shortcuts button {
-    min-height:62px !important;
-    height:62px !important;
+    height:70px !important;
+    min-height:70px !important;
   }
 
   .home-plaque-shortcuts .pb-icon-shortcut {
-    width:26px !important;
-    height:26px !important;
+    width:29px !important;
+    height:29px !important;
   }
 }
 
 @media (max-height:680px) {
+  .home-plaque-v1 {
+    grid-template-rows:auto 105px auto minmax(0,1fr) auto !important;
+    gap:5px !important;
+  }
+
+  .home-plaque-chip {
+    height:32px !important;
+  }
+
+  .home-plaque-avatar {
+    width:40px !important;
+    height:40px !important;
+    flex-basis:40px !important;
+  }
+
+  .home-plaque-avatar > span,
+  .home-plaque-avatar-photo {
+    width:34px !important;
+    height:34px !important;
+  }
+
+  .home-plaque-logo {
+    width:min(43vw,160px) !important;
+  }
+
+  .home-plaque-main.quick {
+    min-height:55px !important;
+  }
+
+  .home-plaque-main {
+    min-height:48px !important;
+  }
+
+  .home-plaque-join {
+    min-height:70px !important;
+  }
+
   .home-plaque-shortcuts button {
-    min-height:56px !important;
-    height:56px !important;
+    height:62px !important;
+    min-height:62px !important;
   }
 
   .home-plaque-shortcuts strong {
-    font-size:.54rem !important;
+    font-size:.55rem !important;
+  }
+
+  .home-plaque-footer > p {
+    font-size:.47rem !important;
   }
 }
