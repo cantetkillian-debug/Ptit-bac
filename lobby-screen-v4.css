@@ -2147,3 +2147,148 @@ body:has(.lobby-v4) {
     max-height:100dvh !important;
   }
 }
+
+
+/* =========================================================
+   Salon V13 — typographies / sélecteurs / bouton lancer
+   ========================================================= */
+
+/* 1) Code du salon : texte x1,5 sans changer le cadre */
+.lobby-v4-code strong {
+  font-size:.96rem !important;
+  letter-spacing:.11em !important;
+}
+
+/* 2) Icône join à gauche de "Joueurs" plus grande */
+.lobby-v4-players-panel > h2 img {
+  width:30px !important;
+  height:30px !important;
+  flex:0 0 30px !important;
+  object-fit:contain !important;
+}
+
+/* 3) Paramètres : libellés plus lisibles */
+.lobby-v4-setting-main > small {
+  font-size:.56rem !important;
+  font-weight:700 !important;
+  margin-bottom:4px !important;
+}
+
+/* Sélecteurs plus petits en largeur/hauteur */
+.lobby-v4-stepper {
+  width:118px !important;
+  height:31px !important;
+  justify-self:center !important;
+  align-self:center !important;
+  padding:0 4px !important;
+  grid-template-columns:21px minmax(0,1fr) 21px !important;
+  gap:4px !important;
+}
+
+/* Valeur centrale plus grosse */
+.lobby-v4-stepper strong,
+.lobby-v4-setting-value {
+  font-size:.74rem !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+}
+
+/* + / - restent nets dans le sélecteur plus compact */
+.lobby-v4-stepper button,
+.lobby-v4-step-spacer {
+  width:21px !important;
+  height:21px !important;
+}
+
+.lobby-v4-stepper button img {
+  width:16px !important;
+  height:16px !important;
+}
+
+/* 4) Plus d'espace avant Lancer la partie */
+.lobby-v4-actions {
+  margin-top:30px !important;
+  padding-top:0 !important;
+}
+
+/* 5) Bouton Lancer plus petit, texte plus gros */
+.lobby-v4-start,
+.lobby-v4-wait-host {
+  width:182px !important;
+  min-height:36px !important;
+  border-radius:15px !important;
+  font-size:.80rem !important;
+  font-weight:900 !important;
+}
+
+.lobby-v4-start {
+  padding-left:13px !important;
+  padding-right:13px !important;
+}
+
+.lobby-v4-start > span {
+  margin-right:6px !important;
+  font-size:.82rem !important;
+}
+
+/* Ajustements téléphone étroit */
+@media (max-width:380px) {
+  .lobby-v4-code strong {
+    font-size:.88rem !important;
+  }
+
+  .lobby-v4-players-panel > h2 img {
+    width:28px !important;
+    height:28px !important;
+    flex-basis:28px !important;
+  }
+
+  .lobby-v4-setting-main > small {
+    font-size:.52rem !important;
+  }
+
+  .lobby-v4-stepper {
+    width:108px !important;
+    height:29px !important;
+    grid-template-columns:20px minmax(0,1fr) 20px !important;
+  }
+
+  .lobby-v4-stepper strong,
+  .lobby-v4-setting-value {
+    font-size:.69rem !important;
+  }
+
+  .lobby-v4-stepper button,
+  .lobby-v4-step-spacer {
+    width:20px !important;
+    height:20px !important;
+  }
+
+  .lobby-v4-actions {
+    margin-top:25px !important;
+  }
+
+  .lobby-v4-start,
+  .lobby-v4-wait-host {
+    width:170px !important;
+    min-height:34px !important;
+    font-size:.75rem !important;
+  }
+}
+
+/* En faible hauteur on garde l'espace demandé,
+   mais sans dépasser le viewport verrouillé. */
+@media (max-height:760px) {
+  .lobby-v4-actions {
+    margin-top:22px !important;
+  }
+
+  .lobby-v4-stepper {
+    height:29px !important;
+  }
+
+  .lobby-v4-start,
+  .lobby-v4-wait-host {
+    min-height:34px !important;
+  }
+}
