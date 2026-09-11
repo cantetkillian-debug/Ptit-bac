@@ -573,3 +573,46 @@ body:has(.shop-v2) {
     gap:6px;
   }
 }
+
+
+/* =========================================================
+   Boutique V3 — HUD global masqué + footer collé en bas
+   ========================================================= */
+
+/* Le HUD économie global est déjà recréé proprement dans
+   l'en-tête de la boutique : on masque donc l'ancienne version. */
+body:has(.shop-v2) .economy-hud {
+  display:none !important;
+}
+
+/* Réserve une vraie zone basse pour le logo + Version bêta. */
+.shop-v2 {
+  padding-bottom:max(150px,calc(env(safe-area-inset-bottom) + 132px)) !important;
+}
+
+/* Footer toujours placé tout en bas de la page boutique,
+   juste au-dessus des vagues. */
+.shop-v2-footer {
+  position:absolute !important;
+  left:50% !important;
+  bottom:max(44px,calc(env(safe-area-inset-bottom) + 36px)) !important;
+  margin:0 !important;
+  transform:translateX(-50%) !important;
+  z-index:6 !important;
+  width:max-content !important;
+}
+
+.shop-v2-footer img {
+  width:58px !important;
+  max-height:48px !important;
+}
+
+.shop-v2-footer small {
+  margin-top:1px !important;
+  font-size:.46rem !important;
+}
+
+/* Les vagues restent tout au fond. */
+.shop-v2-wave {
+  bottom:-58px !important;
+}
