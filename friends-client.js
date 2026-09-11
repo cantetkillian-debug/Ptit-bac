@@ -123,6 +123,7 @@
       }
 
       friendsState.profile = res.profile || null;
+      if (friendsState.profile?.friendCode) localStorage.setItem("petitbac_friendCode", friendsState.profile.friendCode);
       friendsState.friends = res.friends || [];
       friendsState.incoming = res.incoming || [];
       friendsState.outgoing = res.outgoing || [];
@@ -138,6 +139,7 @@
         return;
       }
       friendsState.profile = res.profile || friendsState.profile;
+      if (friendsState.profile?.friendCode) localStorage.setItem("petitbac_friendCode", friendsState.profile.friendCode);
       friendsState.friends = res.friends || [];
       friendsState.incoming = res.incoming || [];
       friendsState.outgoing = res.outgoing || [];
@@ -260,17 +262,14 @@
 
           <div class="friends-v3-modal-actions">
             <button id="inviteOpenedFriend" class="primary" type="button" ${roomCode ? "" : "disabled"}>
-              <span class="friends-v3-action-icon">🎮</span>
               <span>${roomCode ? "Inviter dans une partie" : "Aucun salon à inviter"}</span>
             </button>
 
             <button id="messageOpenedFriend" type="button">
-              <span class="friends-v3-action-icon">💬</span>
               <span>Envoyer un message</span>
             </button>
 
             <button id="removeOpenedFriend" class="danger" type="button">
-              <span class="friends-v3-action-icon">👤</span>
               <span>Supprimer l'ami</span>
             </button>
           </div>
@@ -300,9 +299,9 @@
         <section class="friends-v2-add">
           <div class="friends-v2-add-icon">${tabIcon("add")}</div>
           <h2>Ajouter un ami</h2>
-          <p>Entre son code ami, par exemple <b>KIKI#4821</b>.</p>
+          <p>Entre son code ami à 5 chiffres, par exemple <b>48317</b>.</p>
           <div class="friends-v2-add-row">
-            <input id="friendCodeInput" maxlength="24" autocomplete="off" autocapitalize="characters" placeholder="CODE#0000" />
+            <input id="friendCodeInput" inputmode="numeric" maxlength="5" autocomplete="off" placeholder="00000" />
             <button id="friendSendBtn">Ajouter</button>
           </div>
         </section>`;
@@ -340,7 +339,11 @@
             <h1>Amis</h1>
           </div>
 
-          <div class="friends-v2-header-spacer" aria-hidden="true"></div>
+          <button id="friendsMessagesBtn" class="friends-v3-messages-btn" type="button" aria-label="Messages">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 5h14v10H9l-4 4V5Z"></path>
+            </svg>
+          </button>
         </header>
 
         <section class="friends-v2-code">
@@ -399,6 +402,11 @@
       } else {
         window.location.reload();
       }
+    });
+
+    document.getElementById("friendsMessagesBtn")?.addEventListener("click", () => {
+      if (!window.PtitBacChat?.openList) return localToast("Messagerie indisponible.");
+      window.PtitBacChat.openList();
     });
 
     document.getElementById("copyFriendCode")?.addEventListener("click", async () => {
@@ -471,7 +479,10 @@
     });
 
     document.getElementById("messageOpenedFriend")?.addEventListener("click", () => {
-      localToast("La messagerie arrive bientôt.");
+      const user = friendsState.friends.find(item => String(item.id) === String(openedFriendId));
+      if (!user) return;
+      if (!window.PtitBacChat?.openConversation) return localToast("Messagerie indisponible.");
+      window.PtitBacChat.openConversation(user);
     });
 
     document.getElementById("removeOpenedFriend")?.addEventListener("click", () => {
@@ -496,8 +507,8 @@
       input.addEventListener("input", () => {
         input.value = input.value
           .toUpperCase()
-          .replace(/[^A-Z0-9#]/g, "")
-          .slice(0, 24);
+          .replace(/\D/g, "")
+          .slice(0, 5);
       });
       input.addEventListener("keydown", e => {
         if (e.key === "Enter") document.getElementById("friendSendBtn")?.click();
@@ -506,7 +517,7 @@
 
     document.getElementById("friendSendBtn")?.addEventListener("click", () => {
       const friendCode = input?.value.trim();
-      if (!friendCode) return localToast("Entre un code ami.");
+      if (!/^\d{5}$/.test(friendCode || "")) return localToast("Entre le code ami à 5 chiffres.");
 
       friendSocket.emit("friends:send", identityPayload({ friendCode }), res => {
         if (!res?.ok) return localToast(res?.error || "Demande impossible.");

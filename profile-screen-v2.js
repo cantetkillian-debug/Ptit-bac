@@ -8,8 +8,8 @@
   ];
 
   function publicId() {
-    const token = String(localStorage.getItem("petitbac_walletToken") || "");
-    return token ? `#${token.slice(0,6).toUpperCase()}` : "#------";
+    const code = String(localStorage.getItem("petitbac_friendCode") || "").trim();
+    return /^\d{5}$/.test(code) ? code : "-----";
   }
 
   function backButtonMarkup(id) {

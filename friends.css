@@ -771,3 +771,36 @@ body:has(.friends-v2) [data-economy-hud] {
     padding-right:15px;
   }
 }
+
+
+.friends-v3-messages-btn {
+  width:46px;
+  height:46px;
+  margin-left:auto;
+  border:1px solid rgba(111,70,255,.42);
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  background:rgba(10,31,84,.72);
+  color:#b36bff;
+}
+
+.friends-v3-messages-btn svg {
+  width:24px;
+  height:24px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linejoin:round;
+}
+
+.friends-v3-modal-actions button > span:only-child {
+  width:100%;
+  text-align:center;
+}
+
+.friends-v2-add-row input {
+  text-align:center;
+  letter-spacing:.22em;
+  font-size:.8rem;
+}
