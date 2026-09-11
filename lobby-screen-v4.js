@@ -101,10 +101,12 @@
         <section class="lobby-v4-room-row">
           <div class="lobby-v4-code-wrap">
             <button id="copyCode" class="lobby-v4-code" type="button" aria-label="Copier le code du salon">
-              <strong>${escapeHtml(state.code)}</strong>
+              <div class="lobby-v4-code-copy">
+                <strong>${escapeHtml(state.code)}</strong>
+                <small>Partage ce code à tes amis</small>
+              </div>
               <img src="/lobby-copy.png" alt="">
             </button>
-            <p>Partage ce code à tes amis</p>
           </div>
 
           <div class="lobby-v4-count" aria-label="${playerCount} joueurs sur ${LOBBY_MAX_PLAYERS}">
@@ -117,7 +119,7 @@
           <div class="lobby-v4-left">
             <section class="lobby-v4-panel lobby-v4-players-panel">
               <h2>
-                <img src="/friends.png" alt="">
+                <img src="/join.png" alt="">
                 Joueurs <span>(${playerCount}/${LOBBY_MAX_PLAYERS})</span>
               </h2>
 
@@ -143,7 +145,7 @@
             </section>
 
             <button class="lobby-v4-invite" id="inviteFriendsBtn" type="button">
-              <span class="lobby-v4-invite-icon">♙＋</span>
+              <img class="lobby-v4-invite-icon" src="/friends.png" alt="">
               <strong>Inviter des amis</strong>
               <b>›</b>
             </button>
