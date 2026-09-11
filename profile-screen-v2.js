@@ -5,7 +5,7 @@
 
   function publicId() {
     const token = String(localStorage.getItem("petitbac_walletToken") || "");
-    return token ? `#${token.slice(0,6).toUpperCase()}` : "#------";
+    return token ? `#${token.slice(0, 6).toUpperCase()}` : "#------";
   }
 
   function renderProfileV2() {
@@ -18,11 +18,14 @@
         <div class="profile-v2-bg-crown crown-a">♛</div>
         <div class="profile-v2-bg-crown crown-b">♛</div>
         <div class="profile-v2-bg-crown crown-c">♛</div>
+        <div class="profile-v2-bg-crown crown-d">♛</div>
         <i class="profile-v2-spark spark-a"></i>
         <i class="profile-v2-spark spark-b"></i>
 
         <header class="profile-v2-top">
-          <button id="profileV2Back" class="profile-v2-topbtn" type="button" aria-label="Retour">‹</button>
+          <button id="profileV2Back" class="profile-v2-back" type="button" aria-label="Retour">
+            <img src="/back-arrow.png" alt="">
+          </button>
           <h1>Mon profil</h1>
           <span class="profile-v2-top-spacer" aria-hidden="true"></span>
         </header>
@@ -68,12 +71,15 @@
           </button>
         </nav>
 
-        <button id="profileV2Logout" class="profile-v2-logout" type="button">
-          <span>↪</span>
-          Se déconnecter
-        </button>
+        <div class="profile-v2-logout-row">
+          <button id="profileV2Logout" class="profile-v2-logout" type="button">
+            <span>↪</span>
+            Se déconnecter
+          </button>
+        </div>
 
         <footer class="profile-v2-footer">
+          <div class="profile-v2-footer-crown">♛</div>
           <strong>P’tit Bac</strong>
           <small>Version bêta</small>
         </footer>

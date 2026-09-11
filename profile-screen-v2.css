@@ -1,7 +1,6 @@
 /* =========================================================
-   P'tit Bac — Profil simple V6
-   Sans pièces, vies, récompenses ni statistiques.
-   Cible mobile ~390x844 / 100dvh, sans scroll.
+   P'tit Bac — Profil Neon V7
+   Fond 100% CSS : aucune grande image utilisée en arrière-plan.
    ========================================================= */
 
 html:has(.profile-v2-final),
@@ -20,8 +19,9 @@ body:has(.profile-v2-final) [data-economy-hud] {
 }
 
 .profile-v2-final {
-  --pv-line:#4b3be8;
-  --pv-card:#081d55;
+  --pv-line:#6842ff;
+  --pv-line-soft:#3d43c9;
+  --pv-card:#071b52;
   --pv-muted:#aaa4d8;
 
   position:relative;
@@ -36,19 +36,21 @@ body:has(.profile-v2-final) [data-economy-hud] {
   padding:
     max(10px, env(safe-area-inset-top))
     16px
-    max(14px, env(safe-area-inset-bottom));
+    max(13px, env(safe-area-inset-bottom));
 
   color:#fff;
   font-family:"DM Sans",system-ui,sans-serif;
 
+  /* Fond fait uniquement avec des gradients CSS. */
   background:
-    radial-gradient(circle at 50% 21%,rgba(108,43,255,.28),transparent 24%),
-    radial-gradient(circle at 50% 62%,rgba(44,43,176,.12),transparent 32%),
-    linear-gradient(180deg,#06133b 0%,#071a4d 58%,#06133b 100%);
+    radial-gradient(circle at 50% 21%, rgba(109,49,255,.29), transparent 22%),
+    radial-gradient(circle at 0% 47%, rgba(55,49,207,.12), transparent 24%),
+    radial-gradient(circle at 100% 47%, rgba(55,49,207,.12), transparent 24%),
+    linear-gradient(180deg, #06133b 0%, #071a4d 58%, #06133b 100%);
 
   display:grid;
-  grid-template-rows:auto minmax(220px,1fr) auto auto minmax(72px,.7fr);
-  gap:12px;
+  grid-template-rows:auto minmax(232px,1fr) auto auto minmax(70px,.55fr);
+  gap:10px;
 }
 
 .profile-v2-final button {
@@ -59,36 +61,40 @@ body:has(.profile-v2-final) [data-economy-hud] {
   position:relative;
   z-index:5;
   display:grid;
-  grid-template-columns:42px 1fr 42px;
+  grid-template-columns:52px 1fr 52px;
   align-items:center;
-  gap:10px;
+  gap:8px;
 }
 
 .profile-v2-top h1 {
   margin:0;
   text-align:center;
-  font-size:1.45rem;
+  font-size:1.5rem;
   font-weight:900;
-  letter-spacing:-.03em;
+  letter-spacing:-.035em;
+  text-shadow:0 0 16px rgba(120,69,255,.2);
 }
 
-.profile-v2-topbtn {
-  width:40px;
-  height:40px;
-  border:1.4px solid #4b3de8;
-  border-radius:14px;
-  background:linear-gradient(180deg,#0a205d,#071849);
-  color:#fff;
+.profile-v2-back {
+  width:50px;
+  height:50px;
+  padding:0;
+  border:0;
+  background:transparent;
   display:grid;
   place-items:center;
-  font-size:1.8rem;
-  line-height:1;
-  box-shadow:inset 0 0 16px rgba(111,63,255,.11);
+}
+
+.profile-v2-back img {
+  width:44px;
+  height:44px;
+  object-fit:contain;
+  display:block;
 }
 
 .profile-v2-top-spacer {
-  width:40px;
-  height:40px;
+  width:50px;
+  height:50px;
 }
 
 .profile-v2-identity {
@@ -102,47 +108,48 @@ body:has(.profile-v2-final) [data-economy-hud] {
 }
 
 .profile-v2-avatar {
-  width:136px;
-  height:136px;
+  width:142px;
+  height:142px;
   border-radius:50%;
   display:grid;
   place-items:center;
   background:
-    radial-gradient(circle at 44% 35%,#9a5cff,#6335d4 58%,#302080 100%);
-  border:3px solid #704aff;
+    radial-gradient(circle at 43% 35%, #9f5eff, #6437d5 57%, #301f84 100%);
+  border:3px solid #7953ff;
   box-shadow:
-    0 0 28px rgba(121,56,255,.52),
-    0 0 4px #56d6ff,
-    inset 0 0 28px rgba(255,255,255,.08);
+    0 0 30px rgba(122,57,255,.52),
+    0 0 5px rgba(77,211,255,.85),
+    inset 0 0 29px rgba(255,255,255,.09);
 }
 
 .profile-v2-avatar span {
-  font-size:4rem;
-  filter:drop-shadow(0 5px 7px rgba(0,0,0,.18));
+  font-size:4.15rem;
+  filter:drop-shadow(0 5px 8px rgba(0,0,0,.18));
 }
 
 .profile-v2-identity h2 {
-  margin:12px 0 0;
+  margin:11px 0 0;
   max-width:240px;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-  font-size:1.7rem;
+  font-size:1.78rem;
   font-weight:900;
 }
 
 .profile-v2-id {
   margin-top:4px;
-  padding:3px 8px;
+  padding:2px 7px;
   border:0;
   background:transparent;
-  color:#b09aff;
-  font-size:.8rem;
+  color:#b29cff;
+  font-size:.82rem;
   font-weight:900;
 }
 
 .profile-v2-id span {
-  opacity:.85;
+  margin-left:2px;
+  opacity:.9;
 }
 
 .profile-v2-menu {
@@ -153,34 +160,37 @@ body:has(.profile-v2-final) [data-economy-hud] {
 }
 
 .profile-v2-menu button {
-  min-height:74px;
+  min-height:72px;
   padding:10px 15px;
-  border:1.35px solid #3944c8;
+  border:1.4px solid var(--pv-line);
   border-radius:18px;
   background:
-    linear-gradient(180deg,rgba(8,32,88,.98),rgba(6,24,69,.98));
+    radial-gradient(circle at 12% 50%, rgba(95,50,223,.09), transparent 22%),
+    linear-gradient(180deg, rgba(8,31,87,.98), rgba(6,24,69,.98));
   color:#fff;
   display:grid;
-  grid-template-columns:48px 1fr 20px;
+  grid-template-columns:49px 1fr 20px;
   align-items:center;
   gap:12px;
   text-align:left;
   box-shadow:
-    inset 0 0 18px rgba(66,65,201,.06),
-    0 7px 16px rgba(0,0,0,.10);
+    inset 0 0 19px rgba(81,60,205,.05),
+    0 8px 18px rgba(0,0,0,.10);
 }
 
 .profile-v2-menu-icon {
-  width:44px;
-  height:44px;
+  width:45px;
+  height:45px;
   border-radius:14px;
   display:grid;
   place-items:center;
-  font-size:1.35rem;
-  background:rgba(79,44,180,.27);
-  border:1.1px solid #6c40f2;
-  text-shadow:0 0 10px #8a44ff;
-  box-shadow:0 0 12px rgba(114,55,255,.15);
+  font-size:1.38rem;
+  background:linear-gradient(145deg, rgba(79,43,179,.34), rgba(49,34,128,.40));
+  border:1.2px solid #7347ff;
+  text-shadow:0 0 10px #8e4aff;
+  box-shadow:
+    0 0 13px rgba(116,54,255,.20),
+    inset 0 0 12px rgba(255,255,255,.03);
 }
 
 .profile-v2-menu-copy {
@@ -191,7 +201,7 @@ body:has(.profile-v2-final) [data-economy-hud] {
 }
 
 .profile-v2-menu-copy strong {
-  font-size:.9rem;
+  font-size:.92rem;
   font-weight:900;
 }
 
@@ -205,27 +215,36 @@ body:has(.profile-v2-final) [data-economy-hud] {
 }
 
 .profile-v2-menu button b {
-  color:#a996ff;
+  color:#a997ff;
   font-size:1.65rem;
   font-weight:500;
 }
 
-.profile-v2-logout {
+.profile-v2-logout-row {
   position:relative;
   z-index:5;
-  width:100%;
-  min-height:54px;
-  border:1.25px solid #df3367;
-  border-radius:17px;
-  background:rgba(93,19,52,.10);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.profile-v2-logout {
+  width:auto;
+  min-width:176px;
+  min-height:44px;
+  padding:0 18px;
+  border:1.25px solid #eb376c;
+  border-radius:14px;
+  background:rgba(93,19,52,.11);
   color:#ff4f79;
-  font-size:.84rem;
+  font-size:.74rem;
   font-weight:900;
+  box-shadow:0 0 14px rgba(235,55,108,.06);
 }
 
 .profile-v2-logout span {
-  margin-right:9px;
-  font-size:1.1rem;
+  margin-right:7px;
+  font-size:1rem;
 }
 
 .profile-v2-footer {
@@ -236,19 +255,26 @@ body:has(.profile-v2-final) [data-economy-hud] {
   flex-direction:column;
   align-items:center;
   justify-content:flex-end;
-  padding-bottom:4px;
-  gap:2px;
+  gap:1px;
+  padding-bottom:3px;
+}
+
+.profile-v2-footer-crown {
+  color:#7145ff;
+  font-size:1.1rem;
+  line-height:1;
+  text-shadow:0 0 10px rgba(110,63,255,.35);
 }
 
 .profile-v2-footer strong {
-  color:#33268a;
+  color:#6a43d7;
   font-size:1rem;
   font-style:italic;
   font-weight:900;
 }
 
 .profile-v2-footer small {
-  color:#978adb;
+  color:#9b8cde;
   font-size:.52rem;
 }
 
@@ -256,12 +282,13 @@ body:has(.profile-v2-final) [data-economy-hud] {
   position:absolute;
   z-index:1;
   color:rgba(76,48,214,.20);
-  font-size:2.3rem;
+  font-size:2.2rem;
   user-select:none;
 }
-.profile-v2-bg-crown.crown-a { top:17%; left:13%; transform:rotate(-12deg); }
-.profile-v2-bg-crown.crown-b { top:16%; right:14%; transform:rotate(9deg); }
-.profile-v2-bg-crown.crown-c { top:30%; right:12%; transform:rotate(15deg); }
+.profile-v2-bg-crown.crown-a { top:17%; left:14%; transform:rotate(-12deg); }
+.profile-v2-bg-crown.crown-b { top:17%; right:14%; transform:rotate(9deg); }
+.profile-v2-bg-crown.crown-c { top:30%; left:15%; transform:rotate(-8deg); }
+.profile-v2-bg-crown.crown-d { top:30%; right:15%; transform:rotate(12deg); }
 
 .profile-v2-spark {
   position:absolute;
@@ -273,45 +300,50 @@ body:has(.profile-v2-final) [data-economy-hud] {
   box-shadow:0 0 9px #814bff;
   transform:rotate(45deg);
 }
-.profile-v2-spark.spark-a { top:24%; left:10%; }
-.profile-v2-spark.spark-b { top:31%; right:11%; }
+.profile-v2-spark.spark-a { top:23%; left:9%; }
+.profile-v2-spark.spark-b { top:24%; right:9%; }
 
+/* Vagues décoratives en CSS, pas en PNG. */
 .profile-v2-wave {
   position:absolute;
   z-index:0;
-  bottom:-54px;
-  width:74%;
-  height:100px;
+  bottom:-55px;
+  width:76%;
+  height:103px;
   border-radius:50% 50% 0 0;
-  background:linear-gradient(180deg,rgba(52,35,185,.58),rgba(31,29,139,.32));
+  background:
+    linear-gradient(180deg, rgba(63,41,205,.58), rgba(30,29,136,.30));
+  border-top:1px solid rgba(115,70,255,.45);
 }
 .profile-v2-wave.wave-left {
-  left:-13%;
+  left:-15%;
   transform:rotate(4deg);
 }
 .profile-v2-wave.wave-right {
-  right:-12%;
-  transform:rotate(-6deg);
+  right:-15%;
+  transform:rotate(-5deg);
+  background:
+    linear-gradient(180deg, rgba(44,48,187,.55), rgba(29,29,129,.29));
 }
 
 @media (max-height:760px) {
   .profile-v2-final {
-    grid-template-rows:auto minmax(180px,1fr) auto auto minmax(50px,.45fr);
-    gap:9px;
+    grid-template-rows:auto minmax(188px,1fr) auto auto minmax(48px,.42fr);
+    gap:8px;
   }
 
   .profile-v2-avatar {
-    width:112px;
-    height:112px;
+    width:116px;
+    height:116px;
   }
 
   .profile-v2-avatar span {
-    font-size:3.3rem;
+    font-size:3.4rem;
   }
 
   .profile-v2-identity h2 {
-    margin-top:8px;
-    font-size:1.48rem;
+    margin-top:7px;
+    font-size:1.5rem;
   }
 
   .profile-v2-menu {
@@ -319,7 +351,7 @@ body:has(.profile-v2-final) [data-economy-hud] {
   }
 
   .profile-v2-menu button {
-    min-height:62px;
+    min-height:61px;
     grid-template-columns:40px 1fr 18px;
     padding:8px 12px;
   }
@@ -332,14 +364,30 @@ body:has(.profile-v2-final) [data-economy-hud] {
   }
 
   .profile-v2-logout {
-    min-height:48px;
+    min-height:40px;
+    min-width:164px;
   }
 }
 
 @media (max-height:680px) {
   .profile-v2-final {
-    grid-template-rows:auto 154px auto auto 36px;
-    gap:6px;
+    grid-template-rows:auto 155px auto auto 34px;
+    gap:5px;
+  }
+
+  .profile-v2-top {
+    grid-template-columns:44px 1fr 44px;
+  }
+
+  .profile-v2-back,
+  .profile-v2-top-spacer {
+    width:42px;
+    height:42px;
+  }
+
+  .profile-v2-back img {
+    width:38px;
+    height:38px;
   }
 
   .profile-v2-avatar {
@@ -348,16 +396,16 @@ body:has(.profile-v2-final) [data-economy-hud] {
   }
 
   .profile-v2-avatar span {
-    font-size:2.8rem;
+    font-size:2.75rem;
   }
 
   .profile-v2-identity h2 {
     margin-top:5px;
-    font-size:1.3rem;
+    font-size:1.28rem;
   }
 
   .profile-v2-menu button {
-    min-height:54px;
+    min-height:52px;
   }
 
   .profile-v2-menu-copy small {
@@ -365,6 +413,8 @@ body:has(.profile-v2-final) [data-economy-hud] {
   }
 
   .profile-v2-logout {
-    min-height:42px;
+    min-height:36px;
+    min-width:154px;
+    font-size:.68rem;
   }
 }
