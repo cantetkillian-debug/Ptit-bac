@@ -1,75 +1,168 @@
 (() => {
   "use strict";
-  const s = io({forceNew:true});
-  const eco = {coins:0,lives:5,maxLives:5,nextLifeAt:null,secondsToNext:0,rewardedAdCoins:80};
 
-  const token = () => localStorage.getItem("petitbac_walletToken") || "";
+  const ecoSocket = io({forceNew:true});
+  const eco = {
+    coins:Number(localStorage.getItem("petitbac_walletBalance") || 0),
+    lives:5,
+    maxLives:5,
+    nextLifeAt:null,
+    secondsToNext:0,
+    rewardedAdCoins:80
+  };
 
-  function fmt(sec) {
-    sec = Math.max(0,Math.floor(Number(sec)||0));
-    const m = Math.floor(sec/60);
-    return `${String(m).padStart(2,"0")}:${String(sec%60).padStart(2,"0")}`;
+  let refreshing = false;
+
+  function walletToken() {
+    return localStorage.getItem("petitbac_walletToken") || "";
   }
 
-  function getState() {
-    if (!token()) return setTimeout(getState,700);
-    s.emit("economy:get",{walletToken:token()},res=>{
+  function fmt(sec) {
+    sec = Math.max(0, Math.floor(Number(sec) || 0));
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  }
+
+  function localToast(message) {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toast._ecoTimer);
+    toast._ecoTimer = setTimeout(() => toast.classList.remove("show"), 2300);
+  }
+
+  function requestState() {
+    const token = walletToken();
+    if (!token || refreshing) return;
+
+    refreshing = true;
+    ecoSocket.emit("economy:get", {walletToken:token}, res => {
+      refreshing = false;
       if (!res?.ok) return;
-      Object.assign(eco,res);
-      draw();
-      patchQuickPlay();
+      Object.assign(eco, res);
+      renderEconomyUI();
     });
   }
 
-  function hud() {
+  function ensureHud() {
     let el = document.getElementById("economyHud");
-    if (!el) {
-      el = document.createElement("div");
-      el.id = "economyHud";
-      el.className = "economy-hud";
-      document.body.appendChild(el);
-    }
+    if (el) return el;
+
+    el = document.createElement("div");
+    el.id = "economyHud";
+    el.className = "economy-hud";
+    document.body.appendChild(el);
     return el;
   }
 
-  function draw() {
-    const wait = eco.lives < eco.maxLives;
-    hud().innerHTML = `
-      <div class="economy-pill">🪙 <b>${Math.max(0,Number(eco.coins)||0)}</b></div>
-      <div class="economy-pill life">♥ <b>${eco.lives}/${eco.maxLives}</b>${wait?`<small>${fmt(eco.secondsToNext)}</small>`:""}</div>`;
+  function renderHud() {
+    const waiting = eco.lives < eco.maxLives;
+
+    ensureHud().innerHTML = `
+      <div class="economy-pill coins">🪙 <b>${Math.max(0, Number(eco.coins) || 0)}</b></div>
+      <div class="economy-pill life">
+        <span class="economy-heart">♥</span>
+        <b>${eco.lives}/${eco.maxLives}</b>
+        ${waiting ? `<small>${fmt(eco.secondsToNext)}</small>` : ""}
+      </div>`;
   }
 
-  function patchQuickPlay() {
-    const cost = document.querySelector(".home-v129-cost");
-    if (cost) cost.innerHTML = `<span class="economy-heart">♥</span><b>1</b>`;
-    const btn = document.getElementById("quickPlayBtn");
-    if (btn) btn.disabled = eco.lives < 1;
-  }
+  function patchCurrentScreen() {
+    // L'ancien app.js affiche encore 5 pièces : on remplace toute l'UI par les vies.
+    document.querySelectorAll(".home-v129-cost").forEach(el => {
+      el.innerHTML = `<span class="economy-heart">♥</span><b>1</b>`;
+    });
 
-  s.on("connect",getState);
-  s.on("economy:update",v=>{ if(v){Object.assign(eco,v);draw();patchQuickPlay();} });
-  s.on("wallet:update",({balance}={})=>{
-    if (Number.isFinite(Number(balance))) {
-      eco.coins = Number(balance);
-      localStorage.setItem("petitbac_walletBalance",String(balance));
-      draw();
+    document.querySelectorAll(".home-v129-no-coins").forEach(el => el.remove());
+
+    const quick = document.getElementById("quickPlayBtn");
+    if (quick) {
+      quick.disabled = eco.lives < 1;
+      quick.title = eco.lives < 1
+        ? "Plus de vie. Une vie se recharge toutes les 30 minutes."
+        : "1 vie par partie";
     }
+
+    // Boutique: la nouvelle récompense est 80 pièces.
+    const shopCard = document.querySelector(".shop-reward-card");
+    if (shopCard) {
+      const p = shopCard.querySelector(".shop-reward-copy p");
+      const value = shopCard.querySelector(".shop-reward-value b");
+      if (p) p.innerHTML = `Regarde une courte publicité et reçois <strong>80 pièces</strong>.`;
+      if (value) value.textContent = "+80";
+    }
+
+    const info = document.querySelector(".shop-info");
+    if (info) {
+      info.innerHTML = `ⓘ Les parties multijoueur coûtent <strong>1 vie</strong>. Une vie revient toutes les <strong>30 minutes</strong>.`;
+    }
+
+    // Ancien panneau admin caché: cohérence visuelle avec 50 pièces.
+    const reset = document.getElementById("resetCoins");
+    if (reset) reset.textContent = "Remettre à 50";
+  }
+
+  function renderEconomyUI() {
+    renderHud();
+    patchCurrentScreen();
+  }
+
+  // L'ancien client vérifie encore les pièces avant certaines anciennes routes.
+  // Le serveur est désormais la seule autorité pour l'accès aux parties.
+  // On neutralise uniquement ce vieux contrôle côté client.
+  if (typeof window.canAffordGame === "function") {
+    window.canAffordGame = () => true;
+  }
+
+  ecoSocket.on("connect", requestState);
+
+  ecoSocket.on("economy:update", value => {
+    if (!value) return;
+    Object.assign(eco, value);
+    renderEconomyUI();
   });
 
-  setInterval(()=>{
+  ecoSocket.on("wallet:update", ({balance} = {}) => {
+    if (!Number.isFinite(Number(balance))) return;
+    eco.coins = Math.max(0, Math.floor(Number(balance)));
+    localStorage.setItem("petitbac_walletBalance", String(eco.coins));
+    renderEconomyUI();
+  });
+
+  // Affiche un message correct si un utilisateur tente de lancer avec 0 vie.
+  document.addEventListener("click", event => {
+    const btn = event.target.closest?.("#quickPlayBtn");
+    if (!btn || eco.lives > 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    localToast(`Plus de vie. Prochaine vie dans ${fmt(eco.secondsToNext)}.`);
+  }, true);
+
+  new MutationObserver(() => {
+    patchCurrentScreen();
+  }).observe(document.documentElement, {subtree:true, childList:true});
+
+  setInterval(() => {
     if (eco.lives < eco.maxLives && eco.nextLifeAt) {
-      eco.secondsToNext = Math.max(0,Math.ceil((Number(eco.nextLifeAt)-Date.now())/1000));
-      if (eco.secondsToNext <= 0) getState(); else draw();
+      eco.secondsToNext = Math.max(
+        0,
+        Math.ceil((Number(eco.nextLifeAt) - Date.now()) / 1000)
+      );
+
+      if (eco.secondsToNext <= 0) requestState();
+      else renderHud();
     }
-  },1000);
+  }, 1000);
 
-  setInterval(getState,60000);
-
-  new MutationObserver(()=>patchQuickPlay()).observe(document.documentElement,{subtree:true,childList:true});
+  setInterval(requestState, 60000);
 
   window.PtitBacEconomy = {
-    refresh:getState,
-    state:()=>({...eco}),
+    refresh:requestState,
+    state:() => ({...eco}),
     rewardedAdCoins:80
   };
 })();

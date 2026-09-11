@@ -12,7 +12,7 @@ const { Pool } = require("pg");
 const socketIo = require("socket.io");
 
 const DATABASE_URL = String(process.env.DATABASE_URL || "").trim();
-const DEFAULT_COINS = 25;
+const DEFAULT_COINS = 50;
 
 const pool = DATABASE_URL
   ? new Pool({
@@ -68,7 +68,7 @@ async function ensureSchema() {
         friend_code text UNIQUE NOT NULL,
         username text NOT NULL,
         avatar text DEFAULT '🐼',
-        coins integer NOT NULL DEFAULT 25 CHECK (coins >= 0),
+        coins integer NOT NULL DEFAULT 50 CHECK (coins >= 0),
         wallet_token text UNIQUE,
         created_at timestamptz NOT NULL DEFAULT now(),
         last_seen timestamptz NOT NULL DEFAULT now(),
@@ -78,6 +78,9 @@ async function ensureSchema() {
 
     await pool.query(`ALTER TABLE public.users ADD COLUMN IF NOT EXISTS wallet_token text UNIQUE`);
     await pool.query(`ALTER TABLE public.users ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now()`);
+    await pool.query(`ALTER TABLE public.users ALTER COLUMN coins SET DEFAULT 50`);
+    await pool.query(`ALTER TABLE public.users ADD COLUMN IF NOT EXISTS lives integer NOT NULL DEFAULT 5 CHECK (lives >= 0 AND lives <= 5)`);
+    await pool.query(`ALTER TABLE public.users ADD COLUMN IF NOT EXISTS life_updated_at timestamptz NOT NULL DEFAULT now()`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS public.friend_requests (
