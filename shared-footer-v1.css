@@ -1,0 +1,91 @@
+/* =========================================================
+   P'tit Bac — Footer commun V1
+   Profil / Amis / Messages / Salon / Sélection catégories
+   ========================================================= */
+
+.ptb-shared-footer {
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:-1px !important;
+  z-index:18 !important;
+
+  width:100% !important;
+  height:auto !important;
+  margin:0 !important;
+  padding:0 !important;
+
+  display:block !important;
+  pointer-events:none !important;
+  overflow:visible !important;
+}
+
+.ptb-shared-footer > img {
+  display:block !important;
+  width:100% !important;
+  height:auto !important;
+  max-width:none !important;
+  margin:0 !important;
+  object-fit:contain !important;
+  object-position:center bottom !important;
+  user-select:none !important;
+  -webkit-user-drag:none !important;
+}
+
+/* Les pages gardent une réserve basse suffisante pour que le nouveau
+   footer ne masque jamais les derniers contrôles. */
+.profile-v2-final {
+  padding-bottom:max(116px,calc(env(safe-area-inset-bottom) + 106px)) !important;
+}
+
+.friends-v2 {
+  padding-bottom:max(122px,calc(env(safe-area-inset-bottom) + 112px)) !important;
+}
+
+.chat-list-v1 {
+  padding-bottom:max(118px,calc(env(safe-area-inset-bottom) + 108px)) !important;
+}
+
+.lobby-v4 {
+  padding-bottom:max(132px,calc(env(safe-area-inset-bottom) + 120px)) !important;
+}
+
+/* Catégories : les deux boutons restent juste au-dessus du footer commun. */
+.cat-v2 .cat-v2-actions {
+  bottom:max(151px,calc(env(safe-area-inset-bottom) + 141px)) !important;
+}
+
+.cat-v2 .cat-v2-wait {
+  bottom:max(154px,calc(env(safe-area-inset-bottom) + 144px)) !important;
+}
+
+/* Footer légèrement plus compact sur les écrans peu hauts. */
+@media (max-height:720px) {
+  .ptb-shared-footer > img {
+    width:100% !important;
+  }
+
+  .profile-v2-final {
+    padding-bottom:max(100px,calc(env(safe-area-inset-bottom) + 92px)) !important;
+  }
+
+  .friends-v2 {
+    padding-bottom:max(104px,calc(env(safe-area-inset-bottom) + 95px)) !important;
+  }
+
+  .chat-list-v1 {
+    padding-bottom:max(101px,calc(env(safe-area-inset-bottom) + 92px)) !important;
+  }
+
+  .lobby-v4 {
+    padding-bottom:max(112px,calc(env(safe-area-inset-bottom) + 102px)) !important;
+  }
+
+  .cat-v2 .cat-v2-actions {
+    bottom:max(126px,calc(env(safe-area-inset-bottom) + 116px)) !important;
+  }
+
+  .cat-v2 .cat-v2-wait {
+    bottom:max(130px,calc(env(safe-area-inset-bottom) + 120px)) !important;
+  }
+}

@@ -433,9 +433,6 @@
       <main class="screen friends-v2">
         <div class="friends-v2-bg-glow glow-a"></div>
         <div class="friends-v2-bg-glow glow-b"></div>
-        <div class="friends-v2-wave wave-left"></div>
-        <div class="friends-v2-wave wave-right"></div>
-
         <header class="friends-v2-header">
           <button class="friends-v2-back" id="friendsBackBtn" aria-label="Retour">
             <img src="/back-arrow.png" alt="">
@@ -486,9 +483,8 @@
           ${currentPanel()}
         </div>
 
-        <footer class="friends-v2-footer">
-          <img src="/ptitbac.logo.png" alt="P'tit Bac">
-          <small>Version bêta</small>
+        <footer class="ptb-shared-footer" aria-hidden="true">
+          <img src="/shared-footer-v1.png" alt="">
         </footer>
 
         ${friendProfileModal()}

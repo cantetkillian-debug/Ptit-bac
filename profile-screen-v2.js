@@ -103,13 +103,9 @@
           </button>
         </div>
 
-        <footer class="profile-v2-footer">
-          <img src="/ptitbac.logo.png" alt="P’tit Bac" class="profile-v2-footer-logo">
-          <small>Version bêta</small>
+        <footer class="ptb-shared-footer" aria-hidden="true">
+          <img src="/shared-footer-v1.png" alt="">
         </footer>
-
-        <div class="profile-v2-wave wave-left"></div>
-        <div class="profile-v2-wave wave-right"></div>
       </main>
     `);
 

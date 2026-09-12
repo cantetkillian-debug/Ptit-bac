@@ -319,15 +319,12 @@
               </div>`}
         </section>
 
-        <footer class="lobby-v4-footer">
-          <img src="/ptitbac.logo.png" alt="P'tit Bac">
-          <small>Version bêta</small>
+        <footer class="ptb-shared-footer" aria-hidden="true">
+          <img src="/shared-footer-v1.png" alt="">
         </footer>
 
         ${lobbyPlayerProfileModal(state)}
 
-        <div class="lobby-v4-wave wave-1"></div>
-        <div class="lobby-v4-wave wave-2"></div>
       </main>
     `);
 

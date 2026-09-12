@@ -160,9 +160,8 @@
           </section>
         `}
 
-        <footer class="chat-footer">
-          <img src="/ptitbac.logo.png" alt="P'tit Bac">
-          <small>Version bêta</small>
+        <footer class="ptb-shared-footer" aria-hidden="true">
+          <img src="/shared-footer-v1.png" alt="">
         </footer>
       </main>
     `;

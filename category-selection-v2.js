@@ -108,13 +108,9 @@
           </section>
         `}
 
-        <footer class="cat-v2-footer" aria-hidden="true">
-          <img src="/ptitbac.logo.png" alt="">
-          <small>Version bêta</small>
+        <footer class="ptb-shared-footer" aria-hidden="true">
+          <img src="/shared-footer-v1.png" alt="">
         </footer>
-
-        <div class="cat-v2-wave wave-1"></div>
-        <div class="cat-v2-wave wave-2"></div>
       </main>
     `);
 
