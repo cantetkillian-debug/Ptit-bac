@@ -1,0 +1,118 @@
+/* =========================================================
+   P'tit Bac — Avatar Fix V2
+   Chargé en dernier pour neutraliser les anciens object-fit:cover.
+   ========================================================= */
+
+/* Cadres : centre géométrique strict */
+.home-plaque-avatar,
+.profile-v2-avatar,
+.friends-v2-avatar,
+.chat-list-avatar,
+.chat-header-avatar,
+.lobby-v4-avatar,
+.lobby-player-modal-avatar,
+.avatar.ptb-avatar-photo {
+  position:relative !important;
+  display:grid !important;
+  place-items:center !important;
+}
+
+/* Photos importées : jamais de crop, toujours parfaitement centrées.
+   64 % permet même à une image carrée de tenir entièrement dans un cercle. */
+.home-plaque-avatar-photo,
+.profile-v2-avatar > .profile-v2-avatar-photo,
+.friends-v2-avatar-img,
+.chat-avatar-img,
+.lobby-v4-avatar img,
+.lobby-player-modal-avatar img,
+.avatar.ptb-avatar-photo > img {
+  position:absolute !important;
+  top:50% !important;
+  left:50% !important;
+  right:auto !important;
+  bottom:auto !important;
+
+  width:64% !important;
+  height:64% !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  max-width:64% !important;
+  max-height:64% !important;
+
+  margin:0 !important;
+  padding:0 !important;
+
+  transform:translate(-50%,-50%) !important;
+
+  object-fit:contain !important;
+  object-position:center center !important;
+
+  border-radius:0 !important;
+  display:block !important;
+}
+
+/* Accueil : le cadre reste compact, l'image ne le remplit plus. */
+.home-plaque-avatar {
+  overflow:hidden !important;
+}
+
+/* Profil : cadre plus raisonnable et photo vraiment centrée. */
+.profile-v2-avatar {
+  width:116px !important;
+  height:116px !important;
+  min-width:116px !important;
+  min-height:116px !important;
+  overflow:hidden !important;
+}
+
+/* Salon : petit avatar, sans grossir la carte joueur. */
+.lobby-v4-avatar {
+  width:28px !important;
+  height:28px !important;
+  min-width:28px !important;
+  min-height:28px !important;
+  overflow:hidden !important;
+}
+
+/* Adapte la colonne avatar du joueur à son nouveau diamètre. */
+.lobby-v4-player {
+  grid-template-columns:28px minmax(0,1fr) !important;
+}
+
+/* Les points de présence restent hors du centre de la photo. */
+.lobby-v4-avatar > i {
+  right:-1px !important;
+  bottom:-1px !important;
+}
+
+/* Amis / messages : le cercle garde sa taille actuelle, seule l'image rétrécit. */
+.friends-v2-avatar,
+.chat-list-avatar,
+.chat-header-avatar {
+  overflow:hidden !important;
+}
+
+/* Fiche joueur du salon : même proportion, image entière. */
+.lobby-player-modal-avatar {
+  overflow:hidden !important;
+}
+
+/* Aperçu lors de l'import : on montre aussi l'image entière. */
+.profile-edit-v8-import-preview > img {
+  width:82% !important;
+  height:82% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  margin:auto !important;
+  border-radius:8px !important;
+}
+
+/* Téléphones plus petits : le profil reste proportionné. */
+@media (max-height:680px) {
+  .profile-v2-avatar {
+    width:104px !important;
+    height:104px !important;
+    min-width:104px !important;
+    min-height:104px !important;
+  }
+}
