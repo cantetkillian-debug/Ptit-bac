@@ -520,3 +520,63 @@ body:has(.fsv1-screen) .economy-hud{display:none!important}
     grid-template-columns:1fr;
   }
 }
+
+
+/* =========================================================
+   Fin de partie V2 — header épuré + vraies icônes
+   ========================================================= */
+
+/* Plus d'icône de sortie ni logo en haut */
+.fsv1-home-top,
+.fsv1-logo{
+  display:none!important;
+}
+
+.fsv2-top{
+  min-height:42px!important;
+  display:flex!important;
+  justify-content:flex-end!important;
+  align-items:flex-start!important;
+}
+
+.fsv2-top .fsv1-wallet{
+  margin-left:auto!important;
+}
+
+/* Le titre remonte pour utiliser l'espace libéré */
+.fsv1-heading{
+  margin-top:2px!important;
+}
+.fsv1-heading h1{
+  font-size:1.68rem!important;
+}
+
+/* Icônes PNG des stats */
+.fsv2-stats .fsv1-stat-icon{
+  background:#291b72!important;
+  overflow:hidden!important;
+}
+.fsv2-stats .fsv1-stat-icon img{
+  width:23px!important;
+  height:23px!important;
+  object-fit:contain!important;
+  display:block!important;
+}
+
+/* L'icône difficulté peut être plus détaillée */
+.fsv2-stats>div:last-child .fsv1-stat-icon img{
+  width:25px!important;
+  height:25px!important;
+}
+
+/* Texte difficulté un peu plus petit pour "Difficile" */
+.fsv2-difficulty{
+  font-size:.50rem!important;
+}
+
+/* Sur petits écrans, garde les 4 cartes bien lisibles */
+@media(max-width:370px){
+  .fsv2-stats{
+    grid-template-columns:repeat(2,1fr)!important;
+  }
+}

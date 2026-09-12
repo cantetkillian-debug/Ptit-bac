@@ -26,6 +26,12 @@
     return `<img src="/coin.png" alt="" draggable="false">`;
   }
 
+  function difficultyInfo(value) {
+    if (value === "hard") return { label: "Difficile", icon: "/difficulty-hard.png" };
+    if (value === "medium") return { label: "Normal", icon: "/difficulty-normal.png" };
+    return { label: "Facile", icon: "/difficulty-easy.png" };
+  }
+
   function renderFinishedV1() {
     clearInterval(session.timerHandle);
 
@@ -43,6 +49,7 @@
     const myReward=Math.max(0,Number(state.myReward||0));
     const totalPlayers=ranked.length;
     const top3=ranked.slice(0,3);
+    const difficulty=difficultyInfo(state.categoryDifficulty);
 
     const durationTotal=Math.max(0,
       Number(state.rounds||0) * Number(state.duration||0)
@@ -98,13 +105,7 @@
           <i></i><i></i><i></i><i></i>
         </div>
 
-        <header class="fsv1-top">
-          <button class="fsv1-home-top" id="fsv1HomeTop" type="button" aria-label="Retour à l’accueil">
-            ${typeof uiIcon==="function" ? uiIcon("home") : "⌂"}
-          </button>
-
-          <img src="/ptit-bac-logo-v2.png" class="fsv1-logo" alt="P’tit Bac">
-
+        <header class="fsv1-top fsv2-top">
           <div class="fsv1-wallet">
             ${coin()}
             <strong>${typeof getCoins==="function" ? getCoins() : 0}</strong>
@@ -131,26 +132,26 @@
           <div class="fsv1-ranking-body">${rows}</div>
         </section>
 
-        <section class="fsv1-stats">
+        <section class="fsv1-stats fsv2-stats">
           <div>
-            <span class="fsv1-stat-icon">👥</span>
+            <span class="fsv1-stat-icon"><img src="/friends.png" alt=""></span>
             <strong>${totalPlayers}</strong>
             <small>Joueur${totalPlayers>1?"s":""}</small>
           </div>
           <div>
-            <span class="fsv1-stat-icon">▤</span>
+            <span class="fsv1-stat-icon"><img src="/lightning.png" alt=""></span>
             <strong>${Number(state.rounds||0)}</strong>
             <small>Manche${Number(state.rounds||0)>1?"s":""}</small>
           </div>
           <div>
-            <span class="fsv1-stat-icon">◷</span>
+            <span class="fsv1-stat-icon"><img src="/lobby-clock.png" alt=""></span>
             <strong>${durationText}</strong>
             <small>Durée de la partie</small>
           </div>
           <div>
-            <span class="fsv1-stat-icon">▦</span>
-            <strong>${Number(state.categories?.length || state.categoryCount || 0)}</strong>
-            <small>Catégories</small>
+            <span class="fsv1-stat-icon"><img src="${difficulty.icon}" alt=""></span>
+            <strong class="fsv2-difficulty">${difficulty.label}</strong>
+            <small>Difficulté</small>
           </div>
         </section>
 
@@ -192,7 +193,6 @@
       renderHome();
     };
 
-    document.getElementById("fsv1HomeTop")?.addEventListener("click",leave);
     document.getElementById("fsv1Home")?.addEventListener("click",leave);
 
     if(user?.isHost){
