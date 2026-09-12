@@ -1,6 +1,43 @@
 (() => {
   "use strict";
 
+  function gameExitModal(state, user, prefix) {
+    document.querySelector(`.${prefix}-modal-backdrop`)?.remove();
+    const overlay = document.createElement("div");
+    overlay.className = `${prefix}-modal-backdrop`;
+    overlay.innerHTML = `
+      <section class="${prefix}-modal" role="dialog" aria-modal="true">
+        <h2>Quitter la partie ?</h2>
+        <div class="${prefix}-modal-actions">
+          <button type="button" data-action="cancel">Non</button>
+          ${user?.isHost ? '<button type="button" data-action="lobby">Revenir au salon</button>' : ""}
+          <button type="button" class="danger" data-action="home">Revenir à l’accueil</button>
+        </div>
+      </section>
+    `;
+
+    overlay.addEventListener("click", e => {
+      const action = e.target?.dataset?.action;
+      if (e.target === overlay || action === "cancel") {
+        overlay.remove();
+        return;
+      }
+      if (action === "lobby") {
+        socket.emit("game:returnLobby", { code: state.code, playerId: session.playerId });
+        overlay.remove();
+        return;
+      }
+      if (action === "home") {
+        socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+        clearSession();
+        overlay.remove();
+        renderHome();
+      }
+    });
+    document.body.appendChild(overlay);
+  }
+
+
   function esc(value="") {
     try { return escapeHtml(value); } catch {
       return String(value).replace(/[&<>"']/g, c => ({
@@ -37,6 +74,10 @@
 
     setScreen(`
       <main class="wsv1-screen">
+        <button class="wsv1-exit" id="wsv1Exit" type="button" aria-label="Quitter la partie">
+          <img src="/lobby-exit.png" alt="">
+        </button>
+
         <header class="wsv1-top">
           <div class="wsv1-round">
             <small>Manche</small>
@@ -48,9 +89,9 @@
             <strong>${letter}</strong>
           </div>
 
-          <div class="wsv1-wallet">
-            <img src="/coin.png" alt="">
-            <strong>${coinsLabel()}</strong>
+          <div class="wsv1-categories">
+            <img src="/lobby-categories.png" alt="">
+            <div><small>Catégories</small><strong>${Array.isArray(state.categories) ? state.categories.length : 0}</strong></div>
           </div>
         </header>
 
@@ -92,6 +133,10 @@
         </footer>
       </main>
     `);
+
+    document.getElementById("wsv1Exit")?.addEventListener("click", () => {
+      gameExitModal(state, me(), "wsv1-exit");
+    });
 
     const tick=()=>{
       const timer=document.getElementById("wsv1Timer");

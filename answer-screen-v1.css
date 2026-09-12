@@ -248,3 +248,10 @@ body:has(.asv1-screen) .economy-hud{display:none!important}
     height:105px !important;
   }
 }
+
+.asv1-exit-modal-backdrop{position:fixed;inset:0;z-index:9999;background:rgba(2,8,31,.78);backdrop-filter:blur(7px);display:grid;place-items:center;padding:20px}
+.asv1-exit-modal{width:min(100%,340px);padding:20px;border:1px solid #7d3eea;border-radius:22px;background:linear-gradient(145deg,#0b2057,#081746);box-shadow:0 0 35px rgba(145,53,255,.3);color:#fff;font-family:"DM Sans",system-ui,sans-serif;text-align:center}
+.asv1-exit-modal h2{margin:0 0 17px;font-size:1.15rem;font-weight:900}
+.asv1-exit-modal-actions{display:grid;gap:9px}
+.asv1-exit-modal-actions button{min-height:47px;border:1px solid #7041d8;border-radius:14px;background:#10245d;color:#fff;font:800 .72rem "DM Sans",system-ui,sans-serif}
+.asv1-exit-modal-actions button.danger{background:linear-gradient(100deg,#8d35ff,#5e17ed);border-color:#a251ff}
