@@ -2,6 +2,48 @@
   "use strict";
 
   const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const WHEEL_SEGMENT = 360 / LETTERS.length;
+
+  const wheelRuntime = {
+    currentRotation: 0,
+    velocity: 0,
+    direction: 1,
+    requestedAt: 0,
+    activeCode: "",
+    activeVersion: -1,
+    revealTimer: null
+  };
+
+  function normalizeAngle(value) {
+    let angle = value % 360;
+    if (angle < 0) angle += 360;
+    return angle;
+  }
+
+  function shortestDelta(next, previous) {
+    let delta = next - previous;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    return delta;
+  }
+
+  function wheelTargetForLetter(letter, baseRotation, direction = 1) {
+    const index = Math.max(0, LETTERS.indexOf(letter));
+    // Segment A is centered at 0deg under the pointer.
+    const desired = -(index * WHEEL_SEGMENT);
+    const baseNorm = normalizeAngle(baseRotation);
+    const desiredNorm = normalizeAngle(desired);
+
+    if (direction >= 0) {
+      let delta = desiredNorm - baseNorm;
+      if (delta < 0) delta += 360;
+      return baseRotation + delta;
+    }
+
+    let delta = baseNorm - desiredNorm;
+    if (delta < 0) delta += 360;
+    return baseRotation - delta;
+  }
 
   function adminCoinDisplay() {
     const admin = window.PtitBacAdminDisplayState || {};
@@ -55,7 +97,7 @@
     const rerollCost = Number(state.letterRerollCost || 10);
     const roundNumber = Math.max(1, Number(state.roundIndex || -1) + 2);
     const totalRounds = Math.max(1, Number(state.rounds || 1));
-    const segmentAngle = 360 / LETTERS.length;
+    const segmentAngle = WHEEL_SEGMENT;
 
     const wheelLabels = LETTERS.map((letter, index) => {
       const angle = index * segmentAngle;
@@ -128,21 +170,18 @@
 
               <div class="letter-v2-wheel-center">
                 <img src="/admin-crown.png" alt="">
+                <strong id="letterV2CenterLetter" class="${selectedLetter ? "is-pending" : ""}">
+                  ${selectedLetter ? escapeHtml(selectedLetter) : ""}
+                </strong>
               </div>
             </div>
           </div>
         </section>
 
-        ${selectedLetter ? `
-          <section class="letter-v2-selected letter-v2-delayed-result is-hidden">
-            <strong>${escapeHtml(selectedLetter)}</strong>
-          </section>
-        ` : `
-          <div class="letter-v2-wait-status">
-            <span></span>
-            <strong>En attente de ${escapeHtml(chooserName)} …</strong>
-          </div>
-        `}
+        <div class="letter-v2-wait-status ${selectedLetter ? "has-result" : ""}">
+          ${selectedLetter ? "" : "<span></span>"}
+          <strong>${selectedLetter ? `En attente de ${escapeHtml(chooserName)} …` : `En attente de ${escapeHtml(chooserName)} …`}</strong>
+        </div>
 
         ${isChooser && selectedLetter ? `
           <section class="letter-v2-actions letter-v2-delayed-result is-hidden">
@@ -173,8 +212,17 @@
       </main>
     `);
 
+    if (wheelRuntime.revealTimer) {
+      clearTimeout(wheelRuntime.revealTimer);
+      wheelRuntime.revealTimer = null;
+    }
+
     if (selectedLetter) {
-      setTimeout(() => {
+      wheelRuntime.revealTimer = setTimeout(() => {
+        const centerLetter = document.getElementById("letterV2CenterLetter");
+        centerLetter?.classList.remove("is-pending");
+        centerLetter?.classList.add("is-revealed");
+
         document.querySelectorAll(".letter-v2-delayed-result").forEach(element => {
           element.classList.remove("is-hidden");
           element.classList.add("is-revealed");
@@ -216,43 +264,80 @@
     const wheel = document.getElementById("letterV2Wheel");
 
     if (wheel && selectedLetter) {
-      const targetIndex = Math.max(0, LETTERS.indexOf(selectedLetter));
-      const targetAngle = -(targetIndex * segmentAngle);
-      const turns = 7 + (Number(state.letterSpinVersion || 0) % 3);
-      const finalRotation = turns * 360 + targetAngle;
-      const spinDuration = 3400;
-
-      wheel.style.setProperty("--wheel-final-rotation", `${finalRotation}deg`);
-      wheel.style.setProperty("--wheel-counter-rotation", `${-finalRotation}deg`);
-
       const zone = document.getElementById("letterV2WheelTapZone");
+      const version = Number(state.letterSpinVersion || 0);
+
+      // Continue from the exact angle reached by the player's finger/flick.
+      let startRotation = Number(wheelRuntime.currentRotation || 0);
+
+      if (
+        wheelRuntime.activeCode !== state.code ||
+        wheelRuntime.activeVersion === version
+      ) {
+        startRotation = Number(wheelRuntime.currentRotation || 0);
+      }
+
+      const direction = wheelRuntime.direction || 1;
+      const baseLanding = wheelTargetForLetter(
+        selectedLetter,
+        startRotation,
+        direction
+      );
+
+      // Add real full turns before the final exact segment.
+      const speedBonus = Math.min(4, Math.max(0, Math.abs(wheelRuntime.velocity) * 0.55));
+      const fullTurns = 5 + speedBonus;
+      const finalRotation =
+        baseLanding + direction * fullTurns * 360;
+
+      const spinDuration = 3000 + Math.min(900, Math.abs(wheelRuntime.velocity) * 95);
+
+      wheel.style.transform = `rotate(${startRotation}deg)`;
       zone?.classList.add("is-wheel-spinning");
 
-      // Web Animations API = animation visible et fluide sur Safari/iPhone.
+      const frames = [
+        { transform: `rotate(${startRotation}deg)`, offset: 0 },
+        {
+          transform: `rotate(${startRotation + (finalRotation - startRotation) * 0.44}deg)`,
+          offset: 0.22
+        },
+        {
+          transform: `rotate(${startRotation + (finalRotation - startRotation) * 0.78}deg)`,
+          offset: 0.58
+        },
+        {
+          transform: `rotate(${startRotation + (finalRotation - startRotation) * 0.95}deg)`,
+          offset: 0.86
+        },
+        { transform: `rotate(${finalRotation}deg)`, offset: 1 }
+      ];
+
       if (typeof wheel.animate === "function") {
-        const animation = wheel.animate(
-          [
-            { transform: "rotate(0deg)", offset: 0 },
-            { transform: `rotate(${finalRotation * 0.18}deg)`, offset: 0.16 },
-            { transform: `rotate(${finalRotation * 0.68}deg)`, offset: 0.62 },
-            { transform: `rotate(${finalRotation * 0.93}deg)`, offset: 0.88 },
-            { transform: `rotate(${finalRotation}deg)`, offset: 1 }
-          ],
-          {
-            duration: spinDuration,
-            easing: "cubic-bezier(.10,.72,.12,1)",
-            fill: "forwards"
-          }
-        );
+        const animation = wheel.animate(frames, {
+          duration: spinDuration,
+          easing: "cubic-bezier(.08,.68,.10,1)",
+          fill: "forwards"
+        });
 
         animation.onfinish = () => {
           wheel.style.transform = `rotate(${finalRotation}deg)`;
+          wheelRuntime.currentRotation = finalRotation;
+          wheelRuntime.activeVersion = version;
+          wheelRuntime.velocity = 0;
+
           zone?.classList.remove("is-wheel-spinning");
           zone?.classList.add("is-wheel-landed");
         };
       } else {
-        requestAnimationFrame(() => wheel.classList.add("is-spinning"));
+        wheel.style.transition = `transform ${spinDuration}ms cubic-bezier(.08,.68,.10,1)`;
+        requestAnimationFrame(() => {
+          wheel.style.transform = `rotate(${finalRotation}deg)`;
+        });
+
         setTimeout(() => {
+          wheelRuntime.currentRotation = finalRotation;
+          wheelRuntime.activeVersion = version;
+          wheelRuntime.velocity = 0;
           zone?.classList.remove("is-wheel-spinning");
           zone?.classList.add("is-wheel-landed");
         }, spinDuration);
@@ -284,11 +369,19 @@
 
       zone?.classList.add("is-spinning-request");
 
+      wheelRuntime.activeCode = state.code;
+      wheelRuntime.requestedAt = Date.now();
+      wheelRuntime.direction = wheelRuntime.direction || 1;
+
       if (wheel && typeof wheel.animate === "function") {
-        wheel.animate(
+        const start = Number(wheelRuntime.currentRotation || 0);
+        const direction = wheelRuntime.direction || 1;
+        const previewTarget = start + direction * 1080;
+
+        const preview = wheel.animate(
           [
-            { transform: "rotate(0deg)" },
-            { transform: "rotate(1440deg)" }
+            { transform: `rotate(${start}deg)` },
+            { transform: `rotate(${previewTarget}deg)` }
           ],
           {
             duration: 1500,
@@ -296,6 +389,10 @@
             fill: "forwards"
           }
         );
+
+        preview.onfinish = () => {
+          wheelRuntime.currentRotation = previewTarget;
+        };
       }
 
       socket.emit("game:spinLetter", {
@@ -309,24 +406,20 @@
     if (tapZone && !selectedLetter) {
       let dragging = false;
       let moved = false;
-      let startAngle = 0;
       let previousAngle = 0;
-      let currentRotation = 0;
+      let startPointerAngle = 0;
       let lastTime = 0;
-      let angularVelocity = 0;
+      let velocity = 0;
+      let rotation = Number(wheelRuntime.currentRotation || 0);
 
-      const pointAngle = event => {
+      const pointerAngle = event => {
         const rect = tapZone.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
-        return Math.atan2(event.clientY - cy, event.clientX - cx) * 180 / Math.PI;
-      };
-
-      const normalizedDelta = (next, previous) => {
-        let delta = next - previous;
-        if (delta > 180) delta -= 360;
-        if (delta < -180) delta += 360;
-        return delta;
+        return Math.atan2(
+          event.clientY - cy,
+          event.clientX - cx
+        ) * 180 / Math.PI;
       };
 
       const beginDrag = event => {
@@ -334,16 +427,23 @@
 
         dragging = true;
         moved = false;
-        startAngle = pointAngle(event);
-        previousAngle = startAngle;
+        velocity = 0;
+
+        startPointerAngle = pointerAngle(event);
+        previousAngle = startPointerAngle;
         lastTime = performance.now();
-        angularVelocity = 0;
+
+        wheel?.getAnimations?.().forEach(animation => animation.cancel());
+        wheel?.classList.remove("is-spinning");
 
         tapZone.classList.add("is-dragging");
-        wheel?.classList.remove("is-request-spinning");
-        wheel?.getAnimations?.().forEach(animation => animation.cancel());
-
         tapZone.setPointerCapture?.(event.pointerId);
+
+        if (wheel) {
+          wheel.style.transition = "none";
+          wheel.style.transform = `rotate(${rotation}deg)`;
+        }
+
         event.preventDefault();
       };
 
@@ -351,37 +451,40 @@
         if (!dragging) return;
 
         const now = performance.now();
-        const nextAngle = pointAngle(event);
-        const delta = normalizedDelta(nextAngle, previousAngle);
+        const angle = pointerAngle(event);
+        const delta = shortestDelta(angle, previousAngle);
         const dt = Math.max(8, now - lastTime);
 
-        if (Math.abs(normalizedDelta(nextAngle, startAngle)) > 4 || Math.abs(currentRotation) > 5) {
+        rotation += delta;
+        velocity = delta / dt * 16.67;
+
+        if (Math.abs(shortestDelta(angle, startPointerAngle)) > 3 || Math.abs(delta) > 1) {
           moved = true;
         }
 
-        currentRotation += delta;
-        angularVelocity = delta / dt * 16.67;
+        wheelRuntime.currentRotation = rotation;
+        wheelRuntime.velocity = velocity;
+        wheelRuntime.direction = velocity === 0
+          ? wheelRuntime.direction
+          : (velocity > 0 ? 1 : -1);
 
         if (wheel) {
-          wheel.style.transform = `rotate(${currentRotation}deg)`;
+          wheel.style.transform = `rotate(${rotation}deg)`;
         }
 
-        previousAngle = nextAngle;
+        previousAngle = angle;
         lastTime = now;
         event.preventDefault();
       };
 
-      const finishDrag = event => {
+      const endDrag = event => {
         if (!dragging) return;
 
         dragging = false;
         tapZone.classList.remove("is-dragging");
         tapZone.releasePointerCapture?.(event.pointerId);
 
-        const flick = Math.abs(angularVelocity);
-        const enoughGesture = moved || flick > 0.8;
-
-        if (!enoughGesture) {
+        if (!moved) {
           triggerSpin();
           return;
         }
@@ -389,25 +492,44 @@
         if (tapZone.classList.contains("is-spinning-request")) return;
         tapZone.classList.add("is-spinning-request");
 
-        const direction = angularVelocity >= 0 ? 1 : -1;
-        const extraTurns = 4.5 + Math.min(4, flick * 0.9);
-        const inertialTarget = currentRotation + direction * extraTurns * 360;
+        const direction = velocity === 0
+          ? (wheelRuntime.direction || 1)
+          : (velocity > 0 ? 1 : -1);
+
+        const flickPower = Math.max(1.2, Math.min(6.5, Math.abs(velocity)));
+        const inertiaTurns = 2.2 + flickPower * 0.62;
+        const inertiaTarget = rotation + direction * inertiaTurns * 360;
+        const inertiaDuration = 1150 + Math.min(850, flickPower * 110);
+
+        wheelRuntime.direction = direction;
+        wheelRuntime.velocity = velocity;
+        wheelRuntime.activeCode = state.code;
+        wheelRuntime.requestedAt = Date.now();
 
         if (wheel && typeof wheel.animate === "function") {
-          wheel.animate(
+          const inertia = wheel.animate(
             [
-              { transform: `rotate(${currentRotation}deg)` },
-              { transform: `rotate(${inertialTarget}deg)` }
+              { transform: `rotate(${rotation}deg)` },
+              { transform: `rotate(${inertiaTarget}deg)` }
             ],
             {
-              duration: 1700,
+              duration: inertiaDuration,
               easing: "cubic-bezier(.08,.72,.12,1)",
               fill: "forwards"
             }
           );
+
+          inertia.onfinish = () => {
+            wheelRuntime.currentRotation = inertiaTarget;
+          };
         } else if (wheel) {
-          wheel.style.transition = "transform 1.7s cubic-bezier(.08,.72,.12,1)";
-          wheel.style.transform = `rotate(${inertialTarget}deg)`;
+          wheel.style.transition =
+            `transform ${inertiaDuration}ms cubic-bezier(.08,.72,.12,1)`;
+          wheel.style.transform = `rotate(${inertiaTarget}deg)`;
+
+          setTimeout(() => {
+            wheelRuntime.currentRotation = inertiaTarget;
+          }, inertiaDuration);
         }
 
         socket.emit("game:spinLetter", {
@@ -418,8 +540,8 @@
 
       tapZone.addEventListener("pointerdown", beginDrag);
       tapZone.addEventListener("pointermove", moveDrag);
-      tapZone.addEventListener("pointerup", finishDrag);
-      tapZone.addEventListener("pointercancel", finishDrag);
+      tapZone.addEventListener("pointerup", endDrag);
+      tapZone.addEventListener("pointercancel", endDrag);
 
       tapZone.addEventListener("keydown", event => {
         if (event.key !== "Enter" && event.key !== " ") return;
@@ -438,6 +560,9 @@
       rerollButton.disabled = true;
       const confirmButton = document.getElementById("letterV2Confirm");
       if (confirmButton) confirmButton.disabled = true;
+
+      wheelRuntime.requestedAt = Date.now();
+      wheelRuntime.activeCode = state.code;
 
       socket.emit("game:rerollLetter", {
         code: state.code,

@@ -1568,3 +1568,262 @@ body:has(.letter-v2-screen) .economy-hud {
     opacity .20s ease,
     transform .20s ease !important;
 }
+
+
+/* =========================================================
+   P'tit Bac — Roue V8
+   26 secteurs égaux, vraie rotation au doigt, résultat au centre
+   ========================================================= */
+
+.letter-v2-wheel-zone {
+  width:min(76vw,310px) !important;
+  height:min(76vw,310px) !important;
+  margin-top:36px !important;
+  touch-action:none !important;
+}
+
+/* Flèche violette simple, sans cadre, légèrement derrière la roue */
+.letter-v2-pointer {
+  top:-11px !important;
+  z-index:1 !important;
+
+  width:0 !important;
+  height:0 !important;
+
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+
+  border-left:15px solid transparent !important;
+  border-right:15px solid transparent !important;
+  border-top:24px solid #a24bff !important;
+
+  filter:
+    drop-shadow(0 0 4px rgba(185,89,255,.90))
+    drop-shadow(0 0 11px rgba(123,58,255,.50)) !important;
+}
+
+.letter-v2-pointer span {
+  display:none !important;
+}
+
+.letter-v2-wheel-shell {
+  z-index:2 !important;
+  padding:7px !important;
+
+  background:
+    linear-gradient(145deg,#fdfcff,#beb5ef 44%,#f7f5ff 68%,#845aea) !important;
+
+  box-shadow:
+    0 0 0 3px rgba(118,60,226,.78),
+    0 0 18px rgba(156,70,255,.58),
+    0 0 32px rgba(91,49,211,.25) !important;
+}
+
+/* Chaque secteur = exactement 360/26 = 13.8461538° */
+.letter-v2-wheel {
+  overflow:visible !important;
+  transform-origin:50% 50% !important;
+
+  background:
+    repeating-conic-gradient(
+      from -6.9230769deg,
+      rgba(255,255,255,.15) 0deg .75deg,
+      transparent .75deg 13.8461538deg
+    ),
+    conic-gradient(
+      from -6.9230769deg,
+      #6136de 0deg 13.8461538deg,
+      #38208f 13.8461538deg 27.6923076deg,
+      #6136de 27.6923076deg 41.5384614deg,
+      #38208f 41.5384614deg 55.3846152deg,
+      #6136de 55.3846152deg 69.230769deg,
+      #38208f 69.230769deg 83.0769228deg,
+      #6136de 83.0769228deg 96.9230766deg,
+      #38208f 96.9230766deg 110.7692304deg,
+      #6136de 110.7692304deg 124.6153842deg,
+      #38208f 124.6153842deg 138.461538deg,
+      #6136de 138.461538deg 152.3076918deg,
+      #38208f 152.3076918deg 166.1538456deg,
+      #6136de 166.1538456deg 179.9999994deg,
+      #38208f 179.9999994deg 193.8461532deg,
+      #6136de 193.8461532deg 207.692307deg,
+      #38208f 207.692307deg 221.5384608deg,
+      #6136de 221.5384608deg 235.3846146deg,
+      #38208f 235.3846146deg 249.2307684deg,
+      #6136de 249.2307684deg 263.0769222deg,
+      #38208f 263.0769222deg 276.923076deg,
+      #6136de 276.923076deg 290.7692298deg,
+      #38208f 290.7692298deg 304.6153836deg,
+      #6136de 304.6153836deg 318.4615374deg,
+      #38208f 318.4615374deg 332.3076912deg,
+      #6136de 332.3076912deg 346.153845deg,
+      #38208f 346.153845deg 360deg
+    ) !important;
+}
+
+/* 26 lettres parfaitement réparties au milieu de leurs secteurs */
+.letter-v2-wheel-label {
+  transform:
+    rotate(var(--letter-angle))
+    translateY(-121px) !important;
+}
+
+.letter-v2-wheel-label b {
+  left:-9px !important;
+  top:-9px !important;
+
+  width:18px !important;
+  height:18px !important;
+
+  font-size:.61rem !important;
+
+  transform:
+    rotate(calc(var(--letter-angle) * -1)) !important;
+}
+
+/* Centre : couronne au-dessus de la lettre */
+.letter-v2-wheel-center {
+  width:105px !important;
+  height:105px !important;
+
+  padding-top:8px !important;
+
+  border:5px solid rgba(221,214,255,.96) !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:0 !important;
+}
+
+.letter-v2-wheel-center img {
+  width:45px !important;
+  height:45px !important;
+  margin-bottom:-2px !important;
+
+  object-fit:contain !important;
+
+  filter:
+    drop-shadow(0 0 6px rgba(163,70,255,.30)) !important;
+}
+
+#letterV2CenterLetter {
+  min-height:34px !important;
+
+  color:#7633df !important;
+
+  font-size:2.25rem !important;
+  line-height:.90 !important;
+  font-weight:900 !important;
+
+  text-shadow:
+    0 0 7px rgba(155,73,255,.28) !important;
+
+  opacity:1 !important;
+  transform:scale(1) !important;
+
+  transition:
+    opacity .22s ease,
+    transform .22s cubic-bezier(.2,.9,.2,1.15) !important;
+}
+
+#letterV2CenterLetter.is-pending {
+  opacity:0 !important;
+  transform:scale(.65) !important;
+}
+
+#letterV2CenterLetter.is-revealed {
+  opacity:1 !important;
+  transform:scale(1) !important;
+}
+
+/* Le résultat n'est plus affiché dans un second cadre sous la roue */
+.letter-v2-selected {
+  display:none !important;
+}
+
+/* Attente : texte seul, espacé de la roue */
+.letter-v2-wait-status {
+  margin-top:24px !important;
+}
+
+/* Vraie sensation de manipulation */
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel {
+  filter:brightness(1.08) !important;
+}
+
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel-shell {
+  box-shadow:
+    0 0 0 3px rgba(142,74,243,.88),
+    0 0 24px rgba(181,78,255,.72),
+    0 0 44px rgba(91,49,211,.34) !important;
+}
+
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-shell {
+  animation:letterV8SpinGlow .52s ease-in-out infinite alternate !important;
+}
+
+.letter-v2-wheel-zone.is-wheel-landed .letter-v2-wheel-shell {
+  animation:letterV8Land .36s cubic-bezier(.2,.9,.2,1.12) both !important;
+}
+
+@keyframes letterV8SpinGlow {
+  from {
+    filter:brightness(1);
+  }
+  to {
+    filter:brightness(1.10);
+    box-shadow:
+      0 0 0 3px rgba(151,82,255,.95),
+      0 0 27px rgba(198,91,255,.74),
+      0 0 52px rgba(95,54,229,.40);
+  }
+}
+
+@keyframes letterV8Land {
+  0%   { transform:scale(.99); }
+  55%  { transform:scale(1.012); }
+  100% { transform:scale(1); }
+}
+
+/* Relancer plus proche du prototype */
+.letter-v2-reroll {
+  min-width:110px !important;
+  max-width:120px !important;
+}
+
+/* Bouton valider cohérent avec le proto */
+.letter-v2-confirm {
+  width:min(72%,220px) !important;
+  font-size:.80rem !important;
+}
+
+@media(max-height:760px) {
+  .letter-v2-wheel-zone {
+    width:min(66vw,275px) !important;
+    height:min(66vw,275px) !important;
+    margin-top:28px !important;
+  }
+
+  .letter-v2-wheel-label {
+    transform:
+      rotate(var(--letter-angle))
+      translateY(-107px) !important;
+  }
+
+  .letter-v2-wheel-center {
+    width:92px !important;
+    height:92px !important;
+  }
+
+  .letter-v2-wheel-center img {
+    width:39px !important;
+    height:39px !important;
+  }
+
+  #letterV2CenterLetter {
+    font-size:1.95rem !important;
+  }
+}
