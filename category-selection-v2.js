@@ -61,11 +61,9 @@
         <header class="category-pick-header cat-v2-top">
           ${host
             ? `<button class="pregame-return-btn cat-v2-back" id="returnLobbyCategoriesBtn" type="button" aria-label="Retour au salon">
-                <img src="/back-arrow.png" alt="">
+                <img src="/lobby-exit.png" alt="">
               </button>`
             : `<span class="pregame-return-spacer cat-v2-back-spacer"></span>`}
-
-          <img class="cat-v2-logo" src="/ptitbac.logo.png" alt="P'tit Bac">
 
           ${categoryCoinPill(balance, "cat-v2-balance")}
         </header>

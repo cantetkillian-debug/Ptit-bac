@@ -1,54 +1,564 @@
 /* =========================================================
-   P'tit Bac — correction position sélection catégories
-   Chargé EN DERNIER pour neutraliser le décalage vertical iOS.
+   P'tit Bac — Sélection catégories V6
+   Référence visuelle : page Salon
+   Cette feuille est chargée EN DERNIER.
    ========================================================= */
 
-:root {
-  --cat-screen-lift: clamp(-230px, -31dvh, -170px);
+html:has(.cat-v2),
+body:has(.cat-v2),
+#app:has(.cat-v2) {
+  width:100% !important;
+  height:100% !important;
+  min-height:100% !important;
+  margin:0 !important;
+  overflow:hidden !important;
+  background:#06143f !important;
 }
 
-/* On déplace tout le contenu utile ensemble pour conserver
-   exactement les espacements entre retour / logo / pièces /
-   titre / cartes / boutons. */
-.cat-v2 .cat-v2-top,
-.cat-v2 .cat-v2-copy,
-.cat-v2 .cat-v2-grid,
-.cat-v2 .cat-v2-actions,
-.cat-v2 .cat-v2-wait {
-  transform: translateY(var(--cat-screen-lift)) !important;
-  position: relative !important;
-  z-index: 20 !important;
+body:has(.cat-v2) {
+  position:static !important;
+  inset:auto !important;
 }
 
-/* Neutralise toute marge qui pourrait encore repousser le haut. */
+/* Écran fixe à la hauteur visible du navigateur.
+   Aucun transform global : le haut ne peut plus se retrouver au milieu. */
+.cat-v2 {
+  position:relative !important;
+  inset:auto !important;
+  box-sizing:border-box !important;
+
+  width:min(100%,430px) !important;
+  height:100dvh !important;
+  min-height:100dvh !important;
+  max-height:100dvh !important;
+  margin:0 auto !important;
+  padding:0 16px !important;
+
+  display:block !important;
+  overflow:hidden !important;
+  isolation:isolate !important;
+
+  background:
+    radial-gradient(circle at 8% 3%,rgba(86,43,235,.28),transparent 24%),
+    radial-gradient(circle at 93% 78%,rgba(78,35,221,.24),transparent 28%),
+    linear-gradient(180deg,#06133b 0%,#071a4d 58%,#06133b 100%) !important;
+}
+
+/* =========================================================
+   HAUT — comme le salon
+   ========================================================= */
+
 .cat-v2 .cat-v2-top {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+  position:absolute !important;
+  top:max(16px,env(safe-area-inset-top)) !important;
+  left:16px !important;
+  right:16px !important;
+  z-index:30 !important;
+
+  width:auto !important;
+  height:50px !important;
+  min-height:50px !important;
+  margin:0 !important;
+  padding:0 !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:0 !important;
+
+  transform:none !important;
 }
+
+/* Exit identique à l'esprit du salon : pas de cadre CSS autour. */
+.cat-v2 .cat-v2-back {
+  width:42px !important;
+  height:42px !important;
+  min-width:42px !important;
+  padding:0 !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+
+  display:grid !important;
+  place-items:center !important;
+}
+
+.cat-v2 .cat-v2-back img {
+  width:38px !important;
+  height:38px !important;
+  object-fit:contain !important;
+  filter:drop-shadow(0 0 7px rgba(154,77,255,.25)) !important;
+}
+
+.cat-v2 .cat-v2-back-spacer {
+  width:42px !important;
+  height:42px !important;
+}
+
+/* Sécurité : aucun logo ne doit reprendre de place en haut. */
+.cat-v2 .cat-v2-logo {
+  display:none !important;
+}
+
+.cat-v2 .cat-v2-balance {
+  width:88px !important;
+  height:43px !important;
+  margin:0 !important;
+  justify-self:auto !important;
+  border:1.4px solid #7c47f3 !important;
+  background:linear-gradient(180deg,rgba(16,29,82,.98),rgba(8,25,69,.98)) !important;
+}
+
+.cat-v2 .cat-v2-balance img {
+  width:29px !important;
+  height:29px !important;
+}
+
+.cat-v2 .cat-v2-balance strong {
+  font-size:.92rem !important;
+}
+
+/* =========================================================
+   TITRE
+   ========================================================= */
 
 .cat-v2 .cat-v2-copy {
-  margin-top: 0 !important;
+  position:absolute !important;
+  top:100px !important;
+  left:16px !important;
+  right:16px !important;
+  z-index:20 !important;
+
+  width:auto !important;
+  margin:0 !important;
+  padding:0 !important;
+  text-align:center !important;
+
+  transform:none !important;
 }
+
+.cat-v2 .cat-v2-kicker {
+  font-size:.57rem !important;
+  letter-spacing:.18em !important;
+  color:#aaa0dc !important;
+}
+
+.cat-v2 .cat-v2-copy h1 {
+  margin:8px 0 0 !important;
+  color:#fff !important;
+  font-size:1.70rem !important;
+  line-height:1 !important;
+  letter-spacing:-.04em !important;
+  font-weight:900 !important;
+}
+
+.cat-v2 .cat-v2-title-line {
+  width:67px !important;
+  height:4px !important;
+  margin:9px auto 0 !important;
+}
+
+.cat-v2 .cat-v2-copy p {
+  margin:10px 0 0 !important;
+  color:#b3a8de !important;
+  font-size:.71rem !important;
+  font-weight:800 !important;
+}
+
+/* =========================================================
+   CATÉGORIES
+   Un vrai espace est gardé après "6 catégories • Niveau..."
+   ========================================================= */
 
 .cat-v2 .cat-v2-grid {
-  margin-top: 1px !important;
+  position:absolute !important;
+  top:240px !important;
+  left:16px !important;
+  right:16px !important;
+  z-index:20 !important;
+
+  width:auto !important;
+  margin:0 !important;
+
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:8px !important;
+
+  transform:none !important;
 }
+
+.cat-v2 .cat-v2-card,
+.cat-v2 .cat-v2-card:nth-child(1),
+.cat-v2 .cat-v2-card:nth-child(4),
+.cat-v2 .cat-v2-card:nth-child(3n+1) {
+  width:auto !important;
+  min-width:0 !important;
+  min-height:78px !important;
+  padding:8px !important;
+
+  border:1.25px solid #405bc1 !important;
+  border-radius:17px !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(58,65,177,.09),transparent 64%),
+    linear-gradient(145deg,rgba(9,35,94,.98),rgba(7,27,76,.98)) !important;
+
+  display:grid !important;
+  grid-template-columns:42px minmax(0,1fr) !important;
+  align-items:center !important;
+  gap:7px !important;
+
+  box-shadow:
+    inset 0 0 18px rgba(71,63,188,.04),
+    0 4px 16px rgba(0,0,0,.08) !important;
+}
+
+.cat-v2 .cat-v2-icon {
+  width:41px !important;
+  height:41px !important;
+  border-radius:13px !important;
+  font-size:1.28rem !important;
+}
+
+.cat-v2 .cat-v2-card strong {
+  min-width:0 !important;
+  color:#fff !important;
+  font-size:.64rem !important;
+  line-height:1.08 !important;
+  font-weight:900 !important;
+  overflow-wrap:anywhere !important;
+}
+
+/* 7–8 catégories : 3 lignes plus compactes. */
+.cat-v2.cat-v2-medium .cat-v2-card {
+  min-height:58px !important;
+  grid-template-columns:34px minmax(0,1fr) !important;
+  padding:6px !important;
+}
+
+.cat-v2.cat-v2-medium .cat-v2-icon {
+  width:33px !important;
+  height:33px !important;
+  font-size:1.04rem !important;
+}
+
+.cat-v2.cat-v2-medium .cat-v2-card strong {
+  font-size:.55rem !important;
+}
+
+/* 9–10 catégories : 4 lignes, toujours au-dessus des boutons. */
+.cat-v2.cat-v2-many .cat-v2-grid {
+  top:220px !important;
+}
+
+.cat-v2.cat-v2-many .cat-v2-card {
+  min-height:44px !important;
+  grid-template-columns:28px minmax(0,1fr) !important;
+  padding:4px 5px !important;
+  border-radius:13px !important;
+}
+
+.cat-v2.cat-v2-many .cat-v2-icon {
+  width:27px !important;
+  height:27px !important;
+  border-radius:9px !important;
+  font-size:.86rem !important;
+}
+
+.cat-v2.cat-v2-many .cat-v2-card strong {
+  font-size:.48rem !important;
+}
+
+/* =========================================================
+   ACTIONS — tout en bas, comme demandé
+   ========================================================= */
 
 .cat-v2 .cat-v2-actions {
-  margin-top: 6px !important;
+  position:absolute !important;
+  left:16px !important;
+  right:16px !important;
+  bottom:max(108px,calc(env(safe-area-inset-bottom) + 96px)) !important;
+  z-index:30 !important;
+
+  width:auto !important;
+  margin:0 !important;
+  padding:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  gap:8px !important;
+
+  transform:none !important;
 }
 
-/* Safari iPhone avec barre d'adresse visible :
-   on garde une remontée forte mais pas excessive. */
-@media (max-height: 720px) {
-  :root {
-    --cat-screen-lift: clamp(-205px, -28dvh, -150px);
+/* Relancer = environ 50 % de la largeur du bouton Continuer. */
+.cat-v2 .cat-v2-reroll {
+  width:50% !important;
+  min-width:188px !important;
+  max-width:210px !important;
+  height:43px !important;
+  min-height:43px !important;
+
+  margin:0 auto !important;
+  padding:4px 8px !important;
+  border:1.3px solid #8148f5 !important;
+  border-radius:999px !important;
+
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 62px !important;
+  grid-template-rows:1fr !important;
+  align-items:center !important;
+  gap:5px !important;
+
+  background:linear-gradient(180deg,rgba(12,31,83,.97),rgba(8,26,74,.98)) !important;
+  box-shadow:0 0 13px rgba(109,57,255,.11) !important;
+}
+
+.cat-v2 .cat-v2-reroll-title {
+  justify-content:flex-start !important;
+  gap:5px !important;
+  font-size:.57rem !important;
+  white-space:nowrap !important;
+}
+
+.cat-v2 .cat-v2-reroll-icon {
+  font-size:.94rem !important;
+}
+
+.cat-v2 .cat-v2-cost {
+  width:62px !important;
+  height:29px !important;
+  justify-self:end !important;
+}
+
+.cat-v2 .cat-v2-cost img {
+  width:18px !important;
+  height:18px !important;
+}
+
+.cat-v2 .cat-v2-cost strong {
+  font-size:.65rem !important;
+}
+
+.cat-v2 .cat-v2-reroll > small {
+  display:none !important;
+}
+
+.cat-v2 .cat-v2-cost-note {
+  margin:-3px 0 0 !important;
+  font-size:.43rem !important;
+}
+
+/* Continuer reste large. */
+.cat-v2 .cat-v2-confirm {
+  width:100% !important;
+  height:55px !important;
+  min-height:55px !important;
+  margin:0 !important;
+
+  border-radius:18px !important;
+  font-size:.78rem !important;
+  font-weight:900 !important;
+
+  background:linear-gradient(105deg,#7130ef 0%,#9634ff 62%,#7a2deb 100%) !important;
+  box-shadow:
+    0 0 19px rgba(132,55,255,.22),
+    inset 0 0 16px rgba(255,255,255,.06) !important;
+}
+
+/* Attente non-hôte au même endroit que les actions. */
+.cat-v2 .cat-v2-wait {
+  position:absolute !important;
+  left:16px !important;
+  right:16px !important;
+  bottom:max(120px,calc(env(safe-area-inset-bottom) + 108px)) !important;
+  z-index:30 !important;
+  margin:0 !important;
+  transform:none !important;
+}
+
+/* =========================================================
+   FOOTER + DÉCOR SOUS "VERSION BÊTA"
+   ========================================================= */
+
+.cat-v2 .cat-v2-footer {
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:max(26px,calc(env(safe-area-inset-bottom) + 18px)) !important;
+  z-index:12 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  gap:1px !important;
+
+  margin:0 !important;
+  transform:none !important;
+  pointer-events:none !important;
+}
+
+.cat-v2 .cat-v2-footer img {
+  width:43px !important;
+  max-height:36px !important;
+  object-fit:contain !important;
+}
+
+.cat-v2 .cat-v2-footer small {
+  color:#9f97cf !important;
+  font-size:.43rem !important;
+}
+
+/* Deux vagues violettes comme sous le footer du salon. */
+.cat-v2 .cat-v2-wave {
+  position:absolute !important;
+  z-index:4 !important;
+  bottom:-48px !important;
+
+  width:78% !important;
+  height:90px !important;
+
+  border-radius:50% 50% 0 0 !important;
+  border-top:1px solid rgba(116,71,255,.52) !important;
+  background:linear-gradient(
+    180deg,
+    rgba(65,43,211,.64),
+    rgba(29,31,138,.34)
+  ) !important;
+
+  pointer-events:none !important;
+  transform-origin:center !important;
+}
+
+.cat-v2 .cat-v2-wave.wave-1 {
+  left:-17% !important;
+  transform:rotate(5deg) !important;
+}
+
+.cat-v2 .cat-v2-wave.wave-2 {
+  right:-17% !important;
+  transform:rotate(-6deg) !important;
+}
+
+/* =========================================================
+   DÉCOR LETTRES
+   ========================================================= */
+
+.cat-v2 .cat-v2-letter {
+  z-index:2 !important;
+  color:rgba(79,55,218,.23) !important;
+}
+
+.cat-v2 .cat-v2-letter.l-a { top:8% !important; left:23% !important; }
+.cat-v2 .cat-v2-letter.l-b { top:22% !important; left:6% !important; }
+.cat-v2 .cat-v2-letter.l-c { top:18% !important; right:5% !important; }
+.cat-v2 .cat-v2-letter.l-f { top:58% !important; left:3% !important; }
+.cat-v2 .cat-v2-letter.l-g { top:43% !important; left:4% !important; }
+.cat-v2 .cat-v2-letter.l-z { bottom:25% !important; right:8% !important; left:auto !important; }
+
+/* =========================================================
+   PETITS ÉCRANS / SAFARI
+   ========================================================= */
+
+@media (max-height:720px) {
+  .cat-v2 .cat-v2-top {
+    top:max(8px,env(safe-area-inset-top)) !important;
+    height:45px !important;
+    min-height:45px !important;
+  }
+
+  .cat-v2 .cat-v2-back {
+    width:38px !important;
+    height:38px !important;
+    min-width:38px !important;
+  }
+
+  .cat-v2 .cat-v2-back img {
+    width:35px !important;
+    height:35px !important;
+  }
+
+  .cat-v2 .cat-v2-balance {
+    height:39px !important;
+    width:82px !important;
+  }
+
+  .cat-v2 .cat-v2-copy {
+    top:72px !important;
+  }
+
+  .cat-v2 .cat-v2-copy h1 {
+    font-size:1.42rem !important;
+  }
+
+  .cat-v2 .cat-v2-copy p {
+    margin-top:6px !important;
+    font-size:.60rem !important;
+  }
+
+  .cat-v2 .cat-v2-grid {
+    top:190px !important;
+  }
+
+  .cat-v2 .cat-v2-card {
+    min-height:64px !important;
+  }
+
+  .cat-v2.cat-v2-many .cat-v2-grid {
+    top:174px !important;
+  }
+
+  .cat-v2 .cat-v2-actions {
+    bottom:max(88px,calc(env(safe-area-inset-bottom) + 78px)) !important;
+    gap:6px !important;
+  }
+
+  .cat-v2 .cat-v2-reroll {
+    height:39px !important;
+    min-height:39px !important;
+  }
+
+  .cat-v2 .cat-v2-confirm {
+    height:48px !important;
+    min-height:48px !important;
+  }
+
+  .cat-v2 .cat-v2-footer {
+    bottom:max(13px,calc(env(safe-area-inset-bottom) + 8px)) !important;
+  }
+
+  .cat-v2 .cat-v2-footer img {
+    width:37px !important;
+    max-height:31px !important;
   }
 }
 
-/* Très petits écrans */
-@media (max-height: 620px) {
-  :root {
-    --cat-screen-lift: -145px;
+@media (max-width:380px) {
+  .cat-v2 {
+    padding-left:11px !important;
+    padding-right:11px !important;
+  }
+
+  .cat-v2 .cat-v2-top,
+  .cat-v2 .cat-v2-copy,
+  .cat-v2 .cat-v2-grid,
+  .cat-v2 .cat-v2-actions,
+  .cat-v2 .cat-v2-wait {
+    left:11px !important;
+    right:11px !important;
+  }
+
+  .cat-v2 .cat-v2-reroll {
+    min-width:174px !important;
+  }
+}
+
+@supports not (height:100dvh) {
+  .cat-v2 {
+    height:100vh !important;
+    min-height:100vh !important;
+    max-height:100vh !important;
   }
 }
