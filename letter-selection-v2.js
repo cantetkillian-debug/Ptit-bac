@@ -249,10 +249,6 @@
           role="${isChooser && !selectedLetter ? "button" : "presentation"}"
           ${isChooser && !selectedLetter ? 'tabindex="0" aria-label="Lancer la roue"' : ""}
         >
-          <div class="letter-v2-pointer">
-            <span></span>
-          </div>
-
           <div class="letter-v2-wheel-shell">
             <div
               class="letter-v2-wheel"
@@ -266,7 +262,6 @@
               class="letter-v2-wheel-center ${selectedLetter ? "is-pending" : "is-empty"}"
               id="letterV2WheelCenter"
             >
-              <img src="/admin-crown.png" alt="">
               <strong id="letterV2CenterLetter">
                 ${selectedLetter ? escapeHtml(selectedLetter) : ""}
               </strong>

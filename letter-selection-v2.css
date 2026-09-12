@@ -2759,3 +2759,188 @@ body:has(.letter-v2-screen) .economy-hud {
     font-size:2.15rem !important;
   }
 }
+
+
+/* =========================================================
+   Tirage lettre V18 — centre noir fixe + actions repositionnées
+   ========================================================= */
+
+/* Plus aucune flèche au-dessus de la roue */
+.letter-v2-pointer {
+  display:none !important;
+}
+
+/* Le rond noir central reste TOUJOURS visible, même pendant la rotation */
+.letter-v2-wheel-center,
+.letter-v2-wheel-center.is-empty,
+.letter-v2-wheel-center.is-pending,
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel-center,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-wheel-center,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-center {
+  opacity:1 !important;
+  visibility:visible !important;
+  transform:translate(-50%,-50%) !important;
+}
+
+/* Seule la lettre est cachée jusqu'à l'arrêt */
+.letter-v2-wheel-center.is-empty #letterV2CenterLetter,
+.letter-v2-wheel-center.is-pending #letterV2CenterLetter,
+.letter-v2-wheel-zone.is-dragging #letterV2CenterLetter,
+.letter-v2-wheel-zone.is-spinning-request #letterV2CenterLetter,
+.letter-v2-wheel-zone.is-wheel-spinning #letterV2CenterLetter {
+  opacity:0 !important;
+  visibility:hidden !important;
+}
+
+/* Centre noir, propre et fixe */
+.letter-v2-wheel-center {
+  width:82px !important;
+  height:82px !important;
+
+  background:
+    radial-gradient(circle at 50% 42%, #181818 0%, #090909 72%, #050505 100%) !important;
+
+  border:4px solid #d99b16 !important;
+
+  box-shadow:
+    0 0 0 2px rgba(255,215,87,.96),
+    0 0 12px rgba(255,175,18,.32),
+    inset 0 0 16px rgba(255,201,73,.08) !important;
+
+  overflow:hidden !important;
+}
+
+/* Plus de couronne, même si une ancienne version la recrée */
+.letter-v2-wheel-center img {
+  display:none !important;
+}
+
+/* Lettre seule, parfaitement centrée */
+#letterV2CenterLetter {
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+
+  width:100% !important;
+  margin:0 !important;
+
+  transform:translate(-50%,-50%) !important;
+
+  color:#fff !important;
+  font-size:2.35rem !important;
+  line-height:1 !important;
+  font-weight:950 !important;
+  text-align:center !important;
+
+  text-shadow:
+    0 0 6px rgba(255,255,255,.82),
+    0 0 15px rgba(255,214,95,.38) !important;
+}
+
+/* Animation de la lettre uniquement, le cercle noir ne bouge pas */
+.letter-v2-wheel-center.is-revealed {
+  animation:none !important;
+}
+
+.letter-v2-wheel-center.is-revealed #letterV2CenterLetter {
+  animation:letterV18ResultPop .34s cubic-bezier(.18,.92,.2,1.14) both !important;
+}
+
+@keyframes letterV18ResultPop {
+  0% {
+    opacity:0;
+    transform:translate(-50%,-50%) scale(.64);
+    filter:blur(2px);
+  }
+  68% {
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1.10);
+    filter:blur(0);
+  }
+  100% {
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1);
+    filter:blur(0);
+  }
+}
+
+/* Aucun texte d'état sous la roue */
+.letter-v2-wait-status,
+#letterV2StatusText {
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+
+/* Descend légèrement les deux boutons par rapport à la V17 */
+.letter-v2-actions {
+  margin-top:18px !important;
+  transform:translateY(-18px) !important;
+  gap:16px !important;
+}
+
+/* Relancer : nettement plus petit */
+.letter-v2-reroll {
+  width:auto !important;
+  min-width:82px !important;
+  max-width:94px !important;
+
+  height:28px !important;
+  min-height:28px !important;
+
+  padding:0 5px 0 8px !important;
+  gap:5px !important;
+}
+
+.letter-v2-reroll > span::after {
+  font-size:.92rem !important;
+}
+
+.letter-v2-reroll b {
+  height:21px !important;
+  min-height:21px !important;
+  padding:0 5px !important;
+  gap:3px !important;
+  font-size:.54rem !important;
+}
+
+.letter-v2-reroll b img {
+  width:14px !important;
+  height:14px !important;
+}
+
+/* Bouton valider un peu plus bas et équilibré */
+.letter-v2-confirm {
+  width:min(72%,220px) !important;
+  min-height:46px !important;
+  height:46px !important;
+
+  font-size:.88rem !important;
+  margin:0 !important;
+}
+
+@media(max-height:760px) {
+  .letter-v2-actions {
+    margin-top:14px !important;
+    transform:translateY(-14px) !important;
+    gap:12px !important;
+  }
+
+  .letter-v2-wheel-center {
+    width:74px !important;
+    height:74px !important;
+  }
+
+  #letterV2CenterLetter {
+    font-size:2.08rem !important;
+  }
+
+  .letter-v2-reroll {
+    min-width:76px !important;
+    max-width:88px !important;
+    height:26px !important;
+    min-height:26px !important;
+  }
+}
