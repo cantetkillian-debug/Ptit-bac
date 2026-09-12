@@ -1,0 +1,414 @@
+/* =========================================================
+   P'tit Bac — Résultats de manche V1
+   ========================================================= */
+
+body:has(.ssv1-screen){
+  background:#061642!important;
+  overflow-x:hidden!important;
+}
+body:has(.ssv1-screen) .economy-hud{display:none!important}
+
+.ssv1-screen,.ssv1-screen *{box-sizing:border-box}
+
+.ssv1-screen{
+  width:min(100%,430px);
+  min-height:100dvh;
+  margin:0 auto;
+  padding:
+    max(12px,env(safe-area-inset-top))
+    15px
+    max(118px,calc(env(safe-area-inset-bottom) + 104px));
+  color:#fff;
+  font-family:"DM Sans",system-ui,sans-serif;
+  background:
+    radial-gradient(circle at 7% 3%,rgba(86,43,221,.26),transparent 23%),
+    radial-gradient(circle at 98% 57%,rgba(102,36,226,.17),transparent 25%),
+    linear-gradient(180deg,#06133b 0%,#071a4d 57%,#06133b 100%);
+  position:relative;
+}
+
+.ssv1-exit{
+  position:absolute;
+  top:max(12px,env(safe-area-inset-top));
+  left:15px;
+  width:42px;
+  height:42px;
+  padding:5px;
+  border:0;
+  background:transparent;
+  display:grid;
+  place-items:center;
+  z-index:5;
+}
+.ssv1-exit img{width:32px;height:32px;object-fit:contain}
+
+.ssv1-top{
+  width:274px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.ssv1-info{
+  height:64px;
+  border:1px solid #3155a4;
+  border-radius:15px;
+  background:#081f55;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.ssv1-info small{
+  color:#c8b7e4;
+  font-size:.52rem;
+  font-weight:800;
+}
+.ssv1-info strong{
+  margin-top:5px;
+  font-size:.95rem;
+  font-weight:900;
+  line-height:1;
+}
+.ssv1-letter{
+  color:#c15cff;
+  font-size:1.28rem!important;
+  text-shadow:0 0 10px rgba(193,92,255,.55);
+}
+
+.ssv1-heading{
+  margin:24px 0 16px;
+  text-align:center;
+}
+.ssv1-heading h1{
+  margin:0;
+  font-size:1.45rem;
+  font-weight:900;
+  letter-spacing:-.035em;
+}
+.ssv1-heading h1 span{color:#a94cff}
+.ssv1-heading p{
+  margin:7px 0 0;
+  color:#b8acd9;
+  font-size:.64rem;
+  font-weight:700;
+}
+
+.ssv1-board-wrap{
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding-bottom:5px;
+  scrollbar-width:thin;
+  scrollbar-color:#7042d7 transparent;
+}
+.ssv1-board{
+  min-width:calc(132px + (var(--ssv1-cols) * 104px));
+  padding:8px;
+  border:1px solid #3155a4;
+  border-radius:18px;
+  background:#081e52;
+}
+.ssv1-grid-head,
+.ssv1-player-row{
+  display:grid;
+  grid-template-columns:124px repeat(var(--ssv1-cols),96px);
+  gap:6px;
+}
+.ssv1-grid-head{margin-bottom:7px}
+
+.ssv1-player-title,
+.ssv1-cat-head{
+  min-height:70px;
+  border:1px solid #2b4b91;
+  border-radius:13px;
+  background:#0a2054;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.ssv1-player-title{
+  justify-content:flex-start;
+  padding-left:11px;
+  font-size:.76rem;
+  font-weight:900;
+}
+.ssv1-cat-head{
+  flex-direction:column;
+  text-align:center;
+  padding:5px 3px;
+}
+.ssv1-cat-head span{
+  font-size:1.2rem;
+  line-height:1;
+}
+.ssv1-cat-head small{
+  margin-top:5px;
+  max-width:88px;
+  color:#fff;
+  font-size:.48rem;
+  line-height:1.08;
+  font-weight:800;
+}
+
+.ssv1-player-row{margin-top:6px}
+
+.ssv1-player{
+  min-height:76px;
+  padding:7px 8px;
+  border:1px solid #2d50a0;
+  border-radius:14px;
+  background:#071b4e;
+  display:grid;
+  grid-template-columns:47px 1fr;
+  align-items:center;
+  gap:8px;
+}
+.ssv1-avatar{
+  width:47px;
+  height:47px;
+  border:1.4px solid #a24fff;
+  border-radius:10px;
+  background:#081d52;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  box-shadow:0 0 9px rgba(155,72,255,.28);
+}
+.ssv1-avatar img,
+.ssv1-avatar span{
+  width:88%;
+  height:88%;
+  max-width:88%;
+  max-height:88%;
+  object-fit:contain;
+  object-position:center;
+  border-radius:6px;
+  display:grid;
+  place-items:center;
+  font-size:1.2rem;
+}
+.ssv1-player>strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:.66rem;
+  font-weight:900;
+}
+
+.ssv1-answer{
+  min-height:76px;
+  padding:7px 4px;
+  border-radius:14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.ssv1-answer strong{
+  max-width:88px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:.58rem;
+  font-weight:850;
+}
+.ssv1-answer>b{
+  margin-top:4px;
+  font-size:.86rem;
+  line-height:1;
+}
+.ssv1-answer small{
+  margin-top:4px;
+  max-width:88px;
+  font-size:.40rem;
+  line-height:1.05;
+  opacity:.88;
+}
+.ssv1-answer.valid{
+  border:1px solid #20d98a;
+  background:linear-gradient(145deg,#0d5a4d,#0a403d);
+  color:#e9fff8;
+}
+.ssv1-answer.invalid{
+  border:1px solid #f13875;
+  background:linear-gradient(145deg,#842148,#571a3f);
+  color:#fff0f5;
+}
+.ssv1-answer.duplicate{
+  border:1px solid #efad37;
+  background:linear-gradient(145deg,#71531a,#4d3514);
+  color:#fff6dd;
+}
+.ssv1-report{
+  margin-top:5px;
+  padding:3px 6px;
+  border:1px solid currentColor;
+  border-radius:7px;
+  background:rgba(3,15,45,.25);
+  color:inherit;
+  font:800 .36rem "DM Sans",system-ui,sans-serif;
+}
+.ssv1-report.is-reported{opacity:.65}
+
+.ssv1-winner{
+  min-height:105px;
+  margin-top:14px;
+  padding:12px 16px;
+  border:1.4px solid #9b42ff;
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 85% 50%,rgba(125,54,232,.16),transparent 30%),
+    linear-gradient(145deg,#0c225b,#11184f);
+  display:grid;
+  grid-template-columns:70px 1fr 56px;
+  gap:12px;
+  align-items:center;
+}
+.ssv1-trophy{
+  width:64px;
+  height:64px;
+  border:1px solid #a47a2f;
+  border-radius:15px;
+  background:#161b55;
+  display:grid;
+  place-items:center;
+  font-size:2rem;
+}
+.ssv1-winner-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+}
+.ssv1-winner-copy small{
+  color:#c3b8df;
+  font-size:.52rem;
+  font-weight:800;
+}
+.ssv1-winner-copy strong{
+  margin-top:4px;
+  color:#b256ff;
+  font-size:1.25rem;
+  font-weight:900;
+  line-height:1;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.ssv1-winner-copy span{
+  margin-top:6px;
+  color:#d6cbe8;
+  font-size:.64rem;
+  font-weight:800;
+}
+.ssv1-crown{
+  color:#6541bc;
+  opacity:.45;
+  font-size:2.5rem;
+  text-align:center;
+}
+
+.ssv1-next{
+  width:100%;
+  min-height:58px;
+  margin-top:14px;
+  border:0;
+  border-radius:17px;
+  background:linear-gradient(100deg,#8f36ff,#5e18ef);
+  color:#fff;
+  font:900 .84rem "DM Sans",system-ui,sans-serif;
+}
+.ssv1-next span{
+  margin-left:8px;
+  font-size:1.2rem;
+}
+.ssv1-lobby{
+  display:block;
+  min-width:175px;
+  min-height:46px;
+  margin:11px auto 0;
+  padding:0 18px;
+  border:1px solid #7342dc;
+  border-radius:14px;
+  background:#101a58;
+  color:#fff;
+  font:800 .66rem "DM Sans",system-ui,sans-serif;
+}
+.ssv1-wait-host{
+  min-height:54px;
+  margin-top:14px;
+  border:1px solid #3155a4;
+  border-radius:16px;
+  background:#081e52;
+  color:#b8acd9;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:.60rem;
+  font-weight:800;
+}
+.ssv1-mini-spinner{
+  width:15px;
+  height:15px;
+  border:2px dotted #9853ff;
+  border-radius:50%;
+  animation:ssv1spin .9s linear infinite;
+}
+@keyframes ssv1spin{to{transform:rotate(360deg)}}
+
+.ssv1-footer{
+  margin-top:22px!important;
+}
+
+.ssv1-modal-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:rgba(2,8,31,.78);
+  backdrop-filter:blur(7px);
+  display:grid;
+  place-items:center;
+  padding:20px;
+}
+.ssv1-modal{
+  width:min(100%,340px);
+  padding:20px;
+  border:1px solid #7d3eea;
+  border-radius:22px;
+  background:linear-gradient(145deg,#0b2057,#081746);
+  color:#fff;
+  text-align:center;
+}
+.ssv1-modal h2{
+  margin:0 0 17px;
+  font-size:1.15rem;
+  font-weight:900;
+}
+.ssv1-modal-actions{
+  display:grid;
+  gap:9px;
+}
+.ssv1-modal-actions button{
+  min-height:47px;
+  border:1px solid #7041d8;
+  border-radius:14px;
+  background:#10245d;
+  color:#fff;
+  font:800 .72rem "DM Sans",system-ui,sans-serif;
+}
+.ssv1-modal-actions button.danger{
+  background:linear-gradient(100deg,#8d35ff,#5e17ed);
+  border-color:#a251ff;
+}
+
+@media(max-width:370px){
+  .ssv1-top{width:244px;gap:6px}
+  .ssv1-info{height:58px}
+  .ssv1-heading h1{font-size:1.3rem}
+  .ssv1-board{min-width:calc(118px + (var(--ssv1-cols) * 96px))}
+  .ssv1-grid-head,.ssv1-player-row{grid-template-columns:110px repeat(var(--ssv1-cols),88px)}
+  .ssv1-winner{grid-template-columns:60px 1fr 44px;padding-left:11px;padding-right:11px}
+  .ssv1-trophy{width:56px;height:56px}
+}
