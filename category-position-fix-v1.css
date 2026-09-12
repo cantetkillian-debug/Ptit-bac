@@ -1,0 +1,54 @@
+/* =========================================================
+   P'tit Bac — correction position sélection catégories
+   Chargé EN DERNIER pour neutraliser le décalage vertical iOS.
+   ========================================================= */
+
+:root {
+  --cat-screen-lift: clamp(-230px, -31dvh, -170px);
+}
+
+/* On déplace tout le contenu utile ensemble pour conserver
+   exactement les espacements entre retour / logo / pièces /
+   titre / cartes / boutons. */
+.cat-v2 .cat-v2-top,
+.cat-v2 .cat-v2-copy,
+.cat-v2 .cat-v2-grid,
+.cat-v2 .cat-v2-actions,
+.cat-v2 .cat-v2-wait {
+  transform: translateY(var(--cat-screen-lift)) !important;
+  position: relative !important;
+  z-index: 20 !important;
+}
+
+/* Neutralise toute marge qui pourrait encore repousser le haut. */
+.cat-v2 .cat-v2-top {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.cat-v2 .cat-v2-copy {
+  margin-top: 0 !important;
+}
+
+.cat-v2 .cat-v2-grid {
+  margin-top: 1px !important;
+}
+
+.cat-v2 .cat-v2-actions {
+  margin-top: 6px !important;
+}
+
+/* Safari iPhone avec barre d'adresse visible :
+   on garde une remontée forte mais pas excessive. */
+@media (max-height: 720px) {
+  :root {
+    --cat-screen-lift: clamp(-205px, -28dvh, -150px);
+  }
+}
+
+/* Très petits écrans */
+@media (max-height: 620px) {
+  :root {
+    --cat-screen-lift: -145px;
+  }
+}
