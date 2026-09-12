@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const INTRO_MS = 3000;
+  const INTRO_MS = 5000;
   const introByRound = new Map();
 
   const originalRenderRound = window.renderRound;
@@ -27,9 +27,10 @@
       };
 
       entry.timeoutId = window.setTimeout(() => {
+        if (entry.finished) return;
         entry.finished = true;
 
-        const live = window.session?.state;
+        const live = session?.state;
         if (!live || live.phase !== "round" || roundKey(live) !== key) return;
 
         originalRenderRound();
@@ -125,13 +126,13 @@
 
           <article class="pri-stat-card">
             <small>Catégories</small>
-            <div class="pri-stat-icon" aria-hidden="true">🏷️</div>
+            <div class="pri-stat-icon"><img src="/lobby-categories.png" alt=""></div>
             <strong>${categories.length}</strong>
           </article>
 
-          <article class="pri-stat-card">
+          <article class="pri-stat-card pri-stat-time">
             <small>Temps de réponse</small>
-            <div class="pri-stat-icon" aria-hidden="true">⏱️</div>
+            <div class="pri-stat-icon"><img src="/lobby-clock.png" alt=""></div>
             <strong>${duration}s</strong>
           </article>
         </section>
@@ -151,7 +152,7 @@
         <section class="pri-countdown-card">
           <p>La manche commence dans</p>
           <div class="pri-countdown-ring">
-            <strong id="priCountdown">3</strong>
+            <strong id="priCountdown">5</strong>
           </div>
           <small>Prépare tes réponses...</small>
         </section>
@@ -166,11 +167,30 @@
 
     const countdown = document.getElementById("priCountdown");
 
+    const finishIntro = () => {
+      if (entry.finished) return;
+      entry.finished = true;
+      if (entry.timeoutId) {
+        clearTimeout(entry.timeoutId);
+        entry.timeoutId = null;
+      }
+
+      const live = session?.state;
+      if (!live || live.phase !== "round" || roundKey(live) !== roundKey(state)) return;
+      originalRenderRound();
+    };
+
     const tick = () => {
-      if (!countdown || entry.finished) return;
-      const ms = Math.max(0, entry.endsAt - Date.now());
-      const seconds = Math.max(1, Math.ceil(ms / 1000));
-      countdown.textContent = String(seconds);
+      if (!countdown || !countdown.isConnected || entry.finished) return;
+
+      const remaining = entry.endsAt - Date.now();
+      if (remaining <= 0) {
+        finishIntro();
+        return;
+      }
+
+      // Affichage exact : 5, 4, 3, 2, 1.
+      countdown.textContent = String(Math.ceil(remaining / 1000));
       window.requestAnimationFrame(tick);
     };
 

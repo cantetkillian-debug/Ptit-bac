@@ -293,3 +293,42 @@ body:has(.pri-screen) .economy-hud{
   .pri-panel-title strong{ font-size:.50rem; }
   .pri-category{ padding-left:6px; padding-right:6px; }
 }
+
+
+/* =========================================================
+   Récap V3 — corrections visuelles / countdown 5 s
+   ========================================================= */
+
+/* Même icônes que le salon */
+.pri-stat-icon img{
+  width:27px !important;
+  height:27px !important;
+  object-fit:contain !important;
+  display:block;
+}
+
+/* Carte Temps plus étroite */
+.pri-stats{
+  grid-template-columns:1.08fr 1fr .78fr !important;
+}
+.pri-stat-time{
+  padding-left:4px !important;
+  padding-right:4px !important;
+}
+.pri-stat-time small{
+  font-size:.42rem !important;
+  white-space:nowrap;
+}
+.pri-stat-time > strong{
+  font-size:.94rem !important;
+}
+
+/* Le nouveau PNG est réellement transparent */
+.pri-flag{
+  width:56px !important;
+  height:56px !important;
+  background:transparent !important;
+}
+.pri-flag img{
+  background:transparent !important;
+}
