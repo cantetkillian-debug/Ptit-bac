@@ -787,3 +787,250 @@ body:has(.letter-v2-screen) .economy-hud {
     width:86% !important;
   }
 }
+
+
+/* =========================================================
+   P'tit Bac — Tirage de la lettre V3
+   Roue plus compacte, header joueur réduit,
+   actions rééquilibrées, animation renforcée.
+   ========================================================= */
+
+/* Joueur qui choisit : beaucoup plus compact */
+.letter-v2-chooser {
+  width:min(68%,235px) !important;
+  min-height:50px !important;
+  margin-top:3px !important;
+  padding:6px 10px !important;
+
+  grid-template-columns:38px minmax(0,1fr) !important;
+  gap:8px !important;
+
+  border-radius:14px !important;
+}
+
+.letter-v2-chooser-avatar {
+  width:36px !important;
+  height:36px !important;
+  border-radius:9px !important;
+}
+
+.letter-v2-chooser-copy small,
+.letter-v2-chooser-copy span {
+  font-size:.39rem !important;
+}
+
+.letter-v2-chooser-copy strong {
+  font-size:.83rem !important;
+}
+
+/* Espacement général plus équilibré */
+.letter-v2-round-dots {
+  margin-top:7px !important;
+}
+
+.letter-v2-heading {
+  margin-top:9px !important;
+}
+
+.letter-v2-heading h1 {
+  font-size:1.30rem !important;
+}
+
+.letter-v2-heading p {
+  margin-top:5px !important;
+  font-size:.52rem !important;
+}
+
+/* Roue réduite */
+.letter-v2-wheel-zone {
+  width:min(72vw,292px) !important;
+  height:min(72vw,292px) !important;
+  margin-top:11px !important;
+}
+
+/* Flèche nettement plus petite */
+.letter-v2-pointer {
+  top:-12px !important;
+  width:40px !important;
+  height:43px !important;
+
+  border-radius:10px 10px 13px 13px !important;
+
+  box-shadow:
+    0 0 9px rgba(174,79,255,.44),
+    0 5px 9px rgba(0,0,0,.16) !important;
+}
+
+.letter-v2-pointer span {
+  bottom:8px !important;
+
+  border-left-width:9px !important;
+  border-right-width:9px !important;
+  border-top-width:13px !important;
+}
+
+/* Ajustement des lettres pour la roue plus petite */
+.letter-v2-wheel-label {
+  transform:rotate(var(--letter-angle)) translateY(-117px) !important;
+}
+
+.letter-v2-wheel-label b {
+  left:-8px !important;
+  top:-8px !important;
+
+  width:16px !important;
+  height:16px !important;
+
+  font-size:.57rem !important;
+}
+
+/* Centre réduit */
+.letter-v2-wheel-center {
+  width:92px !important;
+  height:92px !important;
+  border-width:5px !important;
+}
+
+.letter-v2-wheel-center img {
+  width:42px !important;
+  height:42px !important;
+}
+
+/* Lettre choisie plus petite et équilibrée */
+.letter-v2-selected {
+  min-width:104px !important;
+  min-height:42px !important;
+  margin-top:9px !important;
+  padding:6px 12px !important;
+  border-radius:12px !important;
+}
+
+.letter-v2-selected small {
+  font-size:.35rem !important;
+}
+
+.letter-v2-selected strong {
+  font-size:.92rem !important;
+  margin-top:2px !important;
+}
+
+/* Actions rapprochées du résultat et moins larges */
+.letter-v2-actions {
+  width:min(100%,360px) !important;
+  margin-top:8px !important;
+  padding:0 10px 3px !important;
+  gap:7px !important;
+}
+
+.letter-v2-reroll {
+  width:min(74%,260px) !important;
+  min-height:39px !important;
+  padding:0 9px 0 13px !important;
+  font-size:.52rem !important;
+}
+
+.letter-v2-reroll b {
+  min-height:28px !important;
+  padding:0 9px !important;
+}
+
+.letter-v2-reroll b img {
+  width:18px !important;
+  height:18px !important;
+}
+
+.letter-v2-confirm {
+  width:min(94%,340px) !important;
+  min-height:46px !important;
+  border-radius:15px !important;
+  font-size:.61rem !important;
+}
+
+/* Animation immédiate dès le toucher */
+.letter-v2-wheel.is-request-spinning {
+  animation:letterV2RequestSpin .44s linear infinite !important;
+}
+
+/* Effet de vitesse pendant le vrai tirage */
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-shell {
+  box-shadow:
+    0 0 0 4px rgba(116,63,224,.78),
+    0 0 24px rgba(177,74,255,.72),
+    0 0 48px rgba(92,51,210,.38) !important;
+
+  animation:letterV2ShellPulse .52s ease-in-out infinite alternate !important;
+}
+
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-pointer {
+  animation:letterV2PointerTick .18s ease-in-out infinite alternate !important;
+}
+
+.letter-v2-wheel-zone.is-wheel-landed .letter-v2-pointer {
+  animation:letterV2PointerLand .42s cubic-bezier(.2,.9,.2,1.2) both !important;
+}
+
+/* Fallback CSS plus fluide si Web Animations API non dispo */
+.letter-v2-wheel.is-spinning {
+  animation:letterV2SpinEnhanced 3.4s cubic-bezier(.10,.72,.12,1) forwards !important;
+}
+
+@keyframes letterV2RequestSpin {
+  from { transform:rotate(0deg); }
+  to   { transform:rotate(360deg); }
+}
+
+@keyframes letterV2SpinEnhanced {
+  0%   { transform:rotate(0deg); }
+  14%  { transform:rotate(calc(var(--wheel-final-rotation) * .16)); }
+  62%  { transform:rotate(calc(var(--wheel-final-rotation) * .70)); }
+  88%  { transform:rotate(calc(var(--wheel-final-rotation) * .94)); }
+  100% { transform:rotate(var(--wheel-final-rotation)); }
+}
+
+@keyframes letterV2ShellPulse {
+  from {
+    filter:brightness(1);
+    transform:scale(1);
+  }
+  to {
+    filter:brightness(1.10);
+    transform:scale(1.006);
+  }
+}
+
+@keyframes letterV2PointerTick {
+  from { transform:translateX(-50%) rotate(-2deg); }
+  to   { transform:translateX(-50%) rotate(2deg); }
+}
+
+@keyframes letterV2PointerLand {
+  0%   { transform:translateX(-50%) scale(.92); }
+  60%  { transform:translateX(-50%) scale(1.12); }
+  100% { transform:translateX(-50%) scale(1); }
+}
+
+/* Téléphones courts */
+@media(max-height:760px) {
+  .letter-v2-chooser {
+    width:min(65%,220px) !important;
+    min-height:46px !important;
+  }
+
+  .letter-v2-wheel-zone {
+    width:min(64vw,270px) !important;
+    height:min(64vw,270px) !important;
+  }
+
+  .letter-v2-wheel-label {
+    transform:rotate(var(--letter-angle)) translateY(-108px) !important;
+  }
+
+  .letter-v2-wheel-center {
+    width:84px !important;
+    height:84px !important;
+  }
+
+  .letter-v2-actions {
+    margin-top:6px !important;
+  }
+}

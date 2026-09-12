@@ -223,15 +223,45 @@
     if (wheel && selectedLetter) {
       const targetIndex = Math.max(0, LETTERS.indexOf(selectedLetter));
       const targetAngle = -(targetIndex * segmentAngle);
-      const turns = 5 + (Number(state.letterSpinVersion || 0) % 3);
+      const turns = 7 + (Number(state.letterSpinVersion || 0) % 3);
       const finalRotation = turns * 360 + targetAngle;
+      const spinDuration = 3400;
 
       wheel.style.setProperty("--wheel-final-rotation", `${finalRotation}deg`);
       wheel.style.setProperty("--wheel-counter-rotation", `${-finalRotation}deg`);
 
-      requestAnimationFrame(() => {
-        wheel.classList.add("is-spinning");
-      });
+      const zone = document.getElementById("letterV2WheelTapZone");
+      zone?.classList.add("is-wheel-spinning");
+
+      // Web Animations API = animation visible et fluide sur Safari/iPhone.
+      if (typeof wheel.animate === "function") {
+        const animation = wheel.animate(
+          [
+            { transform: "rotate(0deg)", offset: 0 },
+            { transform: `rotate(${finalRotation * 0.18}deg)`, offset: 0.16 },
+            { transform: `rotate(${finalRotation * 0.68}deg)`, offset: 0.62 },
+            { transform: `rotate(${finalRotation * 0.93}deg)`, offset: 0.88 },
+            { transform: `rotate(${finalRotation}deg)`, offset: 1 }
+          ],
+          {
+            duration: spinDuration,
+            easing: "cubic-bezier(.10,.72,.12,1)",
+            fill: "forwards"
+          }
+        );
+
+        animation.onfinish = () => {
+          wheel.style.transform = `rotate(${finalRotation}deg)`;
+          zone?.classList.remove("is-wheel-spinning");
+          zone?.classList.add("is-wheel-landed");
+        };
+      } else {
+        requestAnimationFrame(() => wheel.classList.add("is-spinning"));
+        setTimeout(() => {
+          zone?.classList.remove("is-wheel-spinning");
+          zone?.classList.add("is-wheel-landed");
+        }, spinDuration);
+      }
 
       const rerollButton = document.getElementById("letterV2Reroll");
       const confirmButton = document.getElementById("letterV2Confirm");
@@ -246,7 +276,7 @@
             getCoins() < rerollCost;
         }
         if (confirmButton) confirmButton.disabled = false;
-      }, 2900);
+      }, spinDuration + 120);
     }
 
     if (!isChooser) return;
@@ -258,6 +288,7 @@
       if (zone?.classList.contains("is-spinning-request")) return;
 
       zone?.classList.add("is-spinning-request");
+      wheel?.classList.add("is-request-spinning");
 
       socket.emit("game:spinLetter", {
         code: state.code,
