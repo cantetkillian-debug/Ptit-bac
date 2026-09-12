@@ -1,239 +1,62 @@
-/* =========================================================
-   P'tit Bac — Salon Polish V1
-   Avatar cohérent + compte à rebours de lancement
-   ========================================================= */
+/* P'tit Bac — Lobby Polish V2
+   Le design principal est maintenant dans lobby-screen-v4.css.
+   Ce fichier conserve uniquement les animations du compte à rebours.
+*/
 
-/* ---------------------------------------------------------
-   Avatar joueur du salon :
-   même logique que l'accueil/profil, cadre carré néon fin.
-   --------------------------------------------------------- */
-.lobby-v4 .lobby-v4-player {
-  grid-template-columns:42px minmax(0,1fr) 8px !important;
+.lobby-v4 .lobby-v4-avatar > i,
+.lobby-v5 .lobby-v5-avatar > i,
+.home-plaque-avatar > i {
+  display:none !important;
 }
 
-.lobby-v4 .lobby-v4-avatar {
-  position:relative !important;
-
-  width:40px !important;
-  height:40px !important;
-  min-width:40px !important;
-  min-height:40px !important;
-
-  border:1.4px solid #9b55ff !important;
-  border-radius:10px !important;
-
-  background:
-    linear-gradient(145deg,rgba(28,24,84,.98),rgba(8,26,72,.98)) !important;
-
-  box-shadow:
-    0 0 7px rgba(157,77,255,.48),
-    0 0 15px rgba(118,58,255,.16),
-    inset 0 0 8px rgba(139,73,255,.08) !important;
-
-  display:grid !important;
-  place-items:center !important;
-
-  overflow:hidden !important;
-}
-
-.lobby-v4 .lobby-v4-avatar > img {
-  position:absolute !important;
-  top:50% !important;
-  left:50% !important;
-
-  width:88% !important;
-  height:88% !important;
-  max-width:88% !important;
-  max-height:88% !important;
-
-  transform:translate(-50%,-50%) !important;
-
-  object-fit:contain !important;
-  object-position:center center !important;
-
-  border-radius:5px !important;
-  display:block !important;
-}
-
-.lobby-v4 .lobby-v4-avatar > span {
-  width:88% !important;
-  height:88% !important;
-  border-radius:6px !important;
-
-  display:grid !important;
-  place-items:center !important;
-
-  background:transparent !important;
-  font-size:1rem !important;
-}
-
-.lobby-v4 .lobby-v4-avatar > i {
-  position:absolute !important;
-  right:-1px !important;
-  bottom:-1px !important;
-
-  width:9px !important;
-  height:9px !important;
-
-  border:2px solid #081d51 !important;
-  border-radius:50% !important;
-
-  background:#31d998 !important;
-  z-index:3 !important;
-}
-
-/* Fiche profil ouverte depuis le salon : même rendu de photo */
-.lobby-player-modal-avatar {
-  border:1.5px solid #9b55ff !important;
-  border-radius:15px !important;
-  background:linear-gradient(145deg,rgba(28,24,84,.98),rgba(8,26,72,.98)) !important;
-  overflow:hidden !important;
-  display:grid !important;
-  place-items:center !important;
-}
-
-.lobby-player-modal-avatar > img {
-  width:88% !important;
-  height:88% !important;
-  max-width:88% !important;
-  max-height:88% !important;
-  object-fit:contain !important;
-  object-position:center !important;
-  border-radius:8px !important;
-}
-
-/* ---------------------------------------------------------
-   Compte à rebours
-   --------------------------------------------------------- */
 .lobby-start-countdown {
   position:fixed;
   inset:0;
   z-index:100000;
-
   display:grid;
   place-items:center;
-
-  padding:
-    max(18px,env(safe-area-inset-top))
-    18px
-    max(18px,env(safe-area-inset-bottom));
-
-  background:rgba(3,8,34,.72);
-
-  -webkit-backdrop-filter:blur(10px);
-  backdrop-filter:blur(10px);
-
-  animation:lobbyCountdownFadeIn .18s ease-out both;
+  padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));
+  animation:lobbyCountdownFadeIn .16s ease-out both;
 }
 
 .lobby-start-countdown-card {
-  width:min(86vw,320px);
-  min-height:225px;
-
-  padding:26px 22px 24px;
-
-  border:1.5px solid #9654ff;
-  border-radius:28px;
-
-  background:
-    radial-gradient(circle at 50% 15%,rgba(158,70,255,.24),transparent 42%),
-    linear-gradient(155deg,#10245e 0%,#071747 68%,#151052 100%);
-
-  box-shadow:
-    0 24px 70px rgba(0,0,0,.40),
-    0 0 38px rgba(134,58,255,.24);
-
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-
   text-align:center;
   color:#fff;
-
-  animation:lobbyCountdownCardIn .28s cubic-bezier(.2,.9,.2,1.08) both;
-}
-
-.lobby-start-countdown-card small {
-  color:#b8a8df;
-  font-size:.60rem;
-  font-weight:900;
-  letter-spacing:.20em;
-}
-
-.lobby-start-countdown-card h2 {
-  margin:10px 0 4px;
-
-  color:#fff;
-  font-size:1.24rem;
-  line-height:1.12;
-  font-weight:900;
-  letter-spacing:-.03em;
+  animation:lobbyCountdownCardIn .24s cubic-bezier(.2,.9,.2,1.08) both;
 }
 
 #lobbyCountdownNumber {
-  min-width:90px;
-  min-height:100px;
-
   display:grid;
   place-items:center;
-
   color:#fff;
-  font-size:5.2rem;
   line-height:1;
   font-weight:900;
-
-  text-shadow:
-    0 0 12px rgba(188,91,255,.72),
-    0 0 30px rgba(135,57,255,.55);
-
-  animation:lobbyCountdownPulse .78s ease-in-out infinite;
+  text-shadow:0 0 10px rgba(188,91,255,.60),0 0 20px rgba(135,57,255,.34);
+  animation:lobbyCountdownPulse .76s ease-in-out infinite;
 }
 
 .lobby-start-countdown-card.is-go #lobbyCountdownNumber {
   color:#c785ff;
-  animation:lobbyCountdownGo .26s ease-out both;
-}
-
-.lobby-v4-start.is-counting-down {
-  opacity:.78 !important;
-  pointer-events:none !important;
+  animation:lobbyCountdownGo .24s ease-out both;
 }
 
 @keyframes lobbyCountdownFadeIn {
   from { opacity:0; }
-  to   { opacity:1; }
+  to { opacity:1; }
 }
-
 @keyframes lobbyCountdownCardIn {
-  from {
-    opacity:0;
-    transform:scale(.88) translateY(10px);
-  }
-  to {
-    opacity:1;
-    transform:scale(1) translateY(0);
-  }
+  from { opacity:0; transform:scale(.90) translateY(8px); }
+  to { opacity:1; transform:scale(1) translateY(0); }
 }
-
 @keyframes lobbyCountdownPulse {
-  0%,100% { transform:scale(.94); opacity:.92; }
-  50%     { transform:scale(1.08); opacity:1; }
+  0%,100% { transform:scale(.95); opacity:.93; }
+  50% { transform:scale(1.07); opacity:1; }
 }
-
 @keyframes lobbyCountdownGo {
-  from { transform:scale(.80); opacity:.6; }
-  to   { transform:scale(1.14); opacity:1; }
-}
-
-@media (max-height:680px) {
-  .lobby-start-countdown-card {
-    min-height:190px;
-    padding:20px;
-  }
-
-  #lobbyCountdownNumber {
-    min-height:82px;
-    font-size:4.3rem;
-  }
+  from { transform:scale(.82); opacity:.6; }
+  to { transform:scale(1.12); opacity:1; }
 }

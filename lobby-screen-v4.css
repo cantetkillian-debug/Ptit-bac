@@ -1,2633 +1,403 @@
 /* =========================================================
-   P'tit Bac — Salon V4
-   Version compacte mobile + nouveaux sélecteurs et icônes
+   P'tit Bac — Salon V5
+   Reproduction du prototype validé avec les PNG du GitHub
    ========================================================= */
 
-body:has(.lobby-v4) {
-  overflow-x:hidden !important;
+body:has(.lobby-v5) {
+  overflow:hidden !important;
   background:#061642 !important;
 }
-
-body:has(.lobby-v4) .economy-hud {
+body:has(.lobby-v5) .economy-hud {
   display:none !important;
 }
 
-.lobby-v4 {
-  position:relative !important;
-  width:min(100%,430px) !important;
-  min-height:100dvh !important;
-  margin:0 auto !important;
-  padding:
-    max(12px,env(safe-area-inset-top))
-    13px
-    max(108px,calc(env(safe-area-inset-bottom) + 92px)) !important;
-  overflow:hidden !important;
-  color:#fff !important;
-  display:flex !important;
-  flex-direction:column !important;
-  gap:10px !important;
-  background:
-    radial-gradient(circle at 12% 7%,rgba(80,44,230,.20),transparent 22%),
-    radial-gradient(circle at 91% 34%,rgba(76,43,221,.11),transparent 26%),
-    linear-gradient(180deg,#06133b 0%,#071a4d 58%,#06133b 100%) !important;
+/* Enlève le point vert des avatars accueil + salon */
+.home-plaque-avatar > i,
+.lobby-v5-avatar > i,
+.lobby-v5-host-avatar > i {
+  display:none !important;
 }
 
-.lobby-v4 button {
-  font-family:inherit;
-  -webkit-tap-highlight-color:transparent;
-}
-
-.lobby-v4-header {
+.lobby-v5 {
   position:relative;
-  z-index:5;
-  min-height:48px;
+  width:min(100%,430px);
+  height:100dvh;
+  min-height:100dvh;
+  margin:0 auto;
+  padding:max(12px,env(safe-area-inset-top)) 15px max(118px,calc(env(safe-area-inset-bottom) + 104px));
+  overflow:hidden;
+  color:white;
+  background:
+    radial-gradient(circle at 9% 2%,rgba(82,42,218,.25),transparent 23%),
+    radial-gradient(circle at 97% 24%,rgba(81,45,216,.13),transparent 25%),
+    linear-gradient(180deg,#06133b 0%,#071a4d 57%,#06133b 100%);
+  font-family:"DM Sans",system-ui,sans-serif;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* HEADER */
+.lobby-v5-header {
   display:grid;
-  grid-template-columns:42px 1fr 42px;
-  align-items:center;
+  grid-template-columns:44px minmax(0,1fr) auto;
+  gap:11px;
+  align-items:start;
+  z-index:5;
 }
-
-.lobby-v4-header h1 {
-  margin:0;
-  text-align:center;
-  font-size:1.48rem;
-  line-height:1;
-  letter-spacing:-.04em;
-  font-weight:900;
-}
-
-.lobby-v4-leave-top {
-  width:38px;
-  height:38px;
-  border:1px solid #6841d4;
+.lobby-v5-back {
+  width:42px;height:42px;
+  border:1.2px solid #8747f4;
   border-radius:13px;
-  background:rgba(12,31,82,.82);
-  color:#bd82ff;
-  display:grid;
-  place-items:center;
-  font-size:1.08rem;
-  box-shadow:0 0 11px rgba(126,62,255,.08);
+  background:#0a2054;
+  display:grid;place-items:center;
+  box-shadow:0 0 11px rgba(126,62,255,.10);
 }
-
-.lobby-v4-room-row {
-  position:relative;
-  z-index:4;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 76px;
-  gap:8px;
-  align-items:start;
-}
-
-.lobby-v4-code-wrap {
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-.lobby-v4-code {
-  width:100%;
-  min-height:60px;
-  padding:0 17px;
-  border:1.5px solid #8249ff;
-  border-radius:25px;
-  background:
-    radial-gradient(circle at 50% 0%,rgba(102,55,244,.11),transparent 60%),
-    linear-gradient(150deg,rgba(11,34,91,.97),rgba(8,27,77,.98));
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:14px;
-  box-shadow:0 0 15px rgba(111,61,255,.12);
-}
-
-.lobby-v4-code strong {
-  font-size:1.24rem;
-  line-height:1;
-  letter-spacing:.14em;
-  font-weight:900;
-}
-
-.lobby-v4-code img {
-  width:25px;
-  height:25px;
-  object-fit:contain;
-  filter:drop-shadow(0 0 5px rgba(170,90,255,.28));
-}
-
-.lobby-v4-code-wrap p {
-  margin:7px 0 0;
-  color:#b4acd9;
-  font-size:.58rem;
-  font-weight:650;
-}
-
-.lobby-v4-count {
-  min-height:60px;
-  border:1.2px solid #3650b2;
-  border-radius:19px;
-  background:linear-gradient(180deg,rgba(8,31,86,.96),rgba(6,25,71,.97));
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-}
-
-.lobby-v4-count strong {
-  font-size:.97rem;
-  line-height:1;
-  font-weight:900;
-}
-
-.lobby-v4-count span {
-  margin-top:5px;
-  color:#aaa0d8;
-  font-size:.49rem;
-  font-weight:800;
-}
-
-.lobby-v4-grid {
-  position:relative;
-  z-index:4;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  gap:8px;
-  align-items:start;
-}
-
-.lobby-v4-left {
-  min-width:0;
-  display:grid;
-  gap:8px;
-}
-
-.lobby-v4-panel {
-  min-width:0;
-  border:1.15px solid #3248a5;
-  border-radius:19px;
-  background:linear-gradient(150deg,rgba(9,34,91,.96),rgba(6,26,74,.97));
-  box-shadow:inset 0 0 17px rgba(78,60,191,.035);
-}
-
-.lobby-v4-panel h2 {
+.lobby-v5-back img {width:30px;height:30px;object-fit:contain;}
+.lobby-v5-title h1 {
   margin:0;
-  min-height:37px;
-  padding:10px 10px 6px;
-  color:#fff;
-  font-size:.69rem;
-  font-weight:900;
-  display:flex;
-  align-items:center;
-  gap:5px;
-  white-space:nowrap;
-}
-
-.lobby-v4-panel h2 img {
-  width:21px;
-  height:21px;
-  object-fit:contain;
-}
-
-.lobby-v4-panel h2 span {
-  color:#af78ff;
-}
-
-.lobby-v4-player-list {
-  padding:0 7px;
-  display:grid;
-  gap:5px;
-}
-
-.lobby-v4-player {
-  position:relative;
-  min-height:57px;
-  padding:6px 7px;
-  border:1px solid #304b9f;
-  border-radius:15px;
-  background:linear-gradient(145deg,rgba(12,39,101,.96),rgba(8,31,82,.96));
-  display:grid;
-  grid-template-columns:41px minmax(0,1fr) 8px;
-  align-items:center;
-  gap:6px;
-}
-
-.lobby-v4-avatar {
-  position:relative;
-  width:39px;
-  height:39px;
-  border:2px solid #7450f2;
-  border-radius:50%;
-  background:linear-gradient(145deg,#7544ef,#332786);
-  display:grid;
-  place-items:center;
-}
-
-.lobby-v4-avatar img,
-.lobby-v4-avatar > span {
-  width:33px;
-  height:33px;
-  border-radius:50%;
-  object-fit:cover;
-  display:grid;
-  place-items:center;
-  overflow:hidden;
-  font-size:1.02rem;
-}
-
-.lobby-v4-avatar > i {
-  position:absolute;
-  right:-1px;
-  bottom:0;
-  width:8px;
-  height:8px;
-  border:2px solid #082052;
-  border-radius:50%;
-  background:#31d998;
-}
-
-.lobby-v4-player-copy {
-  min-width:0;
-}
-
-.lobby-v4-player-name {
-  display:flex;
-  align-items:center;
-  gap:4px;
-}
-
-.lobby-v4-player-name strong {
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  font-size:.59rem;
-  font-weight:900;
-}
-
-.lobby-v4-player-name span {
-  padding:3px 6px;
-  border-radius:999px;
-  background:#5631bf;
-  color:#ddd0ff;
-  font-size:.40rem;
-  font-weight:900;
-}
-
-.lobby-v4-player-copy small {
-  display:block;
-  margin-top:2px;
-  color:#afa8d6;
-  font-size:.44rem;
-}
-
-.lobby-v4-online {
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:#655f85;
-}
-
-.lobby-v4-online.on {
-  background:#36dfa0;
-}
-
-.lobby-v4-kick {
-  position:absolute;
-  top:3px;
-  right:3px;
-  width:20px;
-  height:20px;
-  border:0;
-  border-radius:50%;
-  background:rgba(231,67,105,.13);
-  color:#ff7395;
-}
-
-.lobby-v4-add-player,
-.lobby-v4-empty-player {
-  min-height:54px;
-  margin:6px 7px 0;
-  padding:6px 8px;
-  border:1px dashed #7055df;
-  border-radius:15px;
-  background:rgba(18,35,91,.35);
-  color:#fff;
-  display:grid;
-  grid-template-columns:38px minmax(0,1fr);
-  align-items:center;
-  gap:7px;
-  text-align:left;
-}
-
-.lobby-v4-empty-player {
-  margin-bottom:7px;
-  opacity:.65;
-}
-
-.lobby-v4-plus {
-  width:35px;
-  height:35px;
-  border:1px dashed #8e69ff;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  color:#b382ff;
-  font-size:1.22rem;
-}
-
-.lobby-v4-plus.muted {
-  opacity:.55;
-}
-
-.lobby-v4-add-player strong {
-  display:block;
-  font-size:.53rem;
-  font-weight:900;
-}
-
-.lobby-v4-add-player small,
-.lobby-v4-empty-player small {
-  display:block;
-  margin-top:3px;
-  color:#aaa4d0;
-  font-size:.41rem;
-  line-height:1.2;
-}
-
-.lobby-v4-add-player:disabled {
-  opacity:.42;
-}
-
-.lobby-v4-invite {
-  min-height:52px;
-  padding:0 10px;
-  border:1.1px solid #7743f0;
-  border-radius:17px;
-  background:linear-gradient(145deg,rgba(27,31,115,.96),rgba(15,30,91,.97));
-  color:#fff;
-  display:grid;
-  grid-template-columns:30px 1fr 12px;
-  align-items:center;
-  gap:6px;
-  text-align:left;
-}
-
-.lobby-v4-invite-icon {
-  color:#b782ff;
-  font-size:.92rem;
-}
-
-.lobby-v4-invite strong {
-  font-size:.57rem;
-  font-weight:900;
-}
-
-.lobby-v4-invite b {
-  color:#a57aff;
-  font-size:1.12rem;
-}
-
-.lobby-v4-settings {
-  padding-bottom:7px;
-}
-
-.lobby-v4-setting {
-  min-height:64px;
-  margin:0 7px 6px;
-  padding:6px 6px;
-  border:1px solid #30499e;
-  border-radius:16px;
-  background:linear-gradient(145deg,rgba(12,39,101,.95),rgba(8,31,82,.96));
-  display:grid;
-  grid-template-columns:34px minmax(0,1fr);
-  align-items:center;
-  gap:5px;
-}
-
-.lobby-v4-setting-icon {
-  width:32px;
-  height:32px;
-  object-fit:contain;
-  filter:drop-shadow(0 0 4px rgba(146,70,255,.18));
-}
-
-.lobby-v4-setting-icon.lightning {
-  width:31px;
-  height:31px;
-}
-
-.lobby-v4-setting-icon.difficulty {
-  width:35px;
-  height:35px;
-}
-
-.lobby-v4-setting-icon.categories {
-  width:31px;
-  height:31px;
-}
-
-.lobby-v4-setting-main {
-  min-width:0;
-}
-
-.lobby-v4-setting-main > small {
-  display:block;
-  margin:0 0 5px;
-  color:#aaa3d0;
-  text-align:center;
-  font-size:.45rem;
-  white-space:nowrap;
-}
-
-.lobby-v4-stepper {
-  height:35px;
-  padding:2px;
-  border:1px solid #8747f4;
-  border-radius:999px;
-  background:linear-gradient(180deg,rgba(30,22,90,.92),rgba(11,25,78,.95));
-  display:grid;
-  grid-template-columns:31px minmax(0,1fr) 31px;
-  align-items:center;
-  gap:3px;
-  box-shadow:
-    0 0 10px rgba(125,58,255,.10),
-    inset 0 0 10px rgba(87,49,181,.09);
-}
-
-.lobby-v4-stepper button {
-  width:31px;
-  height:31px;
-  border:0;
-  border-radius:50%;
-  background:linear-gradient(145deg,#6e3ce4,#a33cff);
-  color:#fff;
-  font-size:.88rem;
-  font-weight:900;
+  font-size:1.42rem;
   line-height:1;
-  box-shadow:
-    inset 0 0 10px rgba(255,255,255,.10),
-    0 0 8px rgba(145,57,255,.15);
-}
-
-.lobby-v4-stepper strong {
-  min-width:0;
-  text-align:center;
-  color:#fff;
-  font-size:.59rem;
-  font-weight:900;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.lobby-v4-stepper.readonly {
-  grid-template-columns:1fr;
-}
-
-.lobby-v4-stepper.readonly .lobby-v4-step-spacer {
-  display:none;
-}
-
-.lobby-v4-actions {
-  position:relative;
-  z-index:4;
-  display:flex;
-  justify-content:center;
-  padding-top:1px;
-}
-
-.lobby-v4-start,
-.lobby-v4-wait-host {
-  width:min(100%,340px);
-  min-height:55px;
-  border-radius:20px;
-  font-size:.71rem;
   font-weight:900;
 }
-
-.lobby-v4-start {
-  border:1px solid #a56cff;
-  background:linear-gradient(110deg,#7540ef,#a33cff);
-  color:#fff;
-  box-shadow:
-    0 0 17px rgba(128,59,255,.17),
-    inset 0 0 12px rgba(255,255,255,.05);
-}
-
-.lobby-v4-start > span {
-  margin-right:8px;
-}
-
-.lobby-v4-start:disabled {
-  opacity:.42;
-  filter:saturate(.65);
-}
-
-.lobby-v4-wait-host {
-  border:1px solid #4e48c4;
-  background:rgba(9,31,84,.96);
-  color:#b7a8df;
+.lobby-v5-code {
+  margin-top:5px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#b69bff;
   display:flex;
   align-items:center;
-  justify-content:center;
+  gap:5px;
+}
+.lobby-v5-code span,.lobby-v5-code strong {font-size:.62rem;font-weight:800;}
+.lobby-v5-code strong {letter-spacing:.06em;}
+.lobby-v5-code img {width:18px;height:18px;object-fit:contain;}
+.lobby-v5-coin-pill {
+  height:43px;
+  min-width:88px;
+  padding:0 11px;
+  border:1.3px solid #7841e8;
+  border-radius:999px;
+  background:#081d52;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.lobby-v5-coin-pill img {width:27px;height:27px;object-fit:contain;}
+.lobby-v5-coin-pill strong {font-size:.86rem;font-weight:900;}
+html.ptb-admin-infinite-coins .lobby-v5-coin-pill strong {font-size:0;}
+html.ptb-admin-infinite-coins .lobby-v5-coin-pill strong::after {content:"∞";font-size:.95rem;}
+
+/* HOST CARD */
+.lobby-v5-host-card {
+  min-height:76px;
+  padding:10px 12px;
+  border:1.2px solid #3552aa;
+  border-radius:19px;
+  background:linear-gradient(145deg,rgba(10,34,91,.94),rgba(7,28,77,.96));
+  display:grid;
+  grid-template-columns:28px 52px minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+}
+.lobby-v5-host-crown {font-size:1.2rem;text-align:center;}
+.lobby-v5-host-avatar,
+.lobby-v5-avatar,
+.lobby-v5-profile-avatar {
+  position:relative;
+  overflow:hidden;
+  border:1.4px solid #a24fff;
+  border-radius:10px;
+  background:#081d52;
+  box-shadow:0 0 9px rgba(155,72,255,.28);
+  display:grid;
+  place-items:center;
+}
+.lobby-v5-host-avatar {width:50px;height:50px;}
+.lobby-v5-host-avatar img,.lobby-v5-host-avatar span,
+.lobby-v5-avatar img,.lobby-v5-avatar span,
+.lobby-v5-profile-avatar img,.lobby-v5-profile-avatar span {
+  width:88%;
+  height:88%;
+  max-width:88%;
+  max-height:88%;
+  object-fit:contain;
+  object-position:center;
+  border-radius:6px;
+  display:grid;
+  place-items:center;
+}
+.lobby-v5-host-copy {min-width:0;display:flex;flex-direction:column;}
+.lobby-v5-host-copy small {color:#aaa1d3;font-size:.48rem;}
+.lobby-v5-host-copy strong {font-size:.94rem;line-height:1.1;font-weight:900;margin-top:2px;}
+.lobby-v5-host-copy span {color:#b694ff;font-size:.53rem;font-weight:800;margin-top:3px;}
+.lobby-v5-settings-shortcut {
+  height:40px;
+  padding:0 12px;
+  border:1.2px solid #8848f5;
+  border-radius:14px;
+  background:#12195a;
+  color:white;
+  display:flex;align-items:center;gap:7px;
+  font-weight:900;font-size:.58rem;
+}
+.lobby-v5-settings-shortcut img {width:23px;height:23px;object-fit:contain;}
+
+/* SETTINGS */
+.lobby-v5-settings-panel {
+  padding:10px;
+  border:1.2px solid #3552aa;
+  border-radius:19px;
+  background:linear-gradient(145deg,rgba(10,34,91,.94),rgba(7,28,77,.96));
+}
+.lobby-v5-settings-panel h2 {
+  margin:0 0 9px;
+  display:flex;align-items:center;gap:7px;
+  font-size:.68rem;font-weight:900;
+}
+.lobby-v5-settings-panel h2 img {width:22px;height:22px;object-fit:contain;}
+.lobby-v5-settings-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
   gap:7px;
 }
-
-.lobby-v4-footer {
-  position:relative;
-  z-index:5;
-  margin-top:auto;
-  display:flex;
-  flex-direction:column;
+.lobby-v5-setting-card {
+  min-width:0;
+  min-height:94px;
+  padding:8px 5px 6px;
+  border:1px solid #29498f;
+  border-radius:14px;
+  background:rgba(8,31,83,.84);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.lobby-v5-setting-icon {
+  width:31px;height:31px;object-fit:contain;
+  margin-bottom:3px;
+}
+.lobby-v5-setting-card small {
+  color:#b1a7d7;
+  font-size:.44rem;
+  font-weight:750;
+  white-space:nowrap;
+}
+.lobby-v5-setting-value {
+  margin-top:4px;
+  width:100%;
+  display:grid;
+  grid-template-columns:18px minmax(0,1fr) 18px;
   align-items:center;
   gap:1px;
 }
-
-.lobby-v4-footer img {
-  width:48px;
-  max-height:40px;
-  object-fit:contain;
-  filter:drop-shadow(0 0 6px rgba(126,60,255,.28));
-}
-
-.lobby-v4-footer small {
-  color:#a59dd4;
-  font-size:.42rem;
-}
-
-.lobby-v4-wave {
-  position:absolute;
-  z-index:1;
-  bottom:-62px;
-  width:78%;
-  height:92px;
-  border-top:1px solid rgba(115,70,255,.38);
-  border-radius:50% 50% 0 0;
-  background:linear-gradient(180deg,rgba(63,41,205,.56),rgba(30,29,136,.28));
-}
-
-.lobby-v4-wave.wave-1 {
-  left:-14%;
-  transform:rotate(4deg);
-}
-
-.lobby-v4-wave.wave-2 {
-  right:-14%;
-  transform:rotate(-5deg);
-}
-
-@media (max-width:380px) {
-  .lobby-v4 {
-    padding-left:9px !important;
-    padding-right:9px !important;
-    gap:8px !important;
-  }
-
-  .lobby-v4-room-row {
-    grid-template-columns:minmax(0,1fr) 68px;
-    gap:6px;
-  }
-
-  .lobby-v4-code {
-    min-height:56px;
-    gap:10px;
-  }
-
-  .lobby-v4-code strong {
-    font-size:1.08rem;
-  }
-
-  .lobby-v4-grid {
-    gap:6px;
-  }
-
-  .lobby-v4-panel h2 {
-    font-size:.62rem;
-  }
-
-  .lobby-v4-setting {
-    grid-template-columns:30px minmax(0,1fr);
-    padding-left:4px;
-    padding-right:4px;
-  }
-
-  .lobby-v4-setting-icon {
-    width:29px;
-    height:29px;
-  }
-
-  .lobby-v4-stepper {
-    grid-template-columns:28px minmax(0,1fr) 28px;
-  }
-
-  .lobby-v4-stepper button {
-    width:28px;
-    height:28px;
-  }
-}
-
-@media (max-height:760px) {
-  .lobby-v4 {
-    gap:7px !important;
-    padding-bottom:max(96px,calc(env(safe-area-inset-bottom) + 82px)) !important;
-  }
-
-  .lobby-v4-header {
-    min-height:43px;
-  }
-
-  .lobby-v4-code,
-  .lobby-v4-count {
-    min-height:54px;
-  }
-
-  .lobby-v4-setting {
-    min-height:57px;
-  }
-
-  .lobby-v4-add-player,
-  .lobby-v4-empty-player {
-    min-height:49px;
-  }
-
-  .lobby-v4-invite {
-    min-height:48px;
-  }
-
-  .lobby-v4-start,
-  .lobby-v4-wait-host {
-    min-height:50px;
-  }
-
-  .lobby-v4-footer img {
-    width:43px;
-    max-height:36px;
-  }
-}
-
-@media (max-height:680px) {
-  .lobby-v4-setting {
-    min-height:52px;
-  }
-
-  .lobby-v4-stepper {
-    height:32px;
-  }
-
-  .lobby-v4-stepper button {
-    width:28px;
-    height:28px;
-  }
-
-  .lobby-v4-player {
-    min-height:52px;
-  }
-
-  .lobby-v4-footer {
-    display:none;
-  }
-}
-
-
-/* =========================================================
-   Salon V5 — icônes quitter / plus / moins validées
-   ========================================================= */
-
-/* Bouton quitter : reprend exactement l'icône validée,
-   sans rajouter de glyphe ni de détail. */
-.lobby-v4-leave-top {
-  padding:4px !important;
-  overflow:hidden !important;
-}
-
-.lobby-v4-leave-top img {
-  width:30px !important;
-  height:30px !important;
-  object-fit:contain !important;
-  display:block !important;
-}
-
-/* Les boutons gardent leur zone tactile mais l'icône elle-même
-   n'a aucun cercle autour : uniquement le + ou le -. */
-.lobby-v4-stepper button {
-  display:grid !important;
-  place-items:center !important;
-  padding:4px !important;
-}
-
-.lobby-v4-stepper button img {
-  width:20px !important;
-  height:20px !important;
-  object-fit:contain !important;
-  display:block !important;
-  pointer-events:none !important;
-}
-
-/* Réduit un peu le glow du bouton pour laisser les nouveaux
-   pictos plus lisibles sur téléphone. */
-.lobby-v4-stepper button {
-  box-shadow:
-    inset 0 0 7px rgba(255,255,255,.07),
-    0 0 6px rgba(145,57,255,.11) !important;
-}
-
-@media (max-width:380px) {
-  .lobby-v4-leave-top img {
-    width:27px !important;
-    height:27px !important;
-  }
-
-  .lobby-v4-stepper button img {
-    width:18px !important;
-    height:18px !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V6 — correction de la structure et de l'équilibre UI
-   ========================================================= */
-
-/* Quitter : plus de cadre autour de l'icône, juste l'icône seule */
-.lobby-v4-leave-top {
-  width:34px !important;
-  height:34px !important;
-  padding:0 !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-}
-
-.lobby-v4-leave-top img {
-  width:28px !important;
-  height:28px !important;
-  filter:drop-shadow(0 0 7px rgba(148,72,255,.22));
-}
-
-/* Code du salon : texte d'aide intégré dans la même carte */
-.lobby-v4-code-wrap {
-  width:100%;
-}
-
-.lobby-v4-code {
-  min-height:72px !important;
-  padding:10px 16px !important;
-  justify-content:space-between !important;
-}
-
-.lobby-v4-code-copy {
+.lobby-v5-setting-value:has(> strong:only-child) {grid-template-columns:1fr;}
+.lobby-v5-setting-value strong {
   min-width:0;
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  justify-content:center;
+  text-align:center;
+  font-size:.76rem;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.lobby-v5-setting-card.is-difficulty .lobby-v5-setting-value strong {
+  color:#54e7b8;
+  font-size:.64rem;
+}
+.lobby-v5-setting-value button {
+  width:18px;height:18px;
+  border:0;border-radius:50%;
+  background:rgba(112,61,215,.72);
+  padding:2px;
+  display:grid;place-items:center;
+}
+.lobby-v5-setting-value button img {width:100%;height:100%;object-fit:contain;}
+
+/* PLAYERS */
+.lobby-v5-players-section {min-height:0;}
+.lobby-v5-players-section h2 {
+  margin:0 0 7px;
+  font-size:.90rem;
+  font-weight:900;
+  color:#fff;
+}
+.lobby-v5-players-section h2 span {color:#c39cff;}
+.lobby-v5-player-list {
+  display:grid;
   gap:5px;
 }
-
-.lobby-v4-code strong {
-  font-size:1.08rem !important;
-  letter-spacing:.12em !important;
-}
-
-.lobby-v4-code-copy small {
-  color:#b8b0e3;
-  font-size:.50rem;
-  font-weight:700;
-  line-height:1.2;
-}
-
-.lobby-v4-code-wrap p {
-  display:none !important;
-}
-
-.lobby-v4-code img {
-  width:24px !important;
-  height:24px !important;
-  flex:0 0 auto;
-}
-
-/* Titres / panneau joueurs */
-.lobby-v4-panel h2 {
-  gap:7px !important;
-}
-
-.lobby-v4-panel h2 img {
-  width:22px !important;
-  height:22px !important;
-}
-
-/* Bouton inviter : utiliser l’icône friends.png */
-.lobby-v4-invite {
-  grid-template-columns:32px 1fr 12px !important;
-  gap:8px !important;
-}
-
-.lobby-v4-invite-icon {
-  width:24px !important;
-  height:24px !important;
-  object-fit:contain !important;
-  display:block !important;
-  filter:drop-shadow(0 0 6px rgba(153,78,255,.22));
-  color:unset !important;
-  font-size:0 !important;
-}
-
-/* Paramètres : meilleure répartition et alignement */
-.lobby-v4-settings {
-  padding-bottom:8px !important;
-}
-
-.lobby-v4-setting {
-  min-height:72px !important;
-  padding:8px 10px !important;
-  grid-template-columns:38px minmax(0,1fr) !important;
-  gap:9px !important;
-}
-
-.lobby-v4-setting-icon {
-  width:30px !important;
-  height:30px !important;
-  align-self:center !important;
-  justify-self:center !important;
-}
-
-.lobby-v4-setting-icon.lightning,
-.lobby-v4-setting-icon.categories {
-  width:29px !important;
-  height:29px !important;
-}
-
-.lobby-v4-setting-icon.difficulty {
-  width:34px !important;
-  height:34px !important;
-}
-
-.lobby-v4-setting-main {
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-.lobby-v4-setting-main > small {
-  margin:0 !important;
-  text-align:center !important;
-  font-size:.47rem !important;
-  line-height:1.1 !important;
-}
-
-/* + et - sans fond */
-.lobby-v4-stepper {
-  height:38px !important;
-  padding:0 4px !important;
-  grid-template-columns:24px minmax(0,1fr) 24px !important;
-  gap:8px !important;
-  background:linear-gradient(180deg,rgba(24,21,87,.76),rgba(9,22,71,.82)) !important;
-}
-
-.lobby-v4-stepper button {
-  width:24px !important;
-  height:24px !important;
-  padding:0 !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-}
-
-.lobby-v4-stepper button img {
-  width:18px !important;
-  height:18px !important;
-}
-
-.lobby-v4-stepper strong {
-  font-size:.62rem !important;
-  letter-spacing:.01em;
-}
-
-.lobby-v4-step-spacer {
-  width:24px;
-  height:24px;
-}
-
-/* Ajustements mobile */
-@media (max-width: 380px) {
-  .lobby-v4-code {
-    min-height:66px !important;
-    padding:9px 13px !important;
-  }
-
-  .lobby-v4-code strong {
-    font-size:1rem !important;
-  }
-
-  .lobby-v4-code-copy small {
-    font-size:.47rem !important;
-  }
-
-  .lobby-v4-setting {
-    min-height:68px !important;
-    grid-template-columns:34px minmax(0,1fr) !important;
-    gap:7px !important;
-    padding:7px 8px !important;
-  }
-
-  .lobby-v4-setting-icon {
-    width:28px !important;
-    height:28px !important;
-  }
-
-  .lobby-v4-setting-icon.difficulty {
-    width:31px !important;
-    height:31px !important;
-  }
-
-  .lobby-v4-stepper {
-    height:36px !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V7 — reproduction de la maquette finale validée
-   ========================================================= */
-
-body:has(.lobby-v4) {
-  background:#061642 !important;
-}
-
-.lobby-v4 {
-  width:min(100%,430px) !important;
-  min-height:100dvh !important;
-  padding:
-    max(14px, env(safe-area-inset-top))
-    13px
-    max(112px, calc(env(safe-area-inset-bottom) + 96px)) !important;
-  gap:10px !important;
-  background:
-    radial-gradient(circle at 14% 7%, rgba(91,44,229,.22), transparent 23%),
-    radial-gradient(circle at 92% 39%, rgba(59,48,214,.12), transparent 27%),
-    linear-gradient(180deg,#06133b 0%,#07194a 57%,#06133b 100%) !important;
-}
-
-/* ---------- Header ---------- */
-
-.lobby-v4-header {
-  min-height:52px !important;
-  grid-template-columns:40px 1fr 40px !important;
-}
-
-.lobby-v4-header h1 {
-  font-size:1.62rem !important;
-  text-shadow:0 0 10px rgba(126,72,255,.18);
-}
-
-.lobby-v4-leave-top {
-  width:38px !important;
-  height:38px !important;
-  padding:4px !important;
-  border:1px solid rgba(120,66,238,.84) !important;
-  border-radius:13px !important;
-  background:rgba(10,29,77,.72) !important;
-  box-shadow:
-    0 0 11px rgba(123,57,255,.10),
-    inset 0 0 10px rgba(104,60,210,.06) !important;
-}
-
-.lobby-v4-leave-top img {
-  width:29px !important;
-  height:29px !important;
-  object-fit:contain !important;
-}
-
-/* ---------- Code salon ---------- */
-
-.lobby-v4-room-row {
-  grid-template-columns:minmax(0,1fr) 78px !important;
-  gap:10px !important;
-  align-items:start !important;
-  margin-top:2px !important;
-}
-
-.lobby-v4-code-wrap {
-  width:100% !important;
-  min-width:0 !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-}
-
-.lobby-v4-code {
-  width:156px !important;
-  min-height:42px !important;
-  padding:0 14px !important;
-  border:1.5px solid #884aff !important;
-  border-radius:999px !important;
-  justify-content:center !important;
-  gap:12px !important;
-  background:
-    radial-gradient(circle at 50% 0%,rgba(104,54,242,.11),transparent 68%),
-    linear-gradient(150deg,rgba(11,34,91,.96),rgba(8,27,77,.98)) !important;
-  box-shadow:
-    0 0 12px rgba(126,56,255,.12),
-    inset 0 0 10px rgba(122,71,236,.04) !important;
-}
-
-.lobby-v4-code strong {
-  font-size:.82rem !important;
-  line-height:1 !important;
-  letter-spacing:.12em !important;
-}
-
-.lobby-v4-code img {
-  width:21px !important;
-  height:21px !important;
-  object-fit:contain !important;
-  flex:0 0 auto !important;
-}
-
-.lobby-v4-code-wrap p {
-  display:block !important;
-  margin:7px 0 0 !important;
-  color:#bbb3e1 !important;
-  font-size:.53rem !important;
-  font-weight:650 !important;
-  line-height:1.2 !important;
-  white-space:nowrap !important;
-}
-
-.lobby-v4-code-copy {
-  display:contents !important;
-}
-
-.lobby-v4-code-copy small {
-  display:none !important;
-}
-
-.lobby-v4-count {
-  min-height:58px !important;
-  border-radius:18px !important;
-}
-
-.lobby-v4-count strong {
-  font-size:1.05rem !important;
-}
-
-.lobby-v4-count span {
-  margin-top:4px !important;
-  font-size:.48rem !important;
-}
-
-/* ---------- Deux colonnes ---------- */
-
-.lobby-v4-grid {
-  gap:8px !important;
-  align-items:stretch !important;
-}
-
-.lobby-v4-left {
-  gap:8px !important;
-}
-
-.lobby-v4-panel {
-  border:1.15px solid #3349a6 !important;
-  border-radius:19px !important;
-  background:
-    linear-gradient(150deg,rgba(9,34,91,.96),rgba(6,26,74,.97)) !important;
-  box-shadow:
-    inset 0 0 18px rgba(77,58,191,.035),
-    0 7px 18px rgba(0,0,0,.05) !important;
-}
-
-.lobby-v4-panel h2 {
-  min-height:39px !important;
-  padding:9px 10px 6px !important;
-  gap:6px !important;
-  font-size:.68rem !important;
-}
-
-.lobby-v4-panel h2 img {
-  width:23px !important;
-  height:23px !important;
-}
-
-.lobby-v4-panel h2 span {
-  color:#af72ff !important;
-}
-
-/* ---------- Joueurs ---------- */
-
-.lobby-v4-players-panel {
-  padding-bottom:7px !important;
-}
-
-.lobby-v4-player-list {
-  padding:0 7px !important;
-  gap:5px !important;
-}
-
-.lobby-v4-player {
-  min-height:58px !important;
-  padding:6px 7px !important;
-  grid-template-columns:42px minmax(0,1fr) 8px !important;
-  gap:6px !important;
-  border-radius:15px !important;
-}
-
-.lobby-v4-avatar {
-  width:40px !important;
-  height:40px !important;
-}
-
-.lobby-v4-avatar img,
-.lobby-v4-avatar > span {
-  width:34px !important;
-  height:34px !important;
-  font-size:1.02rem !important;
-}
-
-.lobby-v4-player-name strong {
-  font-size:.60rem !important;
-}
-
-.lobby-v4-player-name span {
-  padding:3px 6px !important;
-  font-size:.40rem !important;
-}
-
-.lobby-v4-player-copy small {
-  font-size:.45rem !important;
-}
-
-.lobby-v4-add-player,
-.lobby-v4-empty-player {
-  min-height:58px !important;
-  margin:6px 7px 0 !important;
-  padding:6px 8px !important;
-  grid-template-columns:39px minmax(0,1fr) !important;
-  gap:7px !important;
-  border-radius:15px !important;
-}
-
-.lobby-v4-empty-player {
-  margin-bottom:0 !important;
-}
-
-.lobby-v4-plus {
-  width:36px !important;
-  height:36px !important;
-  font-size:1.25rem !important;
-}
-
-.lobby-v4-add-player strong {
-  font-size:.54rem !important;
-}
-
-.lobby-v4-add-player small,
-.lobby-v4-empty-player small {
-  font-size:.42rem !important;
-}
-
-.lobby-v4-invite {
-  min-height:54px !important;
-  padding:0 11px !important;
-  grid-template-columns:31px 1fr 12px !important;
-  gap:7px !important;
-  border-radius:17px !important;
-}
-
-.lobby-v4-invite-icon {
-  width:25px !important;
-  height:25px !important;
-  object-fit:contain !important;
-}
-
-.lobby-v4-invite strong {
-  font-size:.58rem !important;
-}
-
-/* ---------- Paramètres ---------- */
-
-.lobby-v4-settings {
-  padding-bottom:7px !important;
-}
-
-.lobby-v4-setting {
-  min-height:71px !important;
-  margin:0 7px 6px !important;
-  padding:7px 8px !important;
-  grid-template-columns:39px minmax(0,1fr) !important;
-  gap:7px !important;
-  border-radius:16px !important;
-}
-
-.lobby-v4-setting-icon {
-  width:31px !important;
-  height:31px !important;
-  justify-self:center !important;
-  align-self:center !important;
-}
-
-.lobby-v4-setting-icon.lightning {
-  width:30px !important;
-  height:30px !important;
-}
-
-.lobby-v4-setting-icon.difficulty {
-  width:35px !important;
-  height:35px !important;
-}
-
-.lobby-v4-setting-icon.categories {
-  width:31px !important;
-  height:31px !important;
-}
-
-.lobby-v4-setting-main {
-  min-width:0 !important;
-  display:flex !important;
-  flex-direction:column !important;
-  gap:5px !important;
-}
-
-.lobby-v4-setting-main > small {
-  margin:0 !important;
-  color:#aaa3d0 !important;
-  text-align:center !important;
-  font-size:.45rem !important;
-  line-height:1.1 !important;
-}
-
-.lobby-v4-stepper {
-  height:35px !important;
-  padding:0 5px !important;
-  border:1px solid #8a4cf5 !important;
-  border-radius:999px !important;
-  background:
-    linear-gradient(180deg,rgba(27,21,86,.86),rgba(10,24,76,.90)) !important;
-  grid-template-columns:24px minmax(0,1fr) 24px !important;
-  gap:5px !important;
-  box-shadow:
-    0 0 8px rgba(122,58,255,.08),
-    inset 0 0 9px rgba(80,47,174,.06) !important;
-}
-
-.lobby-v4-stepper button {
-  width:24px !important;
-  height:24px !important;
-  padding:0 !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  display:grid !important;
-  place-items:center !important;
-}
-
-.lobby-v4-stepper button img {
-  width:18px !important;
-  height:18px !important;
-  object-fit:contain !important;
-}
-
-.lobby-v4-stepper strong {
-  min-width:0 !important;
-  font-size:.61rem !important;
-  overflow:visible !important;
-  text-overflow:clip !important;
-}
-
-.lobby-v4-step-spacer {
-  width:24px !important;
-  height:24px !important;
-}
-
-/* ---------- Lancer ---------- */
-
-.lobby-v4-actions {
-  padding-top:7px !important;
-}
-
-.lobby-v4-start,
-.lobby-v4-wait-host {
-  width:244px !important;
-  min-height:47px !important;
-  border-radius:18px !important;
-  font-size:.67rem !important;
-}
-
-.lobby-v4-start {
-  border:1px solid #aa6cff !important;
-  background:linear-gradient(110deg,#7440ef,#a53cff) !important;
-  box-shadow:
-    0 0 16px rgba(137,56,255,.18),
-    inset 0 0 10px rgba(255,255,255,.05) !important;
-}
-
-.lobby-v4-start > span {
-  margin-right:7px !important;
-  font-size:.82rem !important;
-}
-
-/* ---------- Footer ---------- */
-
-.lobby-v4-footer {
-  position:absolute !important;
-  left:50% !important;
-  bottom:max(42px,calc(env(safe-area-inset-bottom) + 34px)) !important;
-  transform:translateX(-50%) !important;
-  width:max-content !important;
-  margin:0 !important;
-  z-index:6 !important;
-}
-
-.lobby-v4-footer img {
-  width:52px !important;
-  max-height:45px !important;
-}
-
-.lobby-v4-footer small {
-  margin-top:2px !important;
-  font-size:.43rem !important;
-}
-
-.lobby-v4-wave {
-  bottom:-59px !important;
-  height:94px !important;
-}
-
-/* ---------- Lettres décoratives ---------- */
-
-.lobby-v4-bg-letter {
-  position:absolute;
-  z-index:1;
-  pointer-events:none;
-  color:rgba(72,47,196,.20);
+.lobby-v5-player {
+  position:relative;
+  min-height:50px;
+  padding:5px 9px;
+  border:1px solid #2e4b98;
+  border-radius:13px;
+  background:rgba(8,31,82,.88);
+  display:grid;
+  grid-template-columns:39px minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+}
+.lobby-v5-avatar {width:38px;height:38px;}
+.lobby-v5-player-copy {min-width:0;}
+.lobby-v5-player-copy > div {display:flex;flex-direction:column;}
+.lobby-v5-player-copy strong {
+  font-size:.63rem;
   font-weight:900;
-  line-height:1;
-  user-select:none;
-}
-
-.lobby-v4-bg-a {
-  top:68px;
-  left:76px;
-  font-size:1.65rem;
-  transform:rotate(12deg);
-}
-
-.lobby-v4-bg-b {
-  top:26px;
-  right:31px;
-  font-size:1.75rem;
-  transform:rotate(-7deg);
-}
-
-.lobby-v4-bg-c {
-  top:76px;
-  right:98px;
-  font-size:1.30rem;
-  transform:rotate(-6deg);
-}
-
-.lobby-v4-bg-d {
-  top:121px;
-  left:37px;
-  font-size:1.55rem;
-  transform:rotate(-8deg);
-}
-
-.lobby-v4-bg-e {
-  bottom:92px;
-  right:77px;
-  font-size:1.45rem;
-  transform:rotate(-7deg);
-}
-
-/* Two extra bottom letters without extra markup */
-.lobby-v4::before,
-.lobby-v4::after {
-  position:absolute;
-  z-index:1;
-  pointer-events:none;
-  color:rgba(72,47,196,.20);
-  font-weight:900;
-  line-height:1;
-}
-
-.lobby-v4::before {
-  content:"B";
-  left:19px;
-  bottom:99px;
-  font-size:1.55rem;
-  transform:rotate(-9deg);
-}
-
-.lobby-v4::after {
-  content:"A";
-  right:20px;
-  bottom:104px;
-  font-size:1.45rem;
-  transform:rotate(8deg);
-}
-
-/* ---------- Phone tuning ---------- */
-
-@media (max-width:380px) {
-  .lobby-v4 {
-    padding-left:9px !important;
-    padding-right:9px !important;
-    gap:8px !important;
-  }
-
-  .lobby-v4-room-row {
-    grid-template-columns:minmax(0,1fr) 69px !important;
-    gap:6px !important;
-  }
-
-  .lobby-v4-code {
-    width:142px !important;
-    min-height:39px !important;
-  }
-
-  .lobby-v4-code strong {
-    font-size:.74rem !important;
-  }
-
-  .lobby-v4-code-wrap p {
-    font-size:.48rem !important;
-  }
-
-  .lobby-v4-grid {
-    gap:6px !important;
-  }
-
-  .lobby-v4-panel h2 {
-    font-size:.62rem !important;
-  }
-
-  .lobby-v4-setting {
-    min-height:65px !important;
-    grid-template-columns:34px minmax(0,1fr) !important;
-    gap:5px !important;
-    padding:6px !important;
-  }
-
-  .lobby-v4-setting-icon {
-    width:28px !important;
-    height:28px !important;
-  }
-
-  .lobby-v4-setting-icon.difficulty {
-    width:31px !important;
-    height:31px !important;
-  }
-
-  .lobby-v4-stepper {
-    grid-template-columns:22px minmax(0,1fr) 22px !important;
-    gap:4px !important;
-  }
-
-  .lobby-v4-stepper button,
-  .lobby-v4-step-spacer {
-    width:22px !important;
-    height:22px !important;
-  }
-
-  .lobby-v4-stepper button img {
-    width:16px !important;
-    height:16px !important;
-  }
-
-  .lobby-v4-start,
-  .lobby-v4-wait-host {
-    width:222px !important;
-    min-height:44px !important;
-  }
-}
-
-@media (max-height:720px) {
-  .lobby-v4 {
-    gap:7px !important;
-    padding-bottom:max(98px,calc(env(safe-area-inset-bottom) + 82px)) !important;
-  }
-
-  .lobby-v4-header {
-    min-height:44px !important;
-  }
-
-  .lobby-v4-code {
-    min-height:38px !important;
-  }
-
-  .lobby-v4-count {
-    min-height:54px !important;
-  }
-
-  .lobby-v4-setting {
-    min-height:61px !important;
-  }
-
-  .lobby-v4-player,
-  .lobby-v4-add-player,
-  .lobby-v4-empty-player {
-    min-height:52px !important;
-  }
-
-  .lobby-v4-invite {
-    min-height:48px !important;
-  }
-
-  .lobby-v4-actions {
-    padding-top:3px !important;
-  }
-
-  .lobby-v4-footer {
-    bottom:max(34px,calc(env(safe-area-inset-bottom) + 28px)) !important;
-  }
-
-  .lobby-v4-footer img {
-    width:46px !important;
-    max-height:39px !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V8 — centrage du code + colonnes ouvertes
-   ========================================================= */
-
-/* Code du salon vraiment centré sous le titre, indépendamment du compteur. */
-.lobby-v4-room-row {
-  position:relative !important;
-  display:block !important;
-  min-height:72px !important;
-  margin-top:1px !important;
-}
-
-.lobby-v4-code-wrap {
-  width:max-content !important;
-  max-width:calc(100% - 82px) !important;
-  margin:0 auto !important;
-}
-
-.lobby-v4-code {
-  width:132px !important;
-  min-height:35px !important;
-  padding:0 31px 0 13px !important;
-  position:relative !important;
-  gap:0 !important;
-}
-
-/* Le code est volontairement plus discret que le texte d'aide. */
-.lobby-v4-code strong {
-  width:100% !important;
-  text-align:center !important;
-  font-size:.50rem !important;
-  letter-spacing:.13em !important;
-}
-
-.lobby-v4-code img {
-  position:absolute !important;
-  right:10px !important;
-  top:50% !important;
-  transform:translateY(-50%) !important;
-  width:17px !important;
-  height:17px !important;
-}
-
-.lobby-v4-code-wrap p {
-  margin-top:6px !important;
-  font-size:.56rem !important;
-  font-weight:700 !important;
-}
-
-/* Compteur joueurs plus petit et plus léger visuellement. */
-.lobby-v4-count {
-  position:absolute !important;
-  right:0 !important;
-  top:0 !important;
-  width:62px !important;
-  min-height:51px !important;
-  border-radius:16px !important;
-}
-
-.lobby-v4-count strong {
-  font-size:.88rem !important;
-}
-
-.lobby-v4-count span {
-  margin-top:4px !important;
-  font-size:.43rem !important;
-}
-
-/* Supprime les gros cadres extérieurs des deux colonnes.
-   Les cartes internes restent bien visibles. */
-.lobby-v4-players-panel,
-.lobby-v4-settings {
-  border:0 !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-}
-
-.lobby-v4-players-panel {
-  padding-bottom:0 !important;
-}
-
-.lobby-v4-settings {
-  padding-bottom:0 !important;
-}
-
-/* Un peu plus d'air pour les titres sans le cadre extérieur. */
-.lobby-v4-players-panel > h2,
-.lobby-v4-settings > h2 {
-  padding-left:4px !important;
-  padding-right:4px !important;
-}
-
-/* Les cartes enfants utilisent toute la largeur disponible. */
-.lobby-v4-player-list {
-  padding-left:0 !important;
-  padding-right:0 !important;
-}
-
-.lobby-v4-add-player,
-.lobby-v4-empty-player,
-.lobby-v4-setting {
-  margin-left:0 !important;
-  margin-right:0 !important;
-}
-
-/* Point vert juste après le prénom. */
-.lobby-v4-player {
-  grid-template-columns:42px minmax(0,1fr) !important;
-}
-
-.lobby-v4-player.has-kick {
-  padding-right:35px !important;
-}
-
-.lobby-v4-player-name {
-  gap:5px !important;
-  justify-content:flex-start !important;
-}
-
-.lobby-v4-online {
-  position:static !important;
-  flex:0 0 auto !important;
-  width:7px !important;
-  height:7px !important;
-  margin:0 1px !important;
-}
-
-/* Bouton exclusion centré verticalement à droite. */
-.lobby-v4-kick {
-  top:50% !important;
-  right:8px !important;
-  transform:translateY(-50%) !important;
-  width:23px !important;
-  height:23px !important;
-  display:grid !important;
-  place-items:center !important;
-  padding:0 !important;
-  line-height:1 !important;
-}
-
-/* Ajustement compact pour téléphone étroit. */
-@media (max-width:380px) {
-  .lobby-v4-room-row {
-    min-height:68px !important;
-  }
-
-  .lobby-v4-code-wrap {
-    max-width:calc(100% - 72px) !important;
-  }
-
-  .lobby-v4-code {
-    width:122px !important;
-    min-height:33px !important;
-  }
-
-  .lobby-v4-code strong {
-    font-size:.47rem !important;
-  }
-
-  .lobby-v4-code-wrap p {
-    font-size:.51rem !important;
-  }
-
-  .lobby-v4-count {
-    width:56px !important;
-    min-height:47px !important;
-  }
-
-  .lobby-v4-count strong {
-    font-size:.82rem !important;
-  }
-
-  .lobby-v4-count span {
-    font-size:.40rem !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V9 — ajustements visuels demandés
-   Base : lobby-screen-v4.css actuel du GitHub
-   ========================================================= */
-
-/* 1) Bouton du code :
-   on garde EXACTEMENT sa forme et ses dimensions,
-   on agrandit uniquement le code et l'icône copie. */
-.lobby-v4-code strong {
-  font-size:.64rem !important;
-  letter-spacing:.13em !important;
-}
-
-.lobby-v4-code img {
-  width:21px !important;
-  height:21px !important;
-  right:8px !important;
-}
-
-/* 2) Bloc nombre de joueurs :
-   centré verticalement par rapport à l'ensemble code + texte. */
-.lobby-v4-count {
-  top:50% !important;
-  transform:translateY(-50%) !important;
-}
-
-/* 3) Cartes joueurs :
-   un peu plus compactes et légèrement moins larges afin
-   de créer davantage d'espace avec la colonne paramètres. */
-.lobby-v4-player-list {
-  padding-right:5px !important;
-}
-
-.lobby-v4-player {
-  min-height:51px !important;
-  padding-top:5px !important;
-  padding-bottom:5px !important;
-}
-
-.lobby-v4-avatar {
-  width:36px !important;
-  height:36px !important;
-}
-
-.lobby-v4-avatar img,
-.lobby-v4-avatar > span {
-  width:30px !important;
-  height:30px !important;
-  font-size:.92rem !important;
-}
-
-.lobby-v4-add-player,
-.lobby-v4-empty-player {
-  width:calc(100% - 5px) !important;
-  min-height:51px !important;
-  margin-right:5px !important;
-}
-
-.lobby-v4-plus {
-  width:32px !important;
-  height:32px !important;
-  font-size:1.10rem !important;
-}
-
-/* 4) Bouton lancer :
-   cadre plus petit, texte volontairement inchangé. */
-.lobby-v4-start,
-.lobby-v4-wait-host {
-  width:210px !important;
-  min-height:41px !important;
-  border-radius:17px !important;
-}
-
-.lobby-v4-start {
-  padding-left:16px !important;
-  padding-right:16px !important;
-}
-
-/* 5) Exit :
-   suppression complète du cadre autour du PNG. */
-.lobby-v4-leave-top {
-  border:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  border-radius:0 !important;
-  padding:0 !important;
-}
-
-.lobby-v4-leave-top img {
-  width:30px !important;
-  height:30px !important;
-  filter:drop-shadow(0 0 7px rgba(154,77,255,.24)) !important;
-}
-
-/* 6) Logo du jeu en bas :
-   force son affichage au-dessus des vagues avec le PNG GitHub existant. */
-.lobby-v4-footer {
-  display:flex !important;
-  visibility:visible !important;
-  opacity:1 !important;
-  z-index:20 !important;
-  bottom:max(48px,calc(env(safe-area-inset-bottom) + 40px)) !important;
-  pointer-events:none !important;
-}
-
-.lobby-v4-footer img {
-  display:block !important;
-  width:54px !important;
-  height:auto !important;
-  max-height:48px !important;
-  opacity:1 !important;
-}
-
-.lobby-v4-footer small {
-  display:block !important;
-  margin-top:2px !important;
-}
-
-/* Réglages téléphone étroit */
-@media (max-width:380px) {
-  .lobby-v4-code strong {
-    font-size:.59rem !important;
-  }
-
-  .lobby-v4-code img {
-    width:19px !important;
-    height:19px !important;
-  }
-
-  .lobby-v4-start,
-  .lobby-v4-wait-host {
-    width:196px !important;
-    min-height:39px !important;
-  }
-
-  .lobby-v4-footer img {
-    width:49px !important;
-    max-height:43px !important;
-  }
-}
-
-/* Le footer reste visible même sur les petits écrans en hauteur. */
-@media (max-height:680px) {
-  .lobby-v4-footer {
-    display:flex !important;
-    bottom:max(34px,calc(env(safe-area-inset-bottom) + 28px)) !important;
-  }
-
-  .lobby-v4-footer img {
-    width:44px !important;
-    max-height:38px !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V10 — ajustements après rendu IMG_2970
-   ========================================================= */
-
-/* 1) Icône exit plus grande, toujours sans cadre */
-.lobby-v4-leave-top {
-  width:42px !important;
-  height:42px !important;
-  border:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  padding:0 !important;
-}
-
-.lobby-v4-leave-top img {
-  width:38px !important;
-  height:38px !important;
-  object-fit:contain !important;
-}
-
-/* 2) Suppression complète du compteur joueurs en haut à droite */
-.lobby-v4-count {
-  display:none !important;
-}
-
-/* Le bloc code reprend tout l'espace disponible et reste parfaitement centré */
-.lobby-v4-room-row {
-  display:block !important;
-  min-height:70px !important;
-}
-
-.lobby-v4-code-wrap {
-  max-width:none !important;
-  width:max-content !important;
-  margin:0 auto !important;
-}
-
-/* 3) Bouton Inviter des amis : environ moitié moins haut */
-.lobby-v4-invite {
-  min-height:28px !important;
-  height:28px !important;
-  padding:0 8px !important;
-  grid-template-columns:20px 1fr 8px !important;
-  gap:5px !important;
-  border-radius:12px !important;
-}
-
-.lobby-v4-invite-icon {
-  width:17px !important;
-  height:17px !important;
-}
-
-.lobby-v4-invite strong {
-  font-size:.49rem !important;
-}
-
-.lobby-v4-invite b {
-  font-size:.90rem !important;
-}
-
-/* 4) Espace clair entre le bas des colonnes et Lancer la partie */
-.lobby-v4-actions {
-  margin-top:18px !important;
-  padding-top:0 !important;
-}
-
-/* Téléphones plus étroits */
-@media (max-width:380px) {
-  .lobby-v4-leave-top {
-    width:39px !important;
-    height:39px !important;
-  }
-
-  .lobby-v4-leave-top img {
-    width:35px !important;
-    height:35px !important;
-  }
-
-  .lobby-v4-invite {
-    min-height:27px !important;
-    height:27px !important;
-  }
-
-  .lobby-v4-actions {
-    margin-top:15px !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V11 — difficulté fluide + animation d’icône
-   ========================================================= */
-
-/* La case difficulté garde exactement la même géométrie
-   quel que soit le PNG affiché. */
-.lobby-v4-setting-categoryDifficulty {
-  contain:layout paint;
-}
-
-.lobby-v4-setting-categoryDifficulty .lobby-v4-setting-icon.difficulty {
-  width:35px !important;
-  height:35px !important;
-  min-width:35px !important;
-  min-height:35px !important;
-  max-width:35px !important;
-  max-height:35px !important;
-  aspect-ratio:1 / 1;
-  object-fit:contain !important;
-  transform-origin:center;
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
-  will-change:transform, opacity, filter;
-}
-
-/* Animation uniquement quand la difficulté change vraiment. */
-.lobby-v4-setting-categoryDifficulty.is-swapping .lobby-v4-setting-icon.difficulty {
-  animation:lobbyDifficultyIconSwap .32s cubic-bezier(.2,.8,.25,1) both;
-}
-
-.lobby-v4-setting-categoryDifficulty.is-swapping .lobby-v4-setting-value {
-  animation:lobbyDifficultyValueSwap .28s cubic-bezier(.2,.8,.25,1) both;
-}
-
-@keyframes lobbyDifficultyIconSwap {
-  0% {
-    opacity:.18;
-    transform:scale(.70) rotate(-9deg);
-    filter:drop-shadow(0 0 0 rgba(176,83,255,0));
-  }
-  62% {
-    opacity:1;
-    transform:scale(1.10) rotate(2deg);
-    filter:drop-shadow(0 0 9px rgba(176,83,255,.55));
-  }
-  100% {
-    opacity:1;
-    transform:scale(1) rotate(0);
-    filter:drop-shadow(0 0 4px rgba(146,70,255,.18));
-  }
-}
-
-@keyframes lobbyDifficultyValueSwap {
-  0% {
-    opacity:.25;
-    transform:translateY(4px) scale(.94);
-  }
-  70% {
-    opacity:1;
-    transform:translateY(-1px) scale(1.03);
-  }
-  100% {
-    opacity:1;
-    transform:translateY(0) scale(1);
-  }
-}
-
-/* Pas d’animation excessive si l’utilisateur préfère les mouvements réduits. */
-@media (prefers-reduced-motion: reduce) {
-  .lobby-v4-setting-categoryDifficulty.is-swapping .lobby-v4-setting-icon.difficulty,
-  .lobby-v4-setting-categoryDifficulty.is-swapping .lobby-v4-setting-value {
-    animation:none !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V12 — viewport verrouillé + espacement compact
-   ========================================================= */
-
-/* Bloque le lobby à la hauteur réelle/stable du téléphone.
-   100svh évite que Safari agrandisse/rétrécisse la page
-   quand ses barres changent de hauteur. */
-html:has(.lobby-v4),
-body:has(.lobby-v4),
-#app:has(.lobby-v4) {
-  width:100% !important;
-  height:100svh !important;
-  min-height:100svh !important;
-  max-height:100svh !important;
-  overflow:hidden !important;
-  overscroll-behavior:none !important;
-}
-
-body:has(.lobby-v4) {
-  position:fixed !important;
-  inset:0 !important;
-}
-
-.lobby-v4 {
-  position:fixed !important;
-  inset:0 !important;
-  width:min(100%,430px) !important;
-  height:100svh !important;
-  min-height:100svh !important;
-  max-height:100svh !important;
-  margin:0 auto !important;
-  overflow:hidden !important;
-  overscroll-behavior:none !important;
-  box-sizing:border-box !important;
-
-  /* Un peu moins de marge basse : le footer est déjà absolu. */
-  padding-bottom:max(82px,calc(env(safe-area-inset-bottom) + 70px)) !important;
-}
-
-/* Rapproche franchement le code des deux colonnes sans toucher
-   à la taille du bouton code ni au texte. */
-.lobby-v4-room-row {
-  min-height:55px !important;
-  margin-bottom:-7px !important;
-}
-
-.lobby-v4-grid {
-  margin-top:0 !important;
-}
-
-/* Empêche le footer et les vagues d'augmenter la hauteur calculée. */
-.lobby-v4-footer,
-.lobby-v4-wave,
-.lobby-v4-bg-letter {
-  pointer-events:none !important;
-}
-
-/* Les cartes restent compactes lorsque la hauteur disponible est faible. */
-@media (max-height:760px) {
-  .lobby-v4 {
-    gap:6px !important;
-    padding-bottom:max(72px,calc(env(safe-area-inset-bottom) + 62px)) !important;
-  }
-
-  .lobby-v4-room-row {
-    min-height:51px !important;
-    margin-bottom:-8px !important;
-  }
-
-  .lobby-v4-header {
-    min-height:41px !important;
-  }
-
-  .lobby-v4-setting {
-    min-height:55px !important;
-  }
-
-  .lobby-v4-player,
-  .lobby-v4-add-player,
-  .lobby-v4-empty-player {
-    min-height:47px !important;
-  }
-}
-
-/* Fallback pour navigateurs sans svh. */
-@supports not (height:100svh) {
-  html:has(.lobby-v4),
-  body:has(.lobby-v4),
-  #app:has(.lobby-v4),
-  .lobby-v4 {
-    height:100dvh !important;
-    min-height:100dvh !important;
-    max-height:100dvh !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V13 — typographies / sélecteurs / bouton lancer
-   ========================================================= */
-
-/* 1) Code du salon : texte x1,5 sans changer le cadre */
-.lobby-v4-code strong {
-  font-size:.96rem !important;
-  letter-spacing:.11em !important;
-}
-
-/* 2) Icône join à gauche de "Joueurs" plus grande */
-.lobby-v4-players-panel > h2 img {
-  width:30px !important;
-  height:30px !important;
-  flex:0 0 30px !important;
-  object-fit:contain !important;
-}
-
-/* 3) Paramètres : libellés plus lisibles */
-.lobby-v4-setting-main > small {
-  font-size:.56rem !important;
-  font-weight:700 !important;
-  margin-bottom:4px !important;
-}
-
-/* Sélecteurs plus petits en largeur/hauteur */
-.lobby-v4-stepper {
-  width:118px !important;
-  height:31px !important;
-  justify-self:center !important;
-  align-self:center !important;
-  padding:0 4px !important;
-  grid-template-columns:21px minmax(0,1fr) 21px !important;
-  gap:4px !important;
-}
-
-/* Valeur centrale plus grosse */
-.lobby-v4-stepper strong,
-.lobby-v4-setting-value {
-  font-size:.74rem !important;
-  font-weight:900 !important;
-  line-height:1 !important;
-}
-
-/* + / - restent nets dans le sélecteur plus compact */
-.lobby-v4-stepper button,
-.lobby-v4-step-spacer {
-  width:21px !important;
-  height:21px !important;
-}
-
-.lobby-v4-stepper button img {
-  width:16px !important;
-  height:16px !important;
-}
-
-/* 4) Plus d'espace avant Lancer la partie */
-.lobby-v4-actions {
-  margin-top:30px !important;
-  padding-top:0 !important;
-}
-
-/* 5) Bouton Lancer plus petit, texte plus gros */
-.lobby-v4-start,
-.lobby-v4-wait-host {
-  width:182px !important;
-  min-height:36px !important;
-  border-radius:15px !important;
-  font-size:.80rem !important;
-  font-weight:900 !important;
-}
-
-.lobby-v4-start {
-  padding-left:13px !important;
-  padding-right:13px !important;
-}
-
-.lobby-v4-start > span {
-  margin-right:6px !important;
-  font-size:.82rem !important;
-}
-
-/* Ajustements téléphone étroit */
-@media (max-width:380px) {
-  .lobby-v4-code strong {
-    font-size:.88rem !important;
-  }
-
-  .lobby-v4-players-panel > h2 img {
-    width:28px !important;
-    height:28px !important;
-    flex-basis:28px !important;
-  }
-
-  .lobby-v4-setting-main > small {
-    font-size:.52rem !important;
-  }
-
-  .lobby-v4-stepper {
-    width:108px !important;
-    height:29px !important;
-    grid-template-columns:20px minmax(0,1fr) 20px !important;
-  }
-
-  .lobby-v4-stepper strong,
-  .lobby-v4-setting-value {
-    font-size:.69rem !important;
-  }
-
-  .lobby-v4-stepper button,
-  .lobby-v4-step-spacer {
-    width:20px !important;
-    height:20px !important;
-  }
-
-  .lobby-v4-actions {
-    margin-top:25px !important;
-  }
-
-  .lobby-v4-start,
-  .lobby-v4-wait-host {
-    width:170px !important;
-    min-height:34px !important;
-    font-size:.75rem !important;
-  }
-}
-
-/* En faible hauteur on garde l'espace demandé,
-   mais sans dépasser le viewport verrouillé. */
-@media (max-height:760px) {
-  .lobby-v4-actions {
-    margin-top:22px !important;
-  }
-
-  .lobby-v4-stepper {
-    height:29px !important;
-  }
-
-  .lobby-v4-start,
-  .lobby-v4-wait-host {
-    min-height:34px !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V14 — avatars + fiche joueur + paramètres compacts
-   ========================================================= */
-
-/* Avatar : garde le cadre actuel, mais affiche l'image entière dedans. */
-.lobby-v4-avatar {
-  box-sizing:border-box !important;
-}
-
-.lobby-v4-avatar img {
-  width:calc(100% - 6px) !important;
-  height:calc(100% - 6px) !important;
-  max-width:calc(100% - 6px) !important;
-  max-height:calc(100% - 6px) !important;
-  object-fit:contain !important;
-  object-position:center !important;
-  border-radius:50% !important;
-  display:block !important;
-  margin:auto !important;
-}
-
-.lobby-v4-avatar > span {
-  width:calc(100% - 6px) !important;
-  height:calc(100% - 6px) !important;
-  max-width:calc(100% - 6px) !important;
-  max-height:calc(100% - 6px) !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  line-height:1 !important;
-  font-size:.86rem !important;
-  overflow:hidden !important;
-}
-
-/* Les cartes joueur sont maintenant cliquables sans changer leur taille. */
-.lobby-v4-player[data-lobby-player-profile] {
-  cursor:pointer !important;
-  outline:none !important;
-}
-
-.lobby-v4-player[data-lobby-player-profile]:focus-visible {
-  box-shadow:0 0 0 2px rgba(167,93,255,.55) !important;
-}
-
-/* Cadres individuels des paramètres plus petits. */
-.lobby-v4-setting {
-  min-height:48px !important;
-  padding:4px 7px !important;
-  margin-bottom:4px !important;
-  border-radius:14px !important;
-}
-
-.lobby-v4-setting-icon {
-  width:27px !important;
-  height:27px !important;
-}
-
-.lobby-v4-setting-icon.lightning,
-.lobby-v4-setting-icon.categories {
-  width:27px !important;
-  height:27px !important;
-}
-
-.lobby-v4-setting-icon.difficulty {
-  width:30px !important;
-  height:30px !important;
-  min-width:30px !important;
-  min-height:30px !important;
-  max-width:30px !important;
-  max-height:30px !important;
-}
-
-/* Fiche joueur */
-.lobby-player-modal-backdrop {
-  position:fixed !important;
-  inset:0 !important;
-  z-index:500 !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  padding:18px !important;
-  background:rgba(2,8,31,.66) !important;
-  backdrop-filter:blur(7px) !important;
-  -webkit-backdrop-filter:blur(7px) !important;
-}
-
-.lobby-player-modal {
-  position:relative !important;
-  width:min(100%,292px) !important;
-  padding:20px 18px 16px !important;
-  border:1.5px solid #7848ef !important;
-  border-radius:24px !important;
-  background:
-    radial-gradient(circle at 50% 0%,rgba(102,55,244,.17),transparent 43%),
-    linear-gradient(160deg,rgba(12,34,91,.99),rgba(6,22,65,.99)) !important;
-  box-shadow:
-    0 18px 55px rgba(0,0,0,.36),
-    0 0 25px rgba(121,60,255,.16) !important;
-  color:#fff !important;
-  text-align:center !important;
-}
-
-.lobby-player-modal-close {
-  position:absolute !important;
-  top:9px !important;
-  right:10px !important;
-  width:28px !important;
-  height:28px !important;
-  border:0 !important;
-  background:transparent !important;
-  color:#b98cff !important;
-  font-size:1.25rem !important;
-  line-height:1 !important;
-}
-
-.lobby-player-modal-avatar {
-  width:78px !important;
-  height:78px !important;
-  margin:3px auto 10px !important;
-  padding:4px !important;
-  border:3px solid #7047ea !important;
-  border-radius:50% !important;
-  background:linear-gradient(145deg,#7544ef,#282276) !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  box-shadow:0 0 20px rgba(124,70,255,.25) !important;
-  overflow:hidden !important;
-}
-
-.lobby-player-modal-avatar img {
-  width:100% !important;
-  height:100% !important;
-  object-fit:contain !important;
-  border-radius:50% !important;
-}
-
-.lobby-player-modal-avatar > span {
-  font-size:2.2rem !important;
-  line-height:1 !important;
-}
-
-.lobby-player-modal h2 {
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.lobby-v5-player-copy small {color:#a98dff;font-size:.46rem;margin-top:1px;}
+.lobby-v5-player-status {font-size:.50rem;white-space:nowrap;}
+.host-badge {
+  color:#d6a0ff;
+  border:1px solid #8345df;
+  border-radius:999px;
+  padding:5px 8px;
+  background:#351a6d;
+}
+.ready-badge {color:#48e0ae;font-weight:850;}
+.offline-badge {color:#8c85ac;}
+.lobby-v5-kick {
+  position:absolute;right:4px;top:4px;
+  width:19px;height:19px;
+  border:0;border-radius:50%;
+  background:#5c2142;color:#ff91ab;
+}
+.lobby-v5-empty-player {
+  min-height:48px;
+  padding:5px 10px;
+  border:1px dashed #3153a7;
+  border-radius:13px;
+  background:rgba(7,26,70,.44);
+  color:#8c8ab5;
+  display:flex;align-items:center;gap:10px;
+  text-align:left;
+  font-size:.49rem;
+}
+.lobby-v5-empty-player.readonly {pointer-events:none;}
+.lobby-v5-empty-plus {
+  width:30px;height:30px;
+  border:1px solid #3c57a8;
+  border-radius:50%;
+  display:grid;place-items:center;
+  color:#9c7dff;font-size:1rem;
+}
+
+/* ACTIONS */
+.lobby-v5-actions {
+  margin-top:auto;
+  display:grid;
+  grid-template-columns:1fr 1.08fr;
+  gap:9px;
+  z-index:5;
+}
+.lobby-v5-invite,.lobby-v5-start,.lobby-v5-wait-host {
+  min-height:46px;
+  border-radius:15px;
+}
+.lobby-v5-invite {
+  border:1.2px solid #7544df;
+  background:#0b2055;
+  color:white;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.lobby-v5-invite img {width:24px;height:24px;object-fit:contain;}
+.lobby-v5-invite strong {font-size:.56rem;}
+.lobby-v5-start {
+  border:1.2px solid #ef377c;
+  background:linear-gradient(100deg,#71134a,#9c1857);
+  color:#ff8ab8;
+  font-size:.59rem;font-weight:900;
+}
+.lobby-v5-start span {margin-right:7px;}
+.lobby-v5-start:disabled {opacity:.42;}
+.lobby-v5-wait-host {
+  grid-column:1 / -1;
+  border:1px solid #4653a7;
+  background:#0b2055;
+  color:#aaa1cb;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  font-size:.54rem;
+}
+
+/* PROFILE MODAL */
+.lobby-v5-profile-backdrop {
+  position:fixed;inset:0;z-index:120000;
+  background:rgba(2,7,28,.72);
+  display:grid;place-items:center;padding:18px;
+}
+.lobby-v5-profile-modal {
+  position:relative;
+  width:min(90vw,330px);
+  padding:21px;
+  border:1.3px solid #8647f0;
+  border-radius:23px;
+  background:#0a1b4b;
+  text-align:center;
+}
+.lobby-v5-profile-close {
+  position:absolute;right:12px;top:10px;
+  width:30px;height:30px;border:0;border-radius:10px;
+  background:#101d52;color:#c9a8ff;font-size:20px;
+}
+.lobby-v5-profile-avatar {width:78px;height:78px;margin:0 auto 10px;}
+.lobby-v5-profile-modal h2 {margin:0;font-size:1.1rem;}
+.lobby-v5-profile-modal > p {margin:4px 0 12px;color:#aaa1cb;font-size:.6rem;}
+.lobby-v5-profile-code {
+  padding:9px;border:1px solid #334d95;border-radius:13px;background:#071a49;
+  display:flex;flex-direction:column;
+}
+.lobby-v5-profile-code small {color:#8f87ad;font-size:.46rem;}
+.lobby-v5-profile-code strong {margin-top:3px;font-size:.72rem;color:#c3a4ff;}
+.lobby-v5-profile-self {margin-top:10px;color:#a99fca;font-size:.55rem;}
+.lobby-v5-profile-actions {display:grid;gap:7px;margin-top:10px;}
+.lobby-v5-profile-actions button {
+  min-height:40px;border:1px solid #7f48eb;border-radius:12px;background:#7131df;color:white;font-weight:850;
+}
+.lobby-v5-profile-actions button.danger {border-color:#be4268;background:#521a3b;color:#ff93b1;}
+
+/* Countdown : petit, transparent, fond visible */
+.lobby-start-countdown {
+  background:rgba(3,8,34,.18) !important;
+  -webkit-backdrop-filter:blur(1px) !important;
+  backdrop-filter:blur(1px) !important;
+}
+.lobby-start-countdown-card {
+  width:min(72vw,250px) !important;
+  min-height:150px !important;
+  padding:15px 16px 12px !important;
+  border:1.2px solid rgba(164,91,255,.76) !important;
+  border-radius:20px !important;
+  background:linear-gradient(155deg,rgba(18,34,87,.57),rgba(8,22,66,.48)) !important;
+  -webkit-backdrop-filter:blur(2px) !important;
+  backdrop-filter:blur(2px) !important;
+  box-shadow:0 12px 35px rgba(0,0,0,.16),0 0 18px rgba(134,58,255,.14) !important;
+}
+.lobby-start-countdown-card::before {
+  content:"";
+  width:27px;height:27px;
+  background:url("/lightning.png") center/contain no-repeat;
+  margin-bottom:4px;
+}
+.lobby-start-countdown-card small {display:none !important;}
+.lobby-start-countdown-card h2 {
   margin:0 !important;
-  font-size:1.15rem !important;
-  font-weight:900 !important;
+  font-size:.84rem !important;
+  line-height:1.12 !important;
+}
+#lobbyCountdownNumber {
+  min-width:62px !important;
+  min-height:66px !important;
+  font-size:3.45rem !important;
 }
 
-.lobby-player-modal-status {
-  margin:5px 0 13px !important;
-  color:#aaa5d1 !important;
-  font-size:.61rem !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:5px !important;
-}
+/* Footer */
+.lobby-v5 .ptb-shared-footer {z-index:1 !important;}
 
-.lobby-player-modal-status i {
-  width:7px !important;
-  height:7px !important;
-  border-radius:50% !important;
-  background:#706a8d !important;
-}
-
-.lobby-player-modal-status i.on {
-  background:#31da99 !important;
-}
-
-.lobby-player-modal-code {
-  padding:10px 12px !important;
-  border:1px solid #344fa8 !important;
-  border-radius:14px !important;
-  background:rgba(9,31,82,.76) !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  gap:10px !important;
-  text-align:left !important;
-}
-
-.lobby-player-modal-code small {
-  color:#aaa3d0 !important;
-  font-size:.52rem !important;
-}
-
-.lobby-player-modal-code strong {
-  color:#c9a4ff !important;
-  font-size:.73rem !important;
-  letter-spacing:.08em !important;
-}
-
-.lobby-player-modal-actions {
-  margin-top:12px !important;
-  display:grid !important;
-  gap:8px !important;
-}
-
-.lobby-player-modal-actions button {
-  min-height:39px !important;
-  border-radius:13px !important;
-  font-size:.62rem !important;
-  font-weight:850 !important;
-}
-
-.lobby-player-modal-actions .primary {
-  border:1px solid #9b62ff !important;
-  background:linear-gradient(110deg,#7440ec,#9e3df6) !important;
-  color:#fff !important;
-}
-
-.lobby-player-modal-actions .danger {
-  border:1px solid rgba(235,69,112,.62) !important;
-  background:rgba(153,31,71,.12) !important;
-  color:#ff7598 !important;
-}
-
-.lobby-player-modal-actions button:disabled {
-  opacity:.38 !important;
-}
-
-.lobby-player-modal-self {
-  margin-top:12px !important;
-  padding:9px 11px !important;
-  border-radius:12px !important;
-  background:rgba(21,40,94,.72) !important;
-  color:#aaa5cf !important;
-  font-size:.55rem !important;
-}
-
-@media (max-height:720px) {
-  .lobby-v4-setting {
-    min-height:44px !important;
-    padding-top:3px !important;
-    padding-bottom:3px !important;
-  }
-
-  .lobby-player-modal {
-    transform:scale(.94) !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V16 — colonne joueurs allégée + labels paramètres
-   ========================================================= */
-
-/* Le bloc vide "En attente d'un joueur" n'existe plus dans le DOM.
-   On supprime aussi tout espace résiduel éventuel. */
-.lobby-v4-empty-player {
-  display:none !important;
-}
-
-/* Le message n'apparaît qu'au-dessus de Lancer la partie
-   lorsque l'hôte est seul. */
-.lobby-v4-actions {
-  flex-direction:column !important;
-  align-items:center !important;
-}
-
-.lobby-v4-alone-wait {
-  display:block !important;
-  margin:0 0 7px !important;
-  color:#aaa4ce !important;
-  font-size:.48rem !important;
-  font-weight:650 !important;
-  line-height:1 !important;
-  text-align:center !important;
-}
-
-/* Descend légèrement le titre de chaque paramètre dans sa carte
-   sans déplacer les icônes ni agrandir le cadre. */
-.lobby-v4-setting-main > small {
-  position:relative !important;
-  top:4px !important;
-  margin-bottom:7px !important;
-}
-
-/* Garde les cartes compactes malgré le déplacement du label. */
-.lobby-v4-setting {
-  align-items:center !important;
-}
-
-@media (max-height:760px) {
-  .lobby-v4-setting-main > small {
-    top:3px !important;
-    margin-bottom:6px !important;
-  }
-
-  .lobby-v4-alone-wait {
-    margin-bottom:5px !important;
-    font-size:.45rem !important;
-  }
-}
-
-
-/* =========================================================
-   Salon V18 — avatar joueur plus compact
-   ========================================================= */
-
-/* Réduit uniquement le cadre rond de l'avatar dans la liste joueurs. */
-.lobby-v4-player {
-  grid-template-columns:34px minmax(0,1fr) !important;
-  gap:7px !important;
-}
-
-.lobby-v4-avatar {
-  width:30px !important;
-  height:30px !important;
-  border-width:1.5px !important;
-}
-
-/* L'image reste entièrement visible à l'intérieur du cercle. */
-.lobby-v4-avatar img {
-  width:24px !important;
-  height:24px !important;
-  max-width:24px !important;
-  max-height:24px !important;
-  object-fit:contain !important;
-}
-
-.lobby-v4-avatar > span {
-  width:24px !important;
-  height:24px !important;
-  max-width:24px !important;
-  max-height:24px !important;
-  font-size:.72rem !important;
-}
-
-/* Petit indicateur vert adapté au nouveau diamètre. */
-.lobby-v4-avatar > i {
-  right:-1px !important;
-  bottom:-1px !important;
-  width:7px !important;
-  height:7px !important;
-  border-width:1.5px !important;
+/* petits écrans */
+@media(max-height:760px) {
+  .lobby-v5 {gap:7px;padding-top:max(8px,env(safe-area-inset-top));}
+  .lobby-v5-host-card {min-height:65px;}
+  .lobby-v5-host-avatar {width:44px;height:44px;}
+  .lobby-v5-setting-card {min-height:80px;}
+  .lobby-v5-player {min-height:44px;}
+  .lobby-v5-empty-player {min-height:42px;}
+  .lobby-v5-actions {min-height:42px;}
 }
