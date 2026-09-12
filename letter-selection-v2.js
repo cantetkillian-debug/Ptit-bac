@@ -148,7 +148,6 @@
 
         ${selectedLetter ? `
           <section class="letter-v2-selected">
-            <small>Lettre sélectionnée</small>
             <strong>${escapeHtml(selectedLetter)}</strong>
           </section>
         ` : `
