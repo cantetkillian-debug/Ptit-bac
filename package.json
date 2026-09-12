@@ -1,12 +1,12 @@
 {
   "name": "petit-bac-soiree",
-  "version": "1.43.0",
+  "version": "1.43.1",
   "private": true,
   "description": "P'tit Bac multijoueur mobile — profils persistants, amis, chat, vies rechargeables et économie serveur.",
   "main": "server.js",
   "scripts": {
-    "start": "node -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js -r ./room-limit-hook.js -r ./player-report-hook.js -r ./admin-hook.js server.js",
-    "dev": "node -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js -r ./room-limit-hook.js -r ./player-report-hook.js -r ./admin-hook.js --watch server.js"
+    "start": "node -r ./ai-runtime-fix.js -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js -r ./room-limit-hook.js -r ./player-report-hook.js -r ./admin-hook.js server.js",
+    "dev": "node -r ./ai-runtime-fix.js -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js -r ./room-limit-hook.js -r ./player-report-hook.js -r ./admin-hook.js --watch server.js"
   },
   "engines": {
     "node": "22.x"
