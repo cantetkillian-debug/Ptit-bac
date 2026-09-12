@@ -3235,3 +3235,75 @@ body:has(.letter-v2-screen) .economy-hud {
     font-size:2.25rem !important;
   }
 }
+
+
+/* =========================================================
+   Tirage lettre V21 — le médaillon reste visible pendant le spin
+   ========================================================= */
+
+/* IMPORTANT :
+   les anciennes V10/V11 cachaient tout le centre pendant la rotation.
+   Ici on force le médaillon lui-même à rester affiché en permanence.
+*/
+.letter-v2-wheel-zone .letter-v2-wheel-center,
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel-center,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-wheel-center,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-center,
+.letter-v2-wheel-zone.is-wheel-landed .letter-v2-wheel-center {
+  display:block !important;
+  opacity:1 !important;
+  visibility:visible !important;
+
+  transform:translate(-50%,-50%) !important;
+
+  animation:none !important;
+  filter:none !important;
+
+  z-index:20 !important;
+}
+
+/* Le fond violet, le contour doré et les reflets restent visibles */
+.letter-v2-wheel-zone .letter-v2-wheel-center::before,
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel-center::before,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-wheel-center::before,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-center::before {
+  opacity:1 !important;
+  visibility:visible !important;
+}
+
+/* L'éclat décoratif n'apparaît qu'après le résultat */
+.letter-v2-wheel-zone .letter-v2-wheel-center::after,
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel-center::after,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-wheel-center::after,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-center::after {
+  opacity:0 !important;
+}
+
+/* Pendant la rotation, SEULS la couronne et la lettre sont cachés */
+.letter-v2-wheel-zone.is-dragging .letter-v2-center-crown,
+.letter-v2-wheel-zone.is-dragging #letterV2CenterLetter,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-center-crown,
+.letter-v2-wheel-zone.is-spinning-request #letterV2CenterLetter,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-center-crown,
+.letter-v2-wheel-zone.is-wheel-spinning #letterV2CenterLetter,
+.letter-v2-wheel-center.is-empty .letter-v2-center-crown,
+.letter-v2-wheel-center.is-empty #letterV2CenterLetter,
+.letter-v2-wheel-center.is-pending .letter-v2-center-crown,
+.letter-v2-wheel-center.is-pending #letterV2CenterLetter {
+  opacity:0 !important;
+  visibility:hidden !important;
+}
+
+/* Une fois arrêtée, la couronne + la lettre redeviennent visibles */
+.letter-v2-wheel-zone.is-wheel-landed .letter-v2-wheel-center.is-revealed .letter-v2-center-crown,
+.letter-v2-wheel-zone.is-wheel-landed .letter-v2-wheel-center.is-revealed #letterV2CenterLetter,
+.letter-v2-wheel-center.is-revealed .letter-v2-center-crown,
+.letter-v2-wheel-center.is-revealed #letterV2CenterLetter {
+  visibility:visible !important;
+}
+
+/* Le centre ne doit jamais tourner avec la roue */
+.letter-v2-wheel-center {
+  will-change:auto !important;
+  transform-origin:center !important;
+}
