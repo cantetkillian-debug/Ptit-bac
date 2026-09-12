@@ -1,91 +1,89 @@
 /* =========================================================
-   P'tit Bac — Footer commun V1
-   Profil / Amis / Messages / Salon / Sélection catégories
+   P'tit Bac — Footer commun V2
+   Footer collé au bas de l'écran sur toutes les pages
    ========================================================= */
 
 .ptb-shared-footer {
-  position:absolute !important;
-  left:0 !important;
-  right:0 !important;
-  bottom:-1px !important;
-  z-index:18 !important;
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 30 !important;
 
-  width:100% !important;
-  height:auto !important;
-  margin:0 !important;
-  padding:0 !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 
-  display:block !important;
-  pointer-events:none !important;
-  overflow:visible !important;
+  display: block !important;
+  pointer-events: none !important;
+  overflow: visible !important;
+
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
 }
 
 .ptb-shared-footer > img {
-  display:block !important;
-  width:100% !important;
-  height:auto !important;
-  max-width:none !important;
-  margin:0 !important;
-  object-fit:contain !important;
-  object-position:center bottom !important;
-  user-select:none !important;
-  -webkit-user-drag:none !important;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
 }
 
-/* Les pages gardent une réserve basse suffisante pour que le nouveau
-   footer ne masque jamais les derniers contrôles. */
+/* Réserve basse pour éviter tout chevauchement */
 .profile-v2-final {
-  padding-bottom:max(116px,calc(env(safe-area-inset-bottom) + 106px)) !important;
+  padding-bottom: max(132px, calc(env(safe-area-inset-bottom) + 122px)) !important;
 }
 
 .friends-v2 {
-  padding-bottom:max(122px,calc(env(safe-area-inset-bottom) + 112px)) !important;
+  padding-bottom: max(138px, calc(env(safe-area-inset-bottom) + 128px)) !important;
 }
 
 .chat-list-v1 {
-  padding-bottom:max(118px,calc(env(safe-area-inset-bottom) + 108px)) !important;
+  padding-bottom: max(136px, calc(env(safe-area-inset-bottom) + 126px)) !important;
 }
 
 .lobby-v4 {
-  padding-bottom:max(132px,calc(env(safe-area-inset-bottom) + 120px)) !important;
+  padding-bottom: max(146px, calc(env(safe-area-inset-bottom) + 134px)) !important;
 }
 
-/* Catégories : les deux boutons restent juste au-dessus du footer commun. */
+/* Catégories : boutons toujours au-dessus du footer */
 .cat-v2 .cat-v2-actions {
-  bottom:max(151px,calc(env(safe-area-inset-bottom) + 141px)) !important;
+  bottom: max(156px, calc(env(safe-area-inset-bottom) + 146px)) !important;
 }
 
 .cat-v2 .cat-v2-wait {
-  bottom:max(154px,calc(env(safe-area-inset-bottom) + 144px)) !important;
+  bottom: max(160px, calc(env(safe-area-inset-bottom) + 150px)) !important;
 }
 
-/* Footer légèrement plus compact sur les écrans peu hauts. */
-@media (max-height:720px) {
-  .ptb-shared-footer > img {
-    width:100% !important;
-  }
-
+@media (max-height: 720px) {
   .profile-v2-final {
-    padding-bottom:max(100px,calc(env(safe-area-inset-bottom) + 92px)) !important;
+    padding-bottom: max(112px, calc(env(safe-area-inset-bottom) + 102px)) !important;
   }
 
   .friends-v2 {
-    padding-bottom:max(104px,calc(env(safe-area-inset-bottom) + 95px)) !important;
+    padding-bottom: max(116px, calc(env(safe-area-inset-bottom) + 106px)) !important;
   }
 
   .chat-list-v1 {
-    padding-bottom:max(101px,calc(env(safe-area-inset-bottom) + 92px)) !important;
+    padding-bottom: max(114px, calc(env(safe-area-inset-bottom) + 104px)) !important;
   }
 
   .lobby-v4 {
-    padding-bottom:max(112px,calc(env(safe-area-inset-bottom) + 102px)) !important;
+    padding-bottom: max(122px, calc(env(safe-area-inset-bottom) + 112px)) !important;
   }
 
   .cat-v2 .cat-v2-actions {
-    bottom:max(126px,calc(env(safe-area-inset-bottom) + 116px)) !important;
+    bottom: max(132px, calc(env(safe-area-inset-bottom) + 122px)) !important;
   }
 
   .cat-v2 .cat-v2-wait {
-    bottom:max(130px,calc(env(safe-area-inset-bottom) + 120px)) !important;
+    bottom: max(136px, calc(env(safe-area-inset-bottom) + 126px)) !important;
   }
 }
