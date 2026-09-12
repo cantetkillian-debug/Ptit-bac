@@ -158,7 +158,10 @@
         <div class="ssv1-player-row">
           <div class="ssv1-player">
             <div class="ssv1-avatar">${playerAvatar(player)}</div>
-            <strong>${esc(player.name || "Joueur")}</strong>
+            <div class="ssv1-player-copy">
+              <strong>${esc(player.name || "Joueur")}</strong>
+              <small>${Number(player.score || 0)} pt${Number(player.score || 0) !== 1 ? "s" : ""}</small>
+            </div>
           </div>
           ${cells}
         </div>
