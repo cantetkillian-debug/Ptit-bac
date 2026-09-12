@@ -70,13 +70,16 @@
 
     const tick = now => {
       const t = clamp((now - started) / duration, 0, 1);
-      let eased = easeOutQuint(t);
+      // Garde une rotation visible jusqu'à la toute fin.
+      // L'ancienne courbe quintique donnait l'impression que la roue
+      // était déjà arrêtée avant l'affichage de la lettre.
+      const eased = 1 - Math.pow(1 - t, 3);
 
-      // Tiny rebound in the last 8%.
+      // Très léger rebond seulement sur les 3% finaux.
       let value = start + (target - start) * eased;
-      if (t > 0.92) {
-        const local = (t - 0.92) / 0.08;
-        value += Math.sin(local * Math.PI) * 1.8;
+      if (t > 0.97) {
+        const local = (t - 0.97) / 0.03;
+        value += Math.sin(local * Math.PI) * 0.65;
       }
 
       setRotation(value);
@@ -87,21 +90,16 @@
       }
 
       setRotation(target);
+
+      // Affiche la lettre sur la même frame que l'arrêt exact de la roue.
+      const center = document.getElementById("pbw1CenterLetter");
+      if (center) center.textContent = letter;
+
       runtime.animating = false;
       runtime.lastVersion = version;
       zone?.classList.remove("is-spinning");
       zone?.classList.add("is-landed");
       actions?.classList.add("is-visible");
-      const center = document.getElementById("pbw1CenterLetter");
-      if (center) center.textContent = "";
-
-      window.setTimeout(() => {
-        const liveCenter = document.getElementById("pbw1CenterLetter");
-        const liveState = session.state;
-        if (!liveCenter || !liveState || liveState.phase !== "letter_selection") return;
-        if (String(liveState.pendingLetter || "").slice(0, 1) !== letter) return;
-        liveCenter.textContent = letter;
-      }, 2000);
     };
 
     runtime.animationFrame = requestAnimationFrame(tick);
@@ -248,14 +246,7 @@
       } else {
         document.getElementById("pbw1Actions")?.classList.add("is-visible");
         const center = document.getElementById("pbw1CenterLetter");
-        if (center) center.textContent = "";
-        window.setTimeout(() => {
-          const liveCenter = document.getElementById("pbw1CenterLetter");
-          const liveState = session.state;
-          if (!liveCenter || !liveState || liveState.phase !== "letter_selection") return;
-          if (String(liveState.pendingLetter || "").slice(0, 1) !== selectedLetter) return;
-          liveCenter.textContent = selectedLetter;
-        }, 2000);
+        if (center) center.textContent = selectedLetter;
       }
     }
 
