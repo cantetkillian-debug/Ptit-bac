@@ -1481,3 +1481,90 @@ body:has(.letter-v2-screen) .economy-hud {
     gap:9px !important;
   }
 }
+
+
+/* =========================================================
+   P'tit Bac — Tirage lettre V7
+   Ajustements demandés
+   ========================================================= */
+
+/* Capsule pièces plus petite */
+.letter-v2-wallet {
+  min-width:68px !important;
+  height:34px !important;
+  padding:0 8px !important;
+  gap:5px !important;
+}
+.letter-v2-wallet img {
+  width:21px !important;
+  height:21px !important;
+}
+.letter-v2-wallet strong {
+  font-size:.72rem !important;
+}
+
+/* Joueur choisi : texte plus lisible */
+.letter-v2-chooser-copy small,
+.letter-v2-chooser-copy span {
+  font-size:.62rem !important;
+  line-height:1.08 !important;
+}
+.letter-v2-chooser-copy strong {
+  font-size:1.18rem !important;
+  line-height:1 !important;
+}
+
+/* "En attente de..." sans cadre + plus d'air sous la roue */
+.letter-v2-wait-status {
+  margin-top:24px !important;
+  padding:0 !important;
+  min-height:auto !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.letter-v2-wait-status > span {
+  width:9px !important;
+  height:9px !important;
+}
+.letter-v2-wait-status strong {
+  font-size:.60rem !important;
+}
+
+/* Relancer encore plus compact */
+.letter-v2-reroll {
+  min-width:92px !important;
+  max-width:106px !important;
+  width:auto !important;
+  height:30px !important;
+  min-height:30px !important;
+  padding:0 6px 0 9px !important;
+}
+.letter-v2-reroll b {
+  height:22px !important;
+  min-height:22px !important;
+  padding:0 5px !important;
+}
+.letter-v2-reroll b img {
+  width:15px !important;
+  height:15px !important;
+}
+
+/* Lettre + actions révélées 2 secondes après le tirage */
+.letter-v2-delayed-result.is-hidden {
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+  transform:translateY(5px) scale(.98) !important;
+}
+.letter-v2-delayed-result.is-revealed {
+  opacity:1 !important;
+  visibility:visible !important;
+  transform:translateY(0) scale(1) !important;
+  transition:
+    opacity .20s ease,
+    transform .20s ease !important;
+}

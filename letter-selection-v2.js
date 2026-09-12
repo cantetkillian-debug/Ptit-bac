@@ -134,7 +134,7 @@
         </section>
 
         ${selectedLetter ? `
-          <section class="letter-v2-selected">
+          <section class="letter-v2-selected letter-v2-delayed-result is-hidden">
             <strong>${escapeHtml(selectedLetter)}</strong>
           </section>
         ` : `
@@ -145,7 +145,7 @@
         `}
 
         ${isChooser && selectedLetter ? `
-          <section class="letter-v2-actions">
+          <section class="letter-v2-actions letter-v2-delayed-result is-hidden">
             <button
               class="letter-v2-reroll"
               id="letterV2Reroll"
@@ -172,6 +172,15 @@
         </footer>
       </main>
     `);
+
+    if (selectedLetter) {
+      setTimeout(() => {
+        document.querySelectorAll(".letter-v2-delayed-result").forEach(element => {
+          element.classList.remove("is-hidden");
+          element.classList.add("is-revealed");
+        });
+      }, 2000);
+    }
 
     const exitButton = document.getElementById("letterV2ExitBtn");
     exitButton?.addEventListener("click", () => {
