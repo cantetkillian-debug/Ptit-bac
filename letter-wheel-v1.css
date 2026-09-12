@@ -591,3 +591,23 @@ html.ptb-admin-infinite-coins .pbw1-wallet strong::after{
     min-height:52px !important;
   }
 }
+
+
+/* =========================================================
+   Letter Wheel V3
+   - lettre centrale révélée 2 s après l'arrêt
+   - bouton sortie sans cadre
+   ========================================================= */
+
+.pbw1-exit{
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  padding:4px !important;
+}
+
+.pbw1-exit img{
+  width:32px !important;
+  height:32px !important;
+}

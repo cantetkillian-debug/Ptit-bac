@@ -93,7 +93,15 @@
       zone?.classList.add("is-landed");
       actions?.classList.add("is-visible");
       const center = document.getElementById("pbw1CenterLetter");
-      if (center) center.textContent = letter;
+      if (center) center.textContent = "";
+
+      window.setTimeout(() => {
+        const liveCenter = document.getElementById("pbw1CenterLetter");
+        const liveState = session.state;
+        if (!liveCenter || !liveState || liveState.phase !== "letter_selection") return;
+        if (String(liveState.pendingLetter || "").slice(0, 1) !== letter) return;
+        liveCenter.textContent = letter;
+      }, 2000);
     };
 
     runtime.animationFrame = requestAnimationFrame(tick);
@@ -205,7 +213,7 @@
             </div>
 
             <div class="pbw1-center" id="pbw1Center">
-              <strong id="pbw1CenterLetter">${selectedLetter ? escapeHtml(selectedLetter) : ""}</strong>
+              <strong id="pbw1CenterLetter"></strong>
             </div>
           </div>
         </section>
@@ -239,6 +247,15 @@
         requestAnimationFrame(() => animateToLetter(selectedLetter, version));
       } else {
         document.getElementById("pbw1Actions")?.classList.add("is-visible");
+        const center = document.getElementById("pbw1CenterLetter");
+        if (center) center.textContent = "";
+        window.setTimeout(() => {
+          const liveCenter = document.getElementById("pbw1CenterLetter");
+          const liveState = session.state;
+          if (!liveCenter || !liveState || liveState.phase !== "letter_selection") return;
+          if (String(liveState.pendingLetter || "").slice(0, 1) !== selectedLetter) return;
+          liveCenter.textContent = selectedLetter;
+        }, 2000);
       }
     }
 
