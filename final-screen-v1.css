@@ -857,3 +857,110 @@ body:has(.fsv1-screen) .economy-hud{display:none!important}
   text-align:center !important;
   line-height:1.15 !important;
 }
+
+
+/* =========================================================
+   Fin de partie V6 — correction réelle des alignements
+   ========================================================= */
+
+/* 1) Réserve une vraie zone au portefeuille pour que le titre
+      ne puisse jamais remonter dessous, quelle que soit la hauteur iPhone */
+.fsv2-top{
+  min-height:78px !important;
+  height:78px !important;
+  display:flex !important;
+  align-items:flex-start !important;
+  justify-content:flex-end !important;
+}
+
+.fsv1-heading{
+  padding-top:0 !important;
+  margin:8px 0 12px !important;
+  position:relative !important;
+  z-index:2 !important;
+}
+
+.fsv1-podium{
+  margin-top:22px !important;
+}
+
+/* 2) Le vrai nom des lignes est .fsv1-row (et non .fsv1-ranking-row).
+      On impose exactement la même grille au header et aux valeurs. */
+.fsv1-ranking-head,
+.fsv1-row{
+  display:grid !important;
+  grid-template-columns:34px minmax(0,1fr) 72px 112px !important;
+  column-gap:6px !important;
+  align-items:center !important;
+}
+
+/* # */
+.fsv1-ranking-head > :nth-child(1),
+.fsv1-row > :nth-child(1){
+  justify-self:center !important;
+  text-align:center !important;
+}
+
+/* Joueur */
+.fsv1-ranking-head > :nth-child(2){
+  justify-self:start !important;
+  text-align:left !important;
+}
+
+/* Points : header et valeur sur le même axe */
+.fsv1-ranking-head > :nth-child(3),
+.fsv1-row > :nth-child(3){
+  width:100% !important;
+  justify-self:stretch !important;
+  text-align:center !important;
+}
+
+/* Pièces gagnées : header et valeur sur le même axe */
+.fsv1-ranking-head > :nth-child(4),
+.fsv1-row > :nth-child(4){
+  width:100% !important;
+  justify-self:stretch !important;
+  text-align:center !important;
+}
+
+/* Le gain lui-même ne doit plus se coller à droite */
+.fsv1-row-reward{
+  justify-content:center !important;
+  text-align:center !important;
+}
+
+/* 3) Retour accueil : texte vraiment centré, sans influence
+      d'anciens styles flex/grid ou pseudo-éléments */
+.fsv1-home{
+  display:grid !important;
+  place-items:center !important;
+  padding:0 16px !important;
+  text-align:center !important;
+}
+
+.fsv1-home span{
+  display:block !important;
+  width:auto !important;
+  height:auto !important;
+  margin:0 auto !important;
+  padding:0 !important;
+  text-align:center !important;
+  line-height:1.18 !important;
+  white-space:normal !important;
+}
+
+.fsv1-home svg,
+.fsv1-home img,
+.fsv1-home::before,
+.fsv1-home::after{
+  display:none !important;
+  content:none !important;
+}
+
+@media(max-width:370px){
+  .fsv1-ranking-head,
+  .fsv1-row{
+    grid-template-columns:30px minmax(0,1fr) 58px 94px !important;
+    column-gap:4px !important;
+  }
+}
