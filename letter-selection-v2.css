@@ -2380,3 +2380,166 @@ body:has(.letter-v2-screen) .economy-hud {
     transform:translateY(-3px) !important;
   }
 }
+
+
+/* =========================================================
+   Tirage lettre V14 — layout final
+   ========================================================= */
+
+/* Joueur sélectionné : texte plus grand et plus lisible */
+.letter-v2-chooser {
+  margin-top:10px !important;
+}
+
+.letter-v2-chooser-copy small {
+  font-size:.76rem !important;
+  line-height:1.05 !important;
+}
+
+.letter-v2-chooser-copy strong {
+  font-size:1.48rem !important;
+  line-height:.95 !important;
+  margin:1px 0 2px !important;
+}
+
+.letter-v2-chooser-copy span {
+  font-size:.79rem !important;
+  line-height:1.05 !important;
+  font-weight:800 !important;
+}
+
+/* Aucun texte sous la roue */
+.letter-v2-wait-status {
+  display:none !important;
+}
+
+/* Boutons remontés et rapprochés de la roue */
+.letter-v2-actions {
+  margin-top:18px !important;
+  transform:translateY(-12px) !important;
+  gap:14px !important;
+}
+
+/* Relancer un peu plus compact */
+.letter-v2-reroll {
+  min-width:104px !important;
+  max-width:114px !important;
+  height:31px !important;
+  min-height:31px !important;
+}
+
+/* Valider remonté, garde un bon poids visuel */
+.letter-v2-confirm {
+  width:min(70%,215px) !important;
+  min-height:45px !important;
+  height:45px !important;
+  font-size:.84rem !important;
+}
+
+/* Centre de roue parfaitement verrouillé */
+.letter-v2-wheel-center {
+  left:50% !important;
+  top:50% !important;
+  transform:translate(-50%,-50%) !important;
+
+  width:80px !important;
+  height:80px !important;
+
+  padding:0 !important;
+
+  display:block !important;
+  position:absolute !important;
+
+  overflow:hidden !important;
+}
+
+/* Couronne parfaitement centrée au-dessus de la lettre */
+.letter-v2-wheel-center img {
+  position:absolute !important;
+  left:50% !important;
+  top:12px !important;
+
+  width:24px !important;
+  height:24px !important;
+
+  margin:0 !important;
+
+  transform:translateX(-50%) !important;
+  object-fit:contain !important;
+}
+
+/* Lettre parfaitement centrée dans le disque */
+#letterV2CenterLetter {
+  position:absolute !important;
+
+  left:50% !important;
+  top:47px !important;
+
+  width:100% !important;
+
+  transform:translate(-50%,-50%) !important;
+
+  margin:0 !important;
+
+  text-align:center !important;
+
+  font-size:2.38rem !important;
+  line-height:1 !important;
+}
+
+/* Révélation : garde le centrage exact */
+.letter-v2-wheel-center.is-revealed img {
+  animation:letterV14CrownReveal .34s cubic-bezier(.2,.9,.22,1.14) both !important;
+}
+
+.letter-v2-wheel-center.is-revealed strong {
+  animation:letterV14LetterReveal .38s cubic-bezier(.16,.94,.2,1.16) .06s both !important;
+}
+
+@keyframes letterV14CrownReveal {
+  0% {
+    opacity:0;
+    transform:translateX(-50%) translateY(6px) scale(.72);
+  }
+  70% {
+    opacity:1;
+    transform:translateX(-50%) translateY(-1px) scale(1.08);
+  }
+  100% {
+    opacity:1;
+    transform:translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes letterV14LetterReveal {
+  0% {
+    opacity:0;
+    transform:translate(-50%,-50%) translateY(6px) scale(.65);
+    filter:blur(1.2px);
+  }
+  70% {
+    opacity:1;
+    transform:translate(-50%,-50%) translateY(-1px) scale(1.10);
+    filter:blur(0);
+  }
+  100% {
+    opacity:1;
+    transform:translate(-50%,-50%) translateY(0) scale(1);
+    filter:blur(0);
+  }
+}
+
+@media(max-height:760px) {
+  .letter-v2-chooser-copy strong {
+    font-size:1.28rem !important;
+  }
+
+  .letter-v2-chooser-copy span {
+    font-size:.69rem !important;
+  }
+
+  .letter-v2-actions {
+    margin-top:14px !important;
+    transform:translateY(-10px) !important;
+  }
+}

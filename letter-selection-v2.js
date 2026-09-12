@@ -239,7 +239,7 @@
           <div class="letter-v2-chooser-copy">
             <small>C’est à</small>
             <strong>${escapeHtml(chooserName)}</strong>
-            <span>de choisir la lettre</span>
+            <span>de lancer la roue</span>
           </div>
         </section>
 
@@ -273,11 +273,6 @@
             </div>
           </div>
         </section>
-
-        <div class="letter-v2-wait-status ${selectedLetter ? "has-result" : ""}">
-          ${selectedLetter ? "" : "<span></span>"}
-          <strong id="letterV2StatusText">En attente de ${escapeHtml(chooserName)} …</strong>
-        </div>
 
         ${isChooser && selectedLetter ? `
           <section class="letter-v2-actions letter-v2-delayed-result is-hidden">
@@ -317,12 +312,6 @@
       const center = document.getElementById("letterV2WheelCenter");
       center?.classList.remove("is-pending");
       center?.classList.add("is-revealed");
-
-      const statusText = document.getElementById("letterV2StatusText");
-      if (statusText) statusText.textContent = "Lettre tirée !";
-
-      const status = document.querySelector(".letter-v2-wait-status");
-      status?.classList.add("is-result");
 
       document.querySelectorAll(".letter-v2-delayed-result").forEach(element => {
         element.classList.remove("is-hidden");
