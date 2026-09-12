@@ -4130,3 +4130,62 @@ body:has(.letter-v2-screen) {
     gap:14px !important;
   }
 }
+
+
+/* =========================================================
+   V26 FINAL — résultat roue sans couronne + actions plus basses
+   Nettoyage après suppression des patchs V17 dans index.html
+   ========================================================= */
+
+/* Aucun élément couronne ne doit pouvoir apparaître au centre. */
+.letter-v2-fixed-center .letter-v2-center-crown,
+.letter-v2-wheel-center .letter-v2-center-crown {
+  display:none !important;
+}
+
+/* Lettre seule au centre du médaillon. */
+.letter-v2-fixed-center #letterV2CenterLetter,
+.letter-v2-wheel-center #letterV2CenterLetter {
+  left:50% !important;
+  top:50% !important;
+  width:100% !important;
+  margin:0 !important;
+  transform:translate(-50%,-50%) !important;
+  text-align:center !important;
+  font-size:2.9rem !important;
+}
+
+/* Descend clairement tout le groupe d'actions. */
+.letter-v2-actions {
+  position:relative !important;
+  top:30px !important;
+
+  margin-top:34px !important;
+  padding-top:0 !important;
+
+  transform:none !important;
+  gap:18px !important;
+}
+
+/* Relancer reste compact. */
+.letter-v2-reroll {
+  margin:0 !important;
+}
+
+/* Le bouton principal suit le groupe, sans ancien décalage. */
+.letter-v2-confirm {
+  margin:0 !important;
+}
+
+@media(max-height:760px) {
+  .letter-v2-fixed-center #letterV2CenterLetter,
+  .letter-v2-wheel-center #letterV2CenterLetter {
+    font-size:2.45rem !important;
+  }
+
+  .letter-v2-actions {
+    top:20px !important;
+    margin-top:24px !important;
+    gap:14px !important;
+  }
+}
