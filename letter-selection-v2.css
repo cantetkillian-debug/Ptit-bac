@@ -4077,3 +4077,56 @@ body:has(.letter-v2-screen) {
     font-size:.90rem !important;
   }
 }
+
+
+/* =========================================================
+   P'tit Bac — Tirage lettre V25
+   Résultat sans couronne + actions plus basses
+   ========================================================= */
+
+/* Enlève la couronne au centre quand la lettre est choisie */
+.letter-v2-center-crown {
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+}
+
+/* Recentrage de la lettre seule dans le médaillon */
+#letterV2CenterLetter {
+  top:50% !important;
+  left:50% !important;
+
+  transform:translate(-50%,-50%) !important;
+
+  font-size:2.9rem !important;
+  line-height:1 !important;
+}
+
+/* Descend les deux boutons sous la roue */
+.letter-v2-actions {
+  margin-top:42px !important;
+  transform:translateY(12px) !important;
+  gap:18px !important;
+}
+
+/* Garde le bouton relancer bien compact */
+.letter-v2-reroll {
+  margin-top:0 !important;
+}
+
+/* Descend légèrement le bouton principal lui aussi */
+.letter-v2-confirm {
+  margin-top:4px !important;
+}
+
+@media(max-height:760px) {
+  #letterV2CenterLetter {
+    font-size:2.45rem !important;
+  }
+
+  .letter-v2-actions {
+    margin-top:30px !important;
+    transform:translateY(8px) !important;
+    gap:14px !important;
+  }
+}
