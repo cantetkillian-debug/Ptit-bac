@@ -264,6 +264,7 @@
               class="letter-v2-wheel-center ${selectedLetter ? "is-pending" : "is-empty"}"
               id="letterV2WheelCenter"
             >
+              <img class="letter-v2-center-crown" src="/admin-crown.png" alt="">
               <strong id="letterV2CenterLetter">
                 ${selectedLetter ? escapeHtml(selectedLetter) : ""}
               </strong>
