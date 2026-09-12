@@ -3468,3 +3468,112 @@ body:has(.letter-v2-screen) .economy-hud {
     font-size:2.25rem !important;
   }
 }
+
+
+/* =========================================================
+   V23 — CORRECTIF DÉFINITIF DU CERCLE CENTRAL
+   Cause trouvée dans le CSS GitHub :
+   plusieurs anciennes versions modifient/masquent
+   .letter-v2-wheel-center pendant is-wheel-spinning.
+   Le disque noir est donc maintenant dessiné par le SHELL,
+   totalement indépendant du rotor et de l'état de rotation.
+   ========================================================= */
+
+.letter-v2-wheel-shell {
+  isolation:isolate !important;
+}
+
+/* Disque noir permanent : il n'appartient PAS à .letter-v2-wheel */
+.letter-v2-wheel-shell::after {
+  content:"" !important;
+  display:block !important;
+
+  position:absolute !important;
+  z-index:30 !important;
+  left:50% !important;
+  top:50% !important;
+
+  width:92px !important;
+  height:92px !important;
+
+  transform:translate(-50%,-50%) !important;
+
+  border:4px solid #f0b51b !important;
+  border-radius:50% !important;
+
+  background:
+    radial-gradient(circle at 42% 35%,#252525 0%,#101010 46%,#050505 100%) !important;
+
+  box-shadow:
+    0 0 0 2px rgba(255,211,72,.82),
+    0 0 14px rgba(255,184,25,.30),
+    inset 0 0 14px rgba(255,255,255,.055) !important;
+
+  opacity:1 !important;
+  visibility:visible !important;
+
+  pointer-events:none !important;
+}
+
+/* Même pendant le spin, le shell garde son disque central */
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel-shell::after,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-wheel-shell::after,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-shell::after,
+.letter-v2-wheel-zone.is-wheel-landed .letter-v2-wheel-shell::after {
+  display:block !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  transform:translate(-50%,-50%) !important;
+}
+
+/* L'ancien/nouveau conteneur central ne dessine plus son propre fond.
+   Il sert uniquement à placer le résultat AU-DESSUS du disque permanent. */
+.letter-v2-fixed-center,
+.letter-v2-wheel-center {
+  z-index:40 !important;
+
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+
+  opacity:1 !important;
+  visibility:visible !important;
+}
+
+/* Neutralise les pseudo-éléments des anciens médaillons */
+.letter-v2-fixed-center::before,
+.letter-v2-fixed-center::after,
+.letter-v2-wheel-center::before,
+.letter-v2-wheel-center::after {
+  display:none !important;
+}
+
+/* Pendant la rotation : seul le contenu du résultat est caché.
+   Le disque noir du ::after du shell reste affiché. */
+.letter-v2-wheel-zone.is-dragging .letter-v2-center-crown,
+.letter-v2-wheel-zone.is-dragging #letterV2CenterLetter,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-center-crown,
+.letter-v2-wheel-zone.is-spinning-request #letterV2CenterLetter,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-center-crown,
+.letter-v2-wheel-zone.is-wheel-spinning #letterV2CenterLetter,
+.letter-v2-fixed-center.is-empty .letter-v2-center-crown,
+.letter-v2-fixed-center.is-empty #letterV2CenterLetter,
+.letter-v2-fixed-center.is-pending .letter-v2-center-crown,
+.letter-v2-fixed-center.is-pending #letterV2CenterLetter {
+  opacity:0 !important;
+  visibility:hidden !important;
+}
+
+/* La lettre reste bien au-dessus du disque après l'arrêt */
+.letter-v2-fixed-center.is-revealed,
+.letter-v2-wheel-center.is-revealed {
+  opacity:1 !important;
+  visibility:visible !important;
+}
+
+@media(max-height:760px) {
+  .letter-v2-wheel-shell::after {
+    width:82px !important;
+    height:82px !important;
+  }
+}
