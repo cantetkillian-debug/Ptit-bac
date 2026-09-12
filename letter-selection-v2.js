@@ -272,7 +272,7 @@
         </section>
 
         ${isChooser && selectedLetter ? `
-          <section class="letter-v2-actions letter-v2-delayed-result is-hidden">
+          <section id="letterV2Actions" class="letter-v2-actions letter-v2-delayed-result is-hidden">
             <button
               class="letter-v2-reroll"
               id="letterV2Reroll"
@@ -305,8 +305,27 @@
       wheelRuntime.revealTimer = null;
     }
 
-    const revealLetterResult = () => {
+    const normalizeWheelCenter = () => {
       const center = document.getElementById("letterV2WheelCenter");
+      if (!center) return null;
+
+      let letter = document.getElementById("letterV2CenterLetter");
+      if (!letter) {
+        letter = document.createElement("strong");
+        letter.id = "letterV2CenterLetter";
+        center.replaceChildren(letter);
+      } else {
+        center.replaceChildren(letter);
+      }
+
+      letter.textContent = String(state.pendingLetter || selectedLetter || "").slice(0, 1);
+      return center;
+    };
+
+    normalizeWheelCenter();
+
+    const revealLetterResult = () => {
+      const center = normalizeWheelCenter();
       center?.classList.remove("is-pending");
       center?.classList.add("is-revealed");
 
