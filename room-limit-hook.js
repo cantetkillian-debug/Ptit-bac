@@ -22,14 +22,6 @@ Module._extensions[".js"] = function ptitBacRoomPatchLoader(module, filename) {
 
   let source = fs.readFileSync(filename, "utf8");
 
-  // Les parties sont gratuites en pièces.
-  // Ce hook est chargé après les autres hooks : il force donc la valeur finale
-  // utilisée par room:create, room:join et game:start à 0.
-  source = source.replace(
-    /const\s+GAME_COST\s*=\s*5\s*;/,
-    "const GAME_COST = 0;"
-  );
-
   source = source
     // Limite de joueurs
     .replace(
@@ -65,6 +57,19 @@ Module._extensions[".js"] = function ptitBacRoomPatchLoader(module, filename) {
       'avatar: p.avatar || "",\n    friendCode: p.friendCode || ""\n  };'
     );
 
+
+  // ============================================================
+  // Intégration admin — compatible avec economy-hook.js.
+  // ============================================================
+  source = source.replace(
+    'function walletBalance(token) {\n  return wallets.get(token)?.coins ?? 0;\n}',
+    'function walletBalance(token) {\n  if (global.__ptbInfiniteCoins?.has(token)) return 999999;\n  return wallets.get(token)?.coins ?? 0;\n}\n\nglobal.__ptbAdminSetCoins = (token, value) => {\n  const ensured = ensureWallet(token);\n  const target = Math.max(0, Math.min(999999, Math.floor(Number(value) || 0)));\n  ensured.wallet.coins = target;\n  ensured.wallet.updatedAt = Date.now();\n  persistWallet(ensured.token);\n  return target;\n};'
+  );
+
+  source = source.replace(
+    '  const safeDelta = Math.trunc(Number(delta) || 0);\n  const before = wallet.coins;',
+    '  const safeDelta = Math.trunc(Number(delta) || 0);\n  if (safeDelta < 0 && global.__ptbInfiniteCoins?.has(token)) {\n    return { balance: 999999, transaction: { type: "admin_infinite", delta: 0, before: 999999, after: 999999, at: Date.now() }, duplicate: false };\n  }\n  const before = wallet.coins;'
+  );
 
   // ============================================================
   // Départ volontaire d'un joueur pendant une partie.
@@ -263,5 +268,34 @@ io.on("connection", socket => {`
   });`
   );
 
-  module._compile(source, filename);
+  /*
+   * IMPORTANT :
+   * Ne compile pas server.js directement ici.
+   * Sinon economy-hook.js et les autres hooks chargés avant celui-ci
+   * ne voient jamais server.js et le jeu casse (coût 5 pièces, vies,
+   * création de salon, etc.).
+   *
+   * On expose temporairement notre version modifiée via fs.readFileSync,
+   * puis on laisse le loader précédent poursuivre la chaîne normalement.
+   */
+  const realReadFileSync = fs.readFileSync;
+  const targetFile = path.resolve(filename);
+
+  fs.readFileSync = function ptitBacPatchedRead(requestedPath, ...args) {
+    try {
+      if (path.resolve(String(requestedPath)) === targetFile) {
+        const encoding = args[0];
+        if (!encoding || encoding === "utf8" || encoding === "utf-8") {
+          return encoding ? source : Buffer.from(source, "utf8");
+        }
+      }
+    } catch {}
+    return realReadFileSync.call(fs, requestedPath, ...args);
+  };
+
+  try {
+    return originalJsLoader(module, filename);
+  } finally {
+    fs.readFileSync = realReadFileSync;
+  }
 };

@@ -1,7 +1,5 @@
 "use strict";
 
-const fs = require("fs");
-const Module = require("module");
 const crypto = require("crypto");
 const { Pool } = require("pg");
 const socketIo = require("socket.io");
@@ -84,25 +82,8 @@ async function applyFlags(token) {
   return s;
 }
 
-// Patch minimal du serveur historique : expose le wallet et empêche les débits
-// lorsque le propriétaire a activé "pièces infinies".
-const previousLoader = Module._extensions[".js"];
-Module._extensions[".js"] = function adminPatchLoader(mod, filename) {
-  if (filename.endsWith("server.js")) {
-    let source = fs.readFileSync(filename, "utf8");
-    source = source.replace(
-      'function walletBalance(token) {\n  return wallets.get(token)?.coins ?? 0;\n}',
-      'function walletBalance(token) {\n  if (global.__ptbInfiniteCoins?.has(token)) return 999999;\n  return wallets.get(token)?.coins ?? 0;\n}\n\nglobal.__ptbAdminSetCoins = (token, value) => {\n  const ensured = ensureWallet(token);\n  const target = Math.max(0, Math.min(999999, Math.floor(Number(value)||0)));\n  ensured.wallet.coins = target;\n  ensured.wallet.updatedAt = Date.now();\n  persistWallet(ensured.token);\n  return target;\n};'
-    );
-    source = source.replace(
-      '  const safeDelta = Math.trunc(Number(delta) || 0);\n  const before = wallet.coins;',
-      '  const safeDelta = Math.trunc(Number(delta) || 0);\n  if (safeDelta < 0 && global.__ptbInfiniteCoins?.has(token)) {\n    return { balance:999999, transaction:{ type:"admin_infinite", delta:0, before:999999, after:999999, at:Date.now() }, duplicate:false };\n  }\n  const before = wallet.coins;'
-    );
-    mod._compile(source, filename);
-    return;
-  }
-  previousLoader(mod, filename);
-};
+// Les adaptations de wallet sont appliquées par room-limit-hook.js,
+// afin de préserver la chaîne complète economy -> salon -> admin.
 
 const OriginalServer = socketIo.Server;
 class PtitBacAdminServer extends OriginalServer {
@@ -157,8 +138,23 @@ class PtitBacAdminServer extends OriginalServer {
             VALUES($1,$2,$3,now()) ON CONFLICT(wallet_token) DO UPDATE
             SET infinite_coins=$2,infinite_lives=$3,updated_at=now()`, [token,coins,lives]);
           await applyFlags(token);
-          socket.emit("wallet:update",{balance: coins ? 999999 : (global.__ptbAdminSetCoins ? global.__ptbAdminSetCoins(token, 999999) : 0)});
-          cb({ok:true,infiniteCoins:coins,infiniteLives:lives});
+
+          let balance = null;
+          if (coins) {
+            balance = global.__ptbAdminSetCoins?.(token, 999999) ?? 999999;
+          } else if (pool) {
+            const q = await pool.query(
+              "SELECT coins FROM ptitbac_wallets WHERE token=$1 LIMIT 1",
+              [token]
+            ).catch(() => ({ rows: [] }));
+            balance = Number(q.rows[0]?.coins ?? 0);
+          }
+
+          if (Number.isFinite(Number(balance))) {
+            socket.emit("wallet:update", { balance: Number(balance) });
+          }
+
+          cb({ok:true,infiniteCoins:coins,infiniteLives:lives,balance});
         } catch { cb({ok:false,error:"Modification impossible."}); }
       });
 
@@ -177,7 +173,10 @@ class PtitBacAdminServer extends OriginalServer {
           await pool.query(`INSERT INTO ptitbac_wallets(token,coins,created_at,updated_at,history)
             VALUES($1,$2,$3,$3,'[]'::jsonb)
             ON CONFLICT(token) DO UPDATE SET coins=$2,updated_at=$3`,[target,next,Date.now()]);
-          global.__ptbAdminSetCoins?.(target,next);
+          global.__ptbAdminSetCoins?.(target, next);
+
+          // Si le joueur est connecté au même serveur, son prochain wallet:update
+          // et les transactions utilisent immédiatement la nouvelle valeur mémoire.
           cb({ok:true,name:u.rows[0].username||"Joueur",balance:next});
         } catch { cb({ok:false,error:"Ajout de pièces impossible."}); }
       });

@@ -13,3 +13,86 @@
 .admin-v1-answer-report{display:block;margin:12px auto 120px;border:1px solid #7146d5;border-radius:999px;background:#0b1d52;color:#cbb6ff;padding:9px 15px;font-weight:800}
 .admin-v1-page{min-height:100dvh;padding:24px 20px 160px;background:radial-gradient(circle at 20% 0,#27216f55,transparent 30%),#071747;color:#fff}.admin-v1-page header{display:grid;grid-template-columns:45px 1fr 52px;align-items:center;gap:10px}.admin-v1-page header h1{margin:0;font-size:28px}.admin-v1-page header img{width:50px;height:50px;object-fit:contain}.admin-v1-back{width:42px;height:42px;border:1px solid #7743df;border-radius:13px;background:#0b2055;color:#c263ff;font-size:32px}.admin-v1-tabs{display:flex;gap:7px;overflow:auto;margin:20px 0 13px;padding-bottom:3px}.admin-v1-tabs button{white-space:nowrap;border:1px solid #38539b;border-radius:999px;background:#0b2055;color:#a9a2c8;padding:8px 11px;font-weight:800;font-size:11px}.admin-v1-tabs button.active{background:linear-gradient(90deg,#7535ee,#a83cff);color:white;border-color:#b362ff}.admin-v1-list{display:grid;gap:10px}.admin-v1-report{border:1px solid #304c94;border-radius:17px;background:#0b2055b8;padding:14px}.admin-v1-report-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.admin-v1-report time{font-size:9px;color:#817da4}.admin-v1-badge{font-size:9px;font-weight:900;letter-spacing:.08em;border-radius:999px;padding:5px 8px;background:#6333c5}.admin-v1-badge.report-avis{background:#175e73}.admin-v1-badge.report-joueur{background:#6b2e62}.admin-v1-report h3{font-size:14px;margin:10px 0 5px}.admin-v1-report h3 small{color:#ad74ff}.admin-v1-report p{font-size:12px;color:#d7d2ea;margin:5px 0}.admin-v1-report .admin-v1-context{color:#b985ff;font-weight:700}.admin-v1-report>small{color:#77739b;font-size:9px}.admin-v1-empty{text-align:center;color:#8d88ad;padding:45px 10px}
 @media(max-width:390px){.admin-v1-crown-btn{right:16px;width:48px;height:48px}.admin-v1-fields{grid-template-columns:1fr}.admin-v1-feedback-bubble{right:14px;bottom:105px}}
+
+
+/* =========================================================
+   Admin V2 — activation intégrée et couronne profil
+   ========================================================= */
+
+/* La couronne est uniquement une petite action de header, sans déplacer le titre. */
+.profile-v2-final .admin-v1-crown-btn {
+  top:max(15px,env(safe-area-inset-top)) !important;
+  right:14px !important;
+  width:45px !important;
+  height:45px !important;
+  padding:4px !important;
+  border:1px solid rgba(170,83,255,.72) !important;
+  border-radius:13px !important;
+  background:rgba(8,24,68,.72) !important;
+  box-shadow:
+    0 0 10px rgba(160,72,255,.38),
+    inset 0 0 9px rgba(136,67,255,.08) !important;
+}
+
+.profile-v2-final .admin-v1-crown-btn img {
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+}
+
+.admin-v1-activation .admin-v1-modal {
+  width:min(90vw,370px);
+  overflow:hidden;
+}
+
+.admin-v1-activation-brand img {
+  width:52px;
+  height:52px;
+}
+
+.admin-v1-code-label {
+  display:block;
+  color:#b8aed7;
+  font-size:11px;
+  font-weight:800;
+}
+
+.admin-v1-code-label input {
+  box-sizing:border-box;
+  width:100%;
+  height:48px;
+  margin-top:7px;
+  padding:0 14px;
+  border:1.2px solid #4c5ca7;
+  border-radius:14px;
+  outline:none;
+  background:#071a49;
+  color:white;
+  font:inherit;
+  font-size:14px;
+}
+
+.admin-v1-code-label input:focus {
+  border-color:#a454ff;
+  box-shadow:0 0 0 3px rgba(157,70,255,.13);
+}
+
+.admin-v1-inline-error {
+  margin:9px 2px 0;
+  color:#ff6f91;
+  font-size:11px;
+  font-weight:750;
+}
+
+.admin-v1-primary:disabled {
+  opacity:.55;
+  pointer-events:none;
+}
+
+@media(max-width:390px) {
+  .profile-v2-final .admin-v1-crown-btn {
+    right:10px !important;
+    width:42px !important;
+    height:42px !important;
+  }
+}

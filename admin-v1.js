@@ -110,6 +110,84 @@
     };
   }
 
+  function adminActivationModal() {
+    // Sécurité UX : cette fenêtre n'est accessible QUE depuis la page Mon profil.
+    if (!document.querySelector(".profile-v2-final") || state.admin) return;
+
+    const el = modal(`
+      <button class="admin-v1-x" type="button" aria-label="Fermer">×</button>
+      <div class="admin-v1-brand admin-v1-activation-brand">
+        <img src="/admin-crown.png" alt="">
+        <div>
+          <small>ACCÈS PRIVÉ</small>
+          <h2>Administration</h2>
+        </div>
+      </div>
+      <p class="admin-v1-sub">
+        Entre ton code administrateur pour lier ce compte à l'espace admin.
+      </p>
+
+      <label class="admin-v1-code-label">
+        Code administrateur
+        <input
+          id="adminActivationCode"
+          type="password"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          placeholder="••••••••"
+        >
+      </label>
+
+      <p id="adminActivationError" class="admin-v1-inline-error" hidden></p>
+
+      <button id="adminActivationValidate" class="admin-v1-primary" type="button">
+        Activer l'espace admin
+      </button>
+    `, "admin-v1-activation");
+
+    const input = el.querySelector("#adminActivationCode");
+    const error = el.querySelector("#adminActivationError");
+    const validate = el.querySelector("#adminActivationValidate");
+
+    el.querySelector(".admin-v1-x")?.addEventListener("click", () => el.remove());
+
+    const submit = async () => {
+      const code = String(input?.value || "").trim();
+      if (!code) {
+        error.hidden = false;
+        error.textContent = "Entre le code administrateur.";
+        return;
+      }
+
+      validate.disabled = true;
+      error.hidden = true;
+
+      const r = await emit("admin:claim", { code });
+
+      if (!r.ok) {
+        validate.disabled = false;
+        error.hidden = false;
+        error.textContent = r.error || "Activation impossible.";
+        return;
+      }
+
+      el.remove();
+      toast("Espace administrateur activé.");
+      await refreshAdmin();
+
+      // Reste sur Mon profil et affiche immédiatement la couronne.
+      if (document.querySelector(".profile-v2-final")) decorate();
+    };
+
+    validate?.addEventListener("click", submit);
+    input?.addEventListener("keydown", event => {
+      if (event.key === "Enter") submit();
+    });
+
+    setTimeout(() => input?.focus(), 120);
+  }
+
   function decorate() {
     const root=document.querySelector(".profile-v2-final");
     if(root && state.admin && !root.querySelector(".admin-v1-crown-btn")) {
@@ -131,19 +209,28 @@
     }
   }
 
-  // Activation initiale sécurisée : 7 appuis sur l'ID du profil ouvrent le prompt.
-  // Le serveur n'accepte le code PTITBAC_ADMIN_CODE qu'une fois et lie ensuite l'admin au wallet.
-  let taps=0,tapTimer=null;
-  document.addEventListener("click",e=>{
-    if(!e.target.closest("#profileV2CopyId") || state.admin) return;
-    taps++; clearTimeout(tapTimer); tapTimer=setTimeout(()=>taps=0,1800);
-    if(taps>=7){
-      taps=0;
-      const code=prompt("Code administrateur");
-      if(!code) return;
-      emit("admin:claim",{code}).then(r=>{ if(r.ok){toast("Administrateur activé.");refreshAdmin();} else toast(r.error||"Activation impossible."); });
+  // Activation initiale :
+  // 7 appuis rapides sur l'ID, uniquement quand la page Mon profil est affichée.
+  // Aucun prompt() navigateur n'est utilisé.
+  let taps = 0;
+  let tapTimer = null;
+
+  document.addEventListener("click", event => {
+    const idButton = event.target.closest("#profileV2CopyId");
+    const onProfilePage = !!document.querySelector(".profile-v2-final");
+
+    if (!idButton || !onProfilePage || state.admin) return;
+
+    taps += 1;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => { taps = 0; }, 1800);
+
+    if (taps >= 7) {
+      taps = 0;
+      clearTimeout(tapTimer);
+      adminActivationModal();
     }
-  },true);
+  }, true);
 
   const obs=new MutationObserver(()=>decorate());
   obs.observe(document.getElementById("app"),{childList:true,subtree:true});
