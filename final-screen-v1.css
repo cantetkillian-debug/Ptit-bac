@@ -803,3 +803,57 @@ body:has(.fsv1-screen) .economy-hud{display:none!important}
   width:100% !important;
   text-align:center !important;
 }
+
+
+/* =========================================================
+   Fin de partie V5 — alignements
+   ========================================================= */
+
+/* Descend le titre et le podium pour éviter le bloc pièces */
+.fsv1-heading{
+  padding-top:34px !important;
+  margin-top:18px !important;
+}
+.fsv1-podium{
+  margin-top:18px !important;
+}
+
+/* Tableau : Points et Pièces gagnées parfaitement centrés
+   sur les mêmes axes que leurs valeurs */
+.fsv1-ranking-head,
+.fsv1-ranking-row{
+  grid-template-columns: 42px minmax(0,1fr) 88px 128px !important;
+}
+
+.fsv1-ranking-head > :nth-child(3),
+.fsv1-ranking-row > :nth-child(3){
+  text-align:center !important;
+  justify-self:stretch !important;
+  align-self:center !important;
+}
+
+.fsv1-ranking-head > :nth-child(4),
+.fsv1-ranking-row > :nth-child(4){
+  text-align:center !important;
+  justify-self:stretch !important;
+  align-self:center !important;
+}
+
+/* Bouton retour accueil : centrage absolu du libellé */
+.fsv1-home{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:0 18px !important;
+  text-align:center !important;
+}
+.fsv1-home span{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:100% !important;
+  height:100% !important;
+  margin:0 !important;
+  text-align:center !important;
+  line-height:1.15 !important;
+}
