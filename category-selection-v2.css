@@ -637,3 +637,154 @@ body:has(.cat-v2) [data-economy-hud] {
     max-height:100dvh !important;
   }
 }
+
+
+/* =========================================================
+   Sélection catégories V3 — recadrage page + cartes uniformes
+   ========================================================= */
+
+/* 1) Verrouille l'écran à la vraie hauteur du téléphone.
+   Cela supprime le grand vide qui repoussait toute la page vers le bas. */
+html:has(.cat-v2),
+body:has(.cat-v2),
+#app:has(.cat-v2) {
+  width:100% !important;
+  height:100svh !important;
+  min-height:100svh !important;
+  max-height:100svh !important;
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+}
+
+body:has(.cat-v2) {
+  position:fixed !important;
+  inset:0 !important;
+}
+
+.cat-v2 {
+  position:fixed !important;
+  inset:0 !important;
+  width:min(100%,430px) !important;
+  height:100svh !important;
+  min-height:100svh !important;
+  max-height:100svh !important;
+  margin:0 auto !important;
+  justify-content:flex-start !important;
+  align-content:flex-start !important;
+  overflow:hidden !important;
+
+  /* footer absolu : pas besoin d'une énorme réserve basse */
+  padding-bottom:max(66px,calc(env(safe-area-inset-bottom) + 58px)) !important;
+}
+
+/* Le haut de page reste compact et commence immédiatement. */
+.cat-v2-top {
+  flex:0 0 auto !important;
+  margin:0 !important;
+}
+
+.cat-v2-copy {
+  flex:0 0 auto !important;
+  margin:0 !important;
+}
+
+.cat-v2-grid {
+  flex:0 0 auto !important;
+}
+
+/* Les actions ne doivent plus créer un gros espace vertical. */
+.cat-v2-actions {
+  margin-top:8px !important;
+  flex:0 0 auto !important;
+}
+
+/* 2) Toutes les cartes ont maintenant exactement la même couleur.
+   Suppression des deux cartes violettes. */
+.cat-v2-card:nth-child(1),
+.cat-v2-card:nth-child(4) {
+  border-color:#445cc3 !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(61,65,178,.10),transparent 64%),
+    linear-gradient(145deg,rgba(9,35,94,.98),rgba(7,27,76,.98)) !important;
+  box-shadow:
+    inset 0 0 18px rgba(71,63,188,.04),
+    0 4px 16px rgba(0,0,0,.08) !important;
+}
+
+/* 3) Relancer le tirage : environ deux fois moins haut.
+   Le titre et le prix passent sur la même ligne. */
+.cat-v2-reroll {
+  min-height:46px !important;
+  height:46px !important;
+  padding:5px 10px !important;
+  border-radius:16px !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  grid-template-rows:1fr !important;
+  place-items:center stretch !important;
+  column-gap:8px !important;
+  row-gap:0 !important;
+}
+
+.cat-v2-reroll-title {
+  justify-content:flex-start !important;
+  gap:6px !important;
+  font-size:.70rem !important;
+  white-space:nowrap !important;
+}
+
+.cat-v2-reroll-icon {
+  font-size:1.05rem !important;
+}
+
+.cat-v2-cost {
+  width:72px !important;
+  height:29px !important;
+  justify-self:end !important;
+}
+
+.cat-v2-cost img {
+  width:19px !important;
+  height:19px !important;
+}
+
+.cat-v2-cost strong {
+  font-size:.72rem !important;
+}
+
+/* Le sous-texte est retiré du cadre compact. */
+.cat-v2-reroll > small {
+  display:none !important;
+}
+
+/* Le bouton Continuer reste juste sous Relancer. */
+.cat-v2-confirm {
+  margin-top:0 !important;
+}
+
+/* Ajustements hauteur faible */
+@media (max-height:760px) {
+  .cat-v2 {
+    gap:6px !important;
+    padding-bottom:max(58px,calc(env(safe-area-inset-bottom) + 52px)) !important;
+  }
+
+  .cat-v2-actions {
+    margin-top:5px !important;
+  }
+
+  .cat-v2-reroll {
+    min-height:42px !important;
+    height:42px !important;
+  }
+}
+
+@supports not (height:100svh) {
+  html:has(.cat-v2),
+  body:has(.cat-v2),
+  #app:has(.cat-v2),
+  .cat-v2 {
+    height:100dvh !important;
+    min-height:100dvh !important;
+    max-height:100dvh !important;
+  }
+}
