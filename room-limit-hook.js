@@ -22,6 +22,14 @@ Module._extensions[".js"] = function ptitBacRoomPatchLoader(module, filename) {
 
   let source = fs.readFileSync(filename, "utf8");
 
+  // Les parties sont gratuites en pièces.
+  // Ce hook est chargé après les autres hooks : il force donc la valeur finale
+  // utilisée par room:create, room:join et game:start à 0.
+  source = source.replace(
+    /const\s+GAME_COST\s*=\s*5\s*;/,
+    "const GAME_COST = 0;"
+  );
+
   source = source
     // Limite de joueurs
     .replace(

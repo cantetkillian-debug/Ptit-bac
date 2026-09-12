@@ -6,11 +6,23 @@
       /^data:image\/(?:png|jpeg|webp);base64,/i.test(value);
   }
 
-  // Le serveur est déjà à 0 pièce via economy-hook.js.
-  // On retire ici le dernier blocage client basé sur GAME_COST = 5.
+  // Les parties ne coûtent plus aucune pièce.
+  // Le contrôle client est volontairement toujours positif.
   const freeGameCheck = () => true;
   window.canAffordGame = freeGameCheck;
   try { canAffordGame = freeGameCheck; } catch {}
+
+  // Compatibilité avec une ancienne réponse serveur encore en cache :
+  // on n'affiche jamais un message demandant 5 pièces pour créer/rejoindre.
+  const originalToast = typeof toast === "function" ? toast : null;
+  if (originalToast) {
+    const freeToast = message => {
+      const text = String(message || "");
+      if (/5\s*pi[eè]ces?\s+pour\s+jouer/i.test(text)) return;
+      originalToast(message);
+    };
+    try { toast = freeToast; } catch {}
+  }
 
   // Remplace le rendu historique des avatars :
   // une image importée est maintenant une vraie balise <img>,

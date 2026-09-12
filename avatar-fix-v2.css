@@ -116,3 +116,145 @@
     min-height:104px !important;
   }
 }
+
+
+/* =========================================================
+   Avatar V3 — cadre carré fin néon + image agrandie
+   ========================================================= */
+
+/* Accueil : remplace le gros cercle par un cadre carré compact. */
+.home-plaque-avatar {
+  width:54px !important;
+  height:54px !important;
+  min-width:54px !important;
+  min-height:54px !important;
+  flex:0 0 54px !important;
+
+  border:1.5px solid #9b55ff !important;
+  border-radius:11px !important;
+  background:linear-gradient(145deg,rgba(26,22,78,.96),rgba(9,23,66,.98)) !important;
+
+  box-shadow:
+    0 0 7px rgba(158,76,255,.72),
+    0 0 18px rgba(118,58,255,.24),
+    inset 0 0 8px rgba(139,73,255,.10) !important;
+
+  overflow:hidden !important;
+  place-items:center !important;
+}
+
+/* L'image importée est nettement plus grande, sans déborder ni se décaler. */
+.home-plaque-avatar > .home-plaque-avatar-photo {
+  position:absolute !important;
+  inset:50% auto auto 50% !important;
+
+  width:88% !important;
+  height:88% !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  max-width:88% !important;
+  max-height:88% !important;
+
+  transform:translate(-50%,-50%) !important;
+
+  object-fit:contain !important;
+  object-position:center center !important;
+  border-radius:5px !important;
+  display:block !important;
+}
+
+/* Avatar emoji de l'accueil : même cadre carré, contenu recentré. */
+.home-plaque-avatar > span {
+  width:88% !important;
+  height:88% !important;
+  border-radius:6px !important;
+  display:grid !important;
+  place-items:center !important;
+  background:transparent !important;
+}
+
+/* Point de présence remis proprement dans l'angle du nouveau cadre. */
+.home-plaque-avatar > i {
+  right:-1px !important;
+  bottom:-1px !important;
+  width:10px !important;
+  height:10px !important;
+  border:2px solid #071747 !important;
+}
+
+/* Profil : le grand avatar personnel suit le même langage visuel. */
+.profile-v2-avatar {
+  width:120px !important;
+  height:120px !important;
+  min-width:120px !important;
+  min-height:120px !important;
+
+  border:1.5px solid #9b55ff !important;
+  border-radius:18px !important;
+  background:linear-gradient(145deg,rgba(30,23,91,.97),rgba(12,25,70,.98)) !important;
+
+  box-shadow:
+    0 0 10px rgba(157,76,255,.65),
+    0 0 26px rgba(117,56,255,.25),
+    inset 0 0 14px rgba(141,78,255,.10) !important;
+
+  overflow:hidden !important;
+}
+
+.profile-v2-avatar > .profile-v2-avatar-photo {
+  width:88% !important;
+  height:88% !important;
+  max-width:88% !important;
+  max-height:88% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:10px !important;
+}
+
+/* Les photos visibles par les autres joueurs restent plus grandes,
+   mais toujours entièrement visibles et parfaitement centrées. */
+.friends-v2-avatar-img,
+.chat-avatar-img,
+.lobby-v4-avatar img,
+.lobby-player-modal-avatar img,
+.avatar.ptb-avatar-photo > img {
+  width:82% !important;
+  height:82% !important;
+  max-width:82% !important;
+  max-height:82% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+}
+
+/* Code ami / ID : ajout visuel du # devant tous les codes affichés. */
+.profile-v2-id::before,
+.friends-v2-code strong::before,
+.friends-v3-friend-code strong::before,
+.friends-v2-card.request small::before {
+  content:"#";
+}
+
+/* Le # suit exactement la couleur et l'espacement du code. */
+.profile-v2-id::before,
+.friends-v2-code strong::before,
+.friends-v3-friend-code strong::before {
+  margin-right:1px;
+  color:inherit;
+}
+
+@media (max-height:680px) {
+  .home-plaque-avatar {
+    width:50px !important;
+    height:50px !important;
+    min-width:50px !important;
+    min-height:50px !important;
+    flex-basis:50px !important;
+  }
+
+  .profile-v2-avatar {
+    width:108px !important;
+    height:108px !important;
+    min-width:108px !important;
+    min-height:108px !important;
+  }
+}
