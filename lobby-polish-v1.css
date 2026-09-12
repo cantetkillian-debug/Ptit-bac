@@ -60,3 +60,6 @@
   from { transform:scale(.82); opacity:.6; }
   to { transform:scale(1.12); opacity:1; }
 }
+
+/* V9 final */
+.lobby-start-countdown-card small {display:none !important;}

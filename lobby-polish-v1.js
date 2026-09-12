@@ -5,9 +5,11 @@
   let countdownFinishTimer = null;
   let countdownActive = false;
   let countdownCode = "";
+  let countdownAudio = null;
+  let lastCountdownValue = "";
 
   function isLobbyVisible() {
-    return !!document.querySelector(".lobby-v4");
+    return !!document.querySelector(".lobby-v5");
   }
 
   function currentPlayer() {
@@ -25,6 +27,16 @@
     countdownFinishTimer = null;
     countdownActive = false;
     countdownCode = "";
+    lastCountdownValue = "";
+
+    if (countdownAudio) {
+      try {
+        countdownAudio.pause();
+        countdownAudio.currentTime = 0;
+      } catch {}
+      countdownAudio = null;
+    }
+
     document.getElementById("lobbyStartCountdown")?.remove();
   }
 
@@ -39,9 +51,20 @@
     overlay.setAttribute("aria-live", "assertive");
     overlay.innerHTML = `
       <div class="lobby-start-countdown-card">
-        <small>PRÉPAREZ-VOUS</small>
+        <div class="lobby-countdown-rocket" aria-hidden="true">🚀</div>
         <h2>La partie commence dans</h2>
-        <strong id="lobbyCountdownNumber">3</strong>
+
+        <div class="lobby-countdown-ring" aria-hidden="true">
+          <div class="lobby-countdown-ring-track"></div>
+          <div class="lobby-countdown-ring-glow"></div>
+          <strong id="lobbyCountdownNumber">3</strong>
+          <i class="spark s1"></i>
+          <i class="spark s2"></i>
+          <i class="spark s3"></i>
+          <i class="spark s4"></i>
+        </div>
+
+        <p>Préparez-vous !</p>
       </div>
     `;
 
@@ -62,6 +85,16 @@
     const overlay = ensureCountdownOverlay();
     const number = overlay.querySelector("#lobbyCountdownNumber");
     const card = overlay.querySelector(".lobby-start-countdown-card");
+    const ring = overlay.querySelector(".lobby-countdown-ring");
+
+    try {
+      countdownAudio = new Audio("/ptitbac-countdown-neon.wav");
+      countdownAudio.preload = "auto";
+      countdownAudio.volume = 0.78;
+      countdownAudio.currentTime = 0;
+      const playPromise = countdownAudio.play();
+      if (playPromise?.catch) playPromise.catch(() => {});
+    } catch {}
 
     const startedAt = Number(payload.startedAt || Date.now());
     const durationMs = Math.max(3000, Number(payload.durationMs || 3200));
@@ -69,17 +102,28 @@
 
     const update = () => {
       const remaining = deadline - Date.now();
+      let nextValue = "3";
 
       if (remaining > 2200) {
-        if (number) number.textContent = "3";
+        nextValue = "3";
       } else if (remaining > 1200) {
-        if (number) number.textContent = "2";
+        nextValue = "2";
       } else if (remaining > 250) {
-        if (number) number.textContent = "1";
+        nextValue = "1";
       } else {
-        if (number) number.textContent = "!";
-        card?.classList.add("is-go");
+        nextValue = "!";
       }
+
+      if (number && nextValue !== lastCountdownValue) {
+        number.textContent = nextValue;
+        lastCountdownValue = nextValue;
+
+        ring?.classList.remove("pulse");
+        void ring?.offsetWidth;
+        ring?.classList.add("pulse");
+      }
+
+      if (nextValue === "!") card?.classList.add("is-go");
     };
 
     update();
