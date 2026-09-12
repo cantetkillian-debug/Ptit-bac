@@ -105,18 +105,15 @@
         <div class="lobby-v5-avatar">${avatarMarkup(player)}</div>
 
         <div class="lobby-v5-player-copy">
-          <div>
+          <div class="lobby-v5-player-name-row">
             <strong>${escapeHtml(player.name || "Joueur")}</strong>
-            ${code ? `<small># ${escapeHtml(code)}</small>` : ""}
+            ${player.isHost
+              ? `<span class="host-badge"><img src="/admin-crown.png" alt=""> Hôte</span>`
+              : online
+                ? `<span class="ready-badge">✓ Prêt</span>`
+                : `<span class="offline-badge">Pas prêt</span>`}
           </div>
-        </div>
-
-        <div class="lobby-v5-player-status ${online ? "ready" : ""}">
-          ${player.isHost
-            ? `<span class="host-badge">👑 Hôte</span>`
-            : online
-              ? `<span class="ready-badge">✓ Prêt</span>`
-              : `<span class="offline-badge">Pas prêt</span>`}
+          ${code ? `<small># ${escapeHtml(code)}</small>` : ""}
         </div>
 
         ${canKick ? `<button class="lobby-v5-kick" data-kick-id="${player.id}" type="button" aria-label="Retirer">×</button>` : ""}
@@ -138,6 +135,198 @@
       </div>`;
   }
 
+  function renderLobbySettingsV5() {
+    clearInterval(session.timerHandle);
+
+    const state = session.state;
+    const user = me();
+
+    if (!state || state.phase !== "lobby") {
+      return render();
+    }
+
+    if (!user?.isHost) {
+      toast("Seul l’hôte peut modifier les paramètres.");
+      return renderLobbyV5();
+    }
+
+    const difficulty = difficultyInfo(state.categoryDifficulty);
+    const categoryCount = Number(state.categoryCount || state.categories?.length || 6);
+
+    const optionCard = ({ key, label, value, icon, difficultyClass = "" }) => `
+      <article class="lobby-settings-page-card ${difficultyClass}">
+        <img src="${icon}" alt="">
+        <small>${label}</small>
+
+        <div class="lobby-settings-page-stepper">
+          <button type="button" data-lobby-settings-step="${key}" data-dir="-1" aria-label="Diminuer">
+            <img src="/lobby-minus.png" alt="">
+          </button>
+
+          <strong>${value}</strong>
+
+          <button type="button" data-lobby-settings-step="${key}" data-dir="1" aria-label="Augmenter">
+            <img src="/lobby-plus.png" alt="">
+          </button>
+        </div>
+      </article>
+    `;
+
+    setScreen(`
+      <main class="screen lobby-settings-page">
+        <header class="lobby-settings-page-header">
+          <button id="lobbySettingsBack" type="button" aria-label="Retour au salon">
+            <img src="/back-arrow.png" alt="">
+          </button>
+
+          <div>
+            <small>CONFIGURATION DU SALON</small>
+            <h1>Paramètres</h1>
+          </div>
+
+          <img class="lobby-settings-header-icon" src="/settings.png" alt="">
+        </header>
+
+        <section class="lobby-settings-page-intro">
+          <h2>Paramètres de la partie</h2>
+          <p>Choisis les règles avant de lancer la partie.</p>
+        </section>
+
+        <section class="lobby-settings-page-grid">
+          ${optionCard({
+            key: "rounds",
+            label: "Manches",
+            value: state.rounds,
+            icon: "/lightning.png"
+          })}
+
+          ${optionCard({
+            key: "categoryCount",
+            label: "Catégories",
+            value: categoryCount,
+            icon: "/lobby-categories.png"
+          })}
+
+          ${optionCard({
+            key: "duration",
+            label: "Temps",
+            value: `${Number(state.duration || 60)}s`,
+            icon: "/lobby-clock.png"
+          })}
+
+          ${optionCard({
+            key: "categoryDifficulty",
+            label: "Difficulté",
+            value: difficulty.label,
+            icon: difficulty.icon,
+            difficultyClass: "difficulty"
+          })}
+        </section>
+
+        <section class="lobby-settings-page-help">
+          <img src="${difficulty.icon}" alt="">
+          <div>
+            <strong>Niveau ${difficulty.label}</strong>
+            <small>
+              ${state.categoryDifficulty === "hard"
+                ? "Des catégories plus difficiles pour les joueurs expérimentés."
+                : state.categoryDifficulty === "medium"
+                  ? "Un équilibre entre catégories simples et plus originales."
+                  : "Des catégories simples et rapides pour commencer."}
+            </small>
+          </div>
+        </section>
+
+        <button id="lobbySettingsDone" class="lobby-settings-page-done" type="button">
+          Enregistrer et revenir au salon
+        </button>
+
+        <footer class="ptb-shared-footer" aria-hidden="true">
+          <img src="/shared-footer-v1.png" alt="">
+        </footer>
+      </main>
+    `);
+
+    const updateSetting = (setting, dir) => {
+      if (setting === "categoryDifficulty") {
+        const now = Date.now();
+        if (now < lobbyDifficultyLockUntil) return;
+        lobbyDifficultyLockUntil = now + 260;
+      }
+
+      const rounds = [1, 3, 5];
+      const durations = [30, 60, 90];
+      const difficulties = ["beginner", "medium", "hard"];
+
+      let nextRounds = Number(state.rounds || 1);
+      let nextDuration = Number(state.duration || 60);
+      let nextDifficulty = state.categoryDifficulty || "beginner";
+      let nextCategoryCount = categoryCount;
+
+      const cycle = (arr, current, direction) => {
+        let index = arr.indexOf(current);
+        if (index < 0) index = 0;
+        return arr[(index + direction + arr.length) % arr.length];
+      };
+
+      if (setting === "rounds") {
+        nextRounds = cycle(rounds, nextRounds, dir);
+      }
+
+      if (setting === "duration") {
+        nextDuration = cycle(durations, nextDuration, dir);
+      }
+
+      if (setting === "categoryDifficulty") {
+        nextDifficulty = cycle(difficulties, nextDifficulty, dir);
+      }
+
+      if (setting === "categoryCount") {
+        nextCategoryCount = Math.max(5, Math.min(10, nextCategoryCount + dir));
+      }
+
+      document.querySelectorAll("[data-lobby-settings-step]").forEach(button => {
+        button.disabled = true;
+      });
+
+      socket.emit("room:updateSettings", {
+        code: state.code,
+        playerId: session.playerId,
+        rounds: nextRounds,
+        duration: nextDuration,
+        categoryCount: nextCategoryCount,
+        categoryDifficulty: nextDifficulty
+      }, res => {
+        if (!res?.ok) {
+          lobbyDifficultyLockUntil = 0;
+          document.querySelectorAll("[data-lobby-settings-step]").forEach(button => {
+            button.disabled = false;
+          });
+          return toast(res?.error || "Impossible de modifier ce paramètre.");
+        }
+
+        if (res.state) {
+          session.state = res.state;
+          renderLobbySettingsV5();
+        }
+      });
+    };
+
+    document.querySelectorAll("[data-lobby-settings-step]").forEach(button => {
+      button.addEventListener("click", () => {
+        updateSetting(
+          button.dataset.lobbySettingsStep,
+          Number(button.dataset.dir) || 1
+        );
+      });
+    });
+
+    const back = () => renderLobbyV5();
+
+    document.getElementById("lobbySettingsBack")?.addEventListener("click", back);
+    document.getElementById("lobbySettingsDone")?.addEventListener("click", back);
+  }
+
   function renderLobbyV5() {
     clearInterval(session.timerHandle);
     session.localAnswers = {};
@@ -150,6 +339,11 @@
     const difficulty = difficultyInfo(state.categoryDifficulty);
     const categoryCount = Number(state.categoryCount || state.categories?.length || 6);
     const coins = typeof getCoins === "function" ? getCoins() : 0;
+    const adminDisplay = window.PtitBacAdminDisplayState || {};
+    const coinDisplay =
+      adminDisplay.admin && adminDisplay.infiniteCoins
+        ? "∞"
+        : String(coins);
 
     const players = state.players.map((p, index) => playerRow(p, index, user)).join("");
     const emptySlots =
@@ -175,7 +369,7 @@
 
           <div class="lobby-v5-coin-pill">
             <img src="/coin.png" alt="">
-            <strong>${coins}</strong>
+            <strong>${coinDisplay}</strong>
           </div>
         </header>
 
@@ -281,7 +475,10 @@
     });
 
     document.getElementById("lobbySettingsShortcut")?.addEventListener("click", () => {
-      document.getElementById("lobbySettingsPanel")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (!user?.isHost) {
+        return toast("Seul l’hôte peut modifier les paramètres.");
+      }
+      renderLobbySettingsV5();
     });
 
     document.getElementById("inviteFriendsBtn")?.addEventListener("click", async () => {
@@ -384,5 +581,6 @@
   }
 
   window.renderLobby = renderLobbyV5;
+  window.renderLobbySettings = renderLobbySettingsV5;
   try { renderLobby = renderLobbyV5; } catch {}
 })();
