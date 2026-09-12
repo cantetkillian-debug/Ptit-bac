@@ -244,7 +244,7 @@ body:has(.pri-screen) .economy-hud{
   margin:8px auto 5px;
   padding:5px;
   border-radius:50%;
-  background:conic-gradient(#b33cff 0 74%,#463d95 74% 100%);
+  background:conic-gradient(#b33cff 0 calc(var(--pri-progress, 1) * 100%),#463d95 calc(var(--pri-progress, 1) * 100%) 100%);
   box-shadow:0 0 15px rgba(174,55,255,.16);
 }
 .pri-countdown-ring strong{

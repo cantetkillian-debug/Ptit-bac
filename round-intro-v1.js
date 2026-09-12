@@ -166,6 +166,8 @@
     document.getElementById("priExit")?.addEventListener("click", () => leaveRound(state));
 
     const countdown = document.getElementById("priCountdown");
+    const countdownRing = countdown?.closest(".pri-countdown-ring");
+    countdownRing?.style.setProperty("--pri-progress", "1");
 
     const finishIntro = () => {
       if (entry.finished) return;
@@ -191,6 +193,14 @@
 
       // Affichage exact : 5, 4, 3, 2, 1.
       countdown.textContent = String(Math.ceil(remaining / 1000));
+
+      // Anneau synchronisé en continu avec les 5 secondes.
+      const ring = countdown.closest(".pri-countdown-ring");
+      if (ring) {
+        const progress = Math.max(0, Math.min(1, remaining / INTRO_MS));
+        ring.style.setProperty("--pri-progress", String(progress));
+      }
+
       window.requestAnimationFrame(tick);
     };
 
