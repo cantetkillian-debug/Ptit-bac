@@ -1,0 +1,65 @@
+/* P'tit Bac — Countdown V2
+   Plus compact, plus transparent, fond beaucoup moins flouté.
+*/
+
+.lobby-start-countdown {
+  background:rgba(3,8,34,.24) !important;
+  -webkit-backdrop-filter:blur(1.5px) !important;
+  backdrop-filter:blur(1.5px) !important;
+}
+
+.lobby-start-countdown-card {
+  width:min(72vw,250px) !important;
+  min-height:155px !important;
+  padding:18px 18px 14px !important;
+
+  border:1.2px solid rgba(164,91,255,.72) !important;
+  border-radius:21px !important;
+
+  background:
+    radial-gradient(circle at 50% 8%,rgba(154,70,255,.14),transparent 55%),
+    linear-gradient(155deg,rgba(16,36,94,.48),rgba(7,23,71,.42)) !important;
+
+  -webkit-backdrop-filter:blur(3px) !important;
+  backdrop-filter:blur(3px) !important;
+
+  box-shadow:
+    0 12px 38px rgba(0,0,0,.18),
+    0 0 20px rgba(134,58,255,.14),
+    inset 0 0 14px rgba(135,70,255,.05) !important;
+}
+
+.lobby-start-countdown-card small {
+  font-size:.50rem !important;
+  letter-spacing:.17em !important;
+  opacity:.84;
+}
+
+.lobby-start-countdown-card h2 {
+  margin:7px 0 0 !important;
+  font-size:1rem !important;
+  line-height:1.08 !important;
+}
+
+#lobbyCountdownNumber {
+  min-width:68px !important;
+  min-height:72px !important;
+  font-size:3.75rem !important;
+
+  text-shadow:
+    0 0 8px rgba(188,91,255,.55),
+    0 0 18px rgba(135,57,255,.30) !important;
+}
+
+@media (max-height:680px) {
+  .lobby-start-countdown-card {
+    width:min(68vw,235px) !important;
+    min-height:140px !important;
+    padding:15px !important;
+  }
+
+  #lobbyCountdownNumber {
+    min-height:62px !important;
+    font-size:3.35rem !important;
+  }
+}
