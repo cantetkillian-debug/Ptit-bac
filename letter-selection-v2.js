@@ -261,7 +261,7 @@
             </div>
 
             <div
-              class="letter-v2-wheel-center ${selectedLetter ? "is-pending" : "is-empty"}"
+              class="letter-v2-fixed-center ${selectedLetter ? "is-pending" : "is-empty"}"
               id="letterV2WheelCenter"
             >
               <img class="letter-v2-center-crown" src="/admin-crown.png" alt="">
@@ -446,9 +446,7 @@
           zone?.classList.remove("is-wheel-spinning");
           zone?.classList.add("is-wheel-landed");
 
-          wheelRuntime.revealTimer = setTimeout(() => {
-            revealLetterResult();
-          }, 180);
+          revealLetterResult();
         };
       } else {
         wheel.style.transition = `transform ${spinDuration}ms cubic-bezier(.08,.68,.10,1)`;
@@ -467,9 +465,7 @@
           zone?.classList.remove("is-wheel-spinning");
           zone?.classList.add("is-wheel-landed");
 
-          wheelRuntime.revealTimer = setTimeout(() => {
-            revealLetterResult();
-          }, 180);
+          revealLetterResult();
         }, spinDuration);
       }
 
