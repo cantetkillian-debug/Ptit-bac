@@ -395,7 +395,7 @@ body:has(.letter-v2-screen) .economy-hud {
     inset 0 0 0 2px rgba(255,255,255,.26),
     inset 0 0 26px rgba(16,11,82,.25) !important;
 
-  transform:rotate(0deg) !important;
+  transform:rotate(0deg);
   transform-origin:center !important;
 }
 
@@ -1826,4 +1826,35 @@ body:has(.letter-v2-screen) .economy-hud {
   #letterV2CenterLetter {
     font-size:1.95rem !important;
   }
+}
+
+
+/* =========================================================
+   Roue V9 — correction synchronisation rotation / résultat
+   ========================================================= */
+
+/* IMPORTANT :
+   aucune règle CSS !important ne doit piloter transform.
+   La rotation appartient exclusivement au JS.
+*/
+.letter-v2-wheel {
+  transform-origin:50% 50% !important;
+  will-change:transform;
+}
+
+/* Pendant la vraie animation JS, désactive les anciennes animations
+   de transform pour éviter deux moteurs de rotation simultanés. */
+.letter-v2-wheel.is-js-spinning,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel {
+  animation:none !important;
+}
+
+/* Le halo peut continuer à être animé, mais pas transform. */
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-shell {
+  transform:none !important;
+}
+
+/* La flèche reste totalement indépendante et fixe. */
+.letter-v2-pointer {
+  transform:translateX(-50%) !important;
 }

@@ -11,7 +11,8 @@
     requestedAt: 0,
     activeCode: "",
     activeVersion: -1,
-    revealTimer: null
+    revealTimer: null,
+    animation: null
   };
 
   function normalizeAngle(value) {
@@ -43,6 +44,50 @@
     let delta = baseNorm - desiredNorm;
     if (delta < 0) delta += 360;
     return baseRotation - delta;
+  }
+
+  function readWheelRotation(element) {
+    if (!element) return Number(wheelRuntime.currentRotation || 0);
+
+    const transform = getComputedStyle(element).transform;
+    if (!transform || transform === "none") {
+      return Number(wheelRuntime.currentRotation || 0);
+    }
+
+    try {
+      const matrix = new DOMMatrixReadOnly(transform);
+      const angle = Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
+      const previous = Number(wheelRuntime.currentRotation || 0);
+      const previousNorm = normalizeAngle(previous);
+      const angleNorm = normalizeAngle(angle);
+
+      let delta = angleNorm - previousNorm;
+      if (delta > 180) delta -= 360;
+      if (delta < -180) delta += 360;
+
+      return previous + delta;
+    } catch {
+      return Number(wheelRuntime.currentRotation || 0);
+    }
+  }
+
+  function stopWheelAnimation(element) {
+    if (!element) return;
+
+    const current = readWheelRotation(element);
+    wheelRuntime.currentRotation = current;
+
+    try {
+      wheelRuntime.animation?.cancel?.();
+    } catch {}
+
+    wheelRuntime.animation = null;
+
+    element.getAnimations?.().forEach(animation => {
+      try { animation.cancel(); } catch {}
+    });
+
+    element.style.transform = `rotate(${current}deg)`;
   }
 
   function adminCoinDisplay() {
@@ -227,7 +272,7 @@
           element.classList.remove("is-hidden");
           element.classList.add("is-revealed");
         });
-      }, 2000);
+      }, 3600);
     }
 
     const exitButton = document.getElementById("letterV2ExitBtn");
@@ -292,8 +337,16 @@
 
       const spinDuration = 3000 + Math.min(900, Math.abs(wheelRuntime.velocity) * 95);
 
+      // Le nouvel élément DOM reprend exactement l'angle mémorisé.
       wheel.style.transform = `rotate(${startRotation}deg)`;
+      wheel.classList.add("is-js-spinning");
       zone?.classList.add("is-wheel-spinning");
+
+      // Annule tout ancien moteur d'animation : une seule animation contrôle transform.
+      try {
+        wheelRuntime.animation?.cancel?.();
+      } catch {}
+      wheelRuntime.animation = null;
 
       const frames = [
         { transform: `rotate(${startRotation}deg)`, offset: 0 },
@@ -319,12 +372,22 @@
           fill: "forwards"
         });
 
+        wheelRuntime.animation = animation;
+
         animation.onfinish = () => {
-          wheel.style.transform = `rotate(${finalRotation}deg)`;
+          // Committe le résultat exact avant d'annuler l'animation.
           wheelRuntime.currentRotation = finalRotation;
           wheelRuntime.activeVersion = version;
           wheelRuntime.velocity = 0;
 
+          wheel.style.transform = `rotate(${finalRotation}deg)`;
+
+          try { animation.cancel(); } catch {}
+          if (wheelRuntime.animation === animation) {
+            wheelRuntime.animation = null;
+          }
+
+          wheel.classList.remove("is-js-spinning");
           zone?.classList.remove("is-wheel-spinning");
           zone?.classList.add("is-wheel-landed");
         };
@@ -378,6 +441,8 @@
         const direction = wheelRuntime.direction || 1;
         const previewTarget = start + direction * 1080;
 
+        stopWheelAnimation(wheel);
+
         const preview = wheel.animate(
           [
             { transform: `rotate(${start}deg)` },
@@ -390,8 +455,13 @@
           }
         );
 
+        wheelRuntime.animation = preview;
+
         preview.onfinish = () => {
           wheelRuntime.currentRotation = previewTarget;
+          wheel.style.transform = `rotate(${previewTarget}deg)`;
+          try { preview.cancel(); } catch {}
+          if (wheelRuntime.animation === preview) wheelRuntime.animation = null;
         };
       }
 
@@ -433,8 +503,9 @@
         previousAngle = startPointerAngle;
         lastTime = performance.now();
 
-        wheel?.getAnimations?.().forEach(animation => animation.cancel());
-        wheel?.classList.remove("is-spinning");
+        stopWheelAnimation(wheel);
+        rotation = Number(wheelRuntime.currentRotation || rotation);
+        wheel?.classList.remove("is-spinning", "is-js-spinning");
 
         tapZone.classList.add("is-dragging");
         tapZone.setPointerCapture?.(event.pointerId);
@@ -507,6 +578,8 @@
         wheelRuntime.requestedAt = Date.now();
 
         if (wheel && typeof wheel.animate === "function") {
+          stopWheelAnimation(wheel);
+
           const inertia = wheel.animate(
             [
               { transform: `rotate(${rotation}deg)` },
@@ -519,8 +592,13 @@
             }
           );
 
+          wheelRuntime.animation = inertia;
+
           inertia.onfinish = () => {
             wheelRuntime.currentRotation = inertiaTarget;
+            wheel.style.transform = `rotate(${inertiaTarget}deg)`;
+            try { inertia.cancel(); } catch {}
+            if (wheelRuntime.animation === inertia) wheelRuntime.animation = null;
           };
         } else if (wheel) {
           wheel.style.transition =
