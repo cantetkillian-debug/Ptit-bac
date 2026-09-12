@@ -1930,3 +1930,74 @@ body:has(.letter-v2-screen) .economy-hud {
     transform:translate(-50%,-50%) scale(1);
   }
 }
+
+
+/* =========================================================
+   Roue V11 — lettres toujours droites + centre vide pendant rotation
+   ========================================================= */
+
+/* Le rotor tourne, mais chaque lettre compense exactement l'angle
+   visuel de la roue pour rester droite face au joueur. */
+.letter-v2-wheel {
+  --wheel-counter-angle:0deg;
+}
+
+.letter-v2-wheel-label b {
+  animation:none !important;
+  transform:
+    rotate(
+      calc(
+        var(--letter-counter-angle) +
+        var(--wheel-counter-angle)
+      )
+    ) !important;
+  transform-origin:center !important;
+  will-change:transform !important;
+}
+
+/* Neutralise les anciennes règles d'animation des lettres. */
+.letter-v2-wheel.is-spinning .letter-v2-wheel-label b,
+.letter-v2-wheel.is-js-spinning .letter-v2-wheel-label b,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-label b {
+  animation:none !important;
+}
+
+/* Le disque blanc reste visible, mais il est entièrement vide
+   tant que le tirage n'est pas terminé. */
+.letter-v2-wheel-center.is-empty img,
+.letter-v2-wheel-center.is-empty strong,
+.letter-v2-wheel-center.is-pending img,
+.letter-v2-wheel-center.is-pending strong {
+  opacity:0 !important;
+  visibility:hidden !important;
+}
+
+/* Couronne + lettre apparaissent ensemble uniquement après l'arrêt. */
+.letter-v2-wheel-center.is-revealed img,
+.letter-v2-wheel-center.is-revealed strong {
+  opacity:1 !important;
+  visibility:visible !important;
+}
+
+/* Pendant n'importe quelle rotation, impossible de voir le résultat
+   même si un ancien état visuel était resté en cache. */
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel-center img,
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel-center strong,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-wheel-center img,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-wheel-center strong,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-center img,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-center strong {
+  opacity:0 !important;
+  visibility:hidden !important;
+}
+
+/* Petite révélation groupée : couronne puis lettre, sans rotation. */
+.letter-v2-wheel-center.is-revealed img {
+  transition:opacity .18s ease, transform .24s cubic-bezier(.2,.9,.2,1.12) !important;
+  transform:scale(1) !important;
+}
+
+.letter-v2-wheel-center.is-revealed strong {
+  transition:opacity .18s ease .05s, transform .24s cubic-bezier(.2,.9,.2,1.12) .05s !important;
+  transform:scale(1) !important;
+}

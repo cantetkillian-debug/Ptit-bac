@@ -71,6 +71,47 @@
     }
   }
 
+  function visualWheelAngle(element) {
+    if (!element) return 0;
+
+    const transform = getComputedStyle(element).transform;
+    if (!transform || transform === "none") return 0;
+
+    try {
+      const matrix = new DOMMatrixReadOnly(transform);
+      return Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
+    } catch {
+      return 0;
+    }
+  }
+
+  function syncWheelLetters(element) {
+    if (!element) return;
+    const angle = visualWheelAngle(element);
+    element.style.setProperty("--wheel-counter-angle", `${-angle}deg`);
+  }
+
+  function startWheelLetterSync(element) {
+    if (!element) return () => {};
+
+    let active = true;
+    let raf = 0;
+
+    const frame = () => {
+      if (!active || !element.isConnected) return;
+      syncWheelLetters(element);
+      raf = requestAnimationFrame(frame);
+    };
+
+    frame();
+
+    return () => {
+      active = false;
+      if (raf) cancelAnimationFrame(raf);
+      syncWheelLetters(element);
+    };
+  }
+
   function stopWheelAnimation(element) {
     if (!element) return;
 
@@ -147,7 +188,10 @@
     const wheelLabels = LETTERS.map((letter, index) => {
       const angle = index * segmentAngle;
       return `
-        <span class="letter-v2-wheel-label" style="--letter-angle:${angle}deg">
+        <span
+          class="letter-v2-wheel-label"
+          style="--letter-angle:${angle}deg;--letter-counter-angle:${-angle}deg"
+        >
           <b>${letter}</b>
         </span>
       `;
@@ -214,7 +258,10 @@
               ${wheelLabels}
             </div>
 
-            <div class="letter-v2-wheel-center ${selectedLetter ? "is-pending" : ""}" id="letterV2WheelCenter">
+            <div
+              class="letter-v2-wheel-center ${selectedLetter ? "is-pending" : "is-empty"}"
+              id="letterV2WheelCenter"
+            >
               <img src="/admin-crown.png" alt="">
               <strong id="letterV2CenterLetter">
                 ${selectedLetter ? escapeHtml(selectedLetter) : ""}
@@ -305,6 +352,7 @@
     });
 
     const wheel = document.getElementById("letterV2Wheel");
+    syncWheelLetters(wheel);
 
     if (wheel && selectedLetter) {
       const zone = document.getElementById("letterV2WheelTapZone");
@@ -371,14 +419,17 @@
         });
 
         wheelRuntime.animation = animation;
+        const stopLetterSync = startWheelLetterSync(wheel);
 
         animation.onfinish = () => {
+          stopLetterSync();
           // Committe le résultat exact avant d'annuler l'animation.
           wheelRuntime.currentRotation = finalRotation;
           wheelRuntime.activeVersion = version;
           wheelRuntime.velocity = 0;
 
           wheel.style.transform = `rotate(${finalRotation}deg)`;
+          syncWheelLetters(wheel);
 
           try { animation.cancel(); } catch {}
           if (wheelRuntime.animation === animation) {
@@ -395,11 +446,15 @@
         };
       } else {
         wheel.style.transition = `transform ${spinDuration}ms cubic-bezier(.08,.68,.10,1)`;
+        const stopLetterSync = startWheelLetterSync(wheel);
+
         requestAnimationFrame(() => {
           wheel.style.transform = `rotate(${finalRotation}deg)`;
         });
 
         setTimeout(() => {
+          stopLetterSync();
+          syncWheelLetters(wheel);
           wheelRuntime.currentRotation = finalRotation;
           wheelRuntime.activeVersion = version;
           wheelRuntime.velocity = 0;
@@ -462,10 +517,13 @@
         );
 
         wheelRuntime.animation = preview;
+        const stopLetterSync = startWheelLetterSync(wheel);
 
         preview.onfinish = () => {
+          stopLetterSync();
           wheelRuntime.currentRotation = previewTarget;
           wheel.style.transform = `rotate(${previewTarget}deg)`;
+          syncWheelLetters(wheel);
           try { preview.cancel(); } catch {}
           if (wheelRuntime.animation === preview) wheelRuntime.animation = null;
         };
@@ -547,6 +605,7 @@
 
         if (wheel) {
           wheel.style.transform = `rotate(${rotation}deg)`;
+          syncWheelLetters(wheel);
         }
 
         previousAngle = angle;
@@ -599,20 +658,27 @@
           );
 
           wheelRuntime.animation = inertia;
+          const stopLetterSync = startWheelLetterSync(wheel);
 
           inertia.onfinish = () => {
+            stopLetterSync();
             wheelRuntime.currentRotation = inertiaTarget;
             wheel.style.transform = `rotate(${inertiaTarget}deg)`;
+            syncWheelLetters(wheel);
             try { inertia.cancel(); } catch {}
             if (wheelRuntime.animation === inertia) wheelRuntime.animation = null;
           };
         } else if (wheel) {
           wheel.style.transition =
             `transform ${inertiaDuration}ms cubic-bezier(.08,.72,.12,1)`;
+
+          const stopLetterSync = startWheelLetterSync(wheel);
           wheel.style.transform = `rotate(${inertiaTarget}deg)`;
 
           setTimeout(() => {
+            stopLetterSync();
             wheelRuntime.currentRotation = inertiaTarget;
+            syncWheelLetters(wheel);
           }, inertiaDuration);
         }
 
