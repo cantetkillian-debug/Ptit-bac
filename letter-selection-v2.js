@@ -309,16 +309,10 @@
       const center = document.getElementById("letterV2WheelCenter");
       if (!center) return null;
 
-      let letter = document.getElementById("letterV2CenterLetter");
-      if (!letter) {
-        letter = document.createElement("strong");
-        letter.id = "letterV2CenterLetter";
-        center.replaceChildren(letter);
-      } else {
-        center.replaceChildren(letter);
-      }
-
+      const letter = document.createElement("strong");
+      letter.id = "letterV2CenterLetter";
       letter.textContent = String(state.pendingLetter || selectedLetter || "").slice(0, 1);
+      center.replaceChildren(letter);
       return center;
     };
 

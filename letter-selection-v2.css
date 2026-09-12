@@ -362,3 +362,16 @@ body:has(.letter-v2-screen) .economy-hud{display:none!important}
   #letterV2WheelCenter{width:88px!important;height:88px!important}
   #letterV2Actions{margin-top:28px!important;gap:13px!important}
 }
+
+
+/* V29 — centre de roue : lettre uniquement, aucune couronne */
+#letterV2WheelCenter img,
+#letterV2WheelCenter svg,
+#letterV2WheelCenter picture,
+#letterV2WheelCenter .admin-crown,
+#letterV2WheelCenter [class*="crown"],
+#letterV2WheelCenter [class*="Crown"]{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+}
