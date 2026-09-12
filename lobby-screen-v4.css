@@ -897,3 +897,212 @@ body:has(.lobby-settings-page) .economy-hud {
     margin-top:10px !important;
   }
 }
+
+
+/* =========================================================
+   Salon V7 — paramètres en bloc transparent sur le salon
+   ========================================================= */
+
+.lobby-v5-settings-overlay {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:110000 !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  padding:
+    max(18px,env(safe-area-inset-top))
+    16px
+    max(18px,env(safe-area-inset-bottom)) !important;
+
+  background:rgba(3,8,32,.22) !important;
+  -webkit-backdrop-filter:blur(1.5px) !important;
+  backdrop-filter:blur(1.5px) !important;
+}
+
+.lobby-v5-settings-sheet {
+  width:min(92vw,365px) !important;
+  padding:16px !important;
+
+  border:1.25px solid rgba(142,72,246,.82) !important;
+  border-radius:22px !important;
+
+  background:
+    radial-gradient(circle at 50% 0%,rgba(127,65,234,.16),transparent 50%),
+    linear-gradient(155deg,rgba(9,31,82,.82),rgba(8,22,63,.76)) !important;
+
+  -webkit-backdrop-filter:blur(5px) !important;
+  backdrop-filter:blur(5px) !important;
+
+  box-shadow:
+    0 18px 48px rgba(0,0,0,.25),
+    0 0 24px rgba(126,57,242,.16) !important;
+}
+
+.lobby-v5-settings-sheet-header {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+}
+
+.lobby-v5-settings-sheet-header small {
+  color:#aa9ecc !important;
+  font-size:.42rem !important;
+  letter-spacing:.16em !important;
+  font-weight:900 !important;
+}
+
+.lobby-v5-settings-sheet-header h2 {
+  margin:2px 0 0 !important;
+  font-size:1.05rem !important;
+  font-weight:900 !important;
+}
+
+#lobbySettingsClose {
+  width:31px !important;
+  height:31px !important;
+  padding:0 !important;
+
+  border:1px solid rgba(113,68,205,.75) !important;
+  border-radius:10px !important;
+
+  background:rgba(10,29,77,.72) !important;
+  color:#c4a5ff !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  font-size:1.15rem !important;
+  line-height:1 !important;
+}
+
+.lobby-v5-edit-grid {
+  margin-top:13px !important;
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:8px !important;
+}
+
+.lobby-v5-edit-card {
+  min-height:112px !important;
+  padding:10px 8px !important;
+
+  border:1px solid rgba(54,80,159,.90) !important;
+  border-radius:16px !important;
+
+  background:rgba(8,31,82,.64) !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+.lobby-v5-edit-card > img {
+  width:34px !important;
+  height:34px !important;
+  object-fit:contain !important;
+  margin-bottom:4px !important;
+}
+
+.lobby-v5-edit-card > small {
+  color:#b2a8d4 !important;
+  font-size:.47rem !important;
+  font-weight:800 !important;
+}
+
+.lobby-v5-edit-stepper {
+  width:100% !important;
+  margin-top:7px !important;
+
+  display:grid !important;
+  grid-template-columns:29px minmax(0,1fr) 29px !important;
+  align-items:center !important;
+  gap:5px !important;
+}
+
+.lobby-v5-edit-stepper button {
+  width:29px !important;
+  height:29px !important;
+
+  padding:4px !important;
+  border:0 !important;
+  border-radius:50% !important;
+
+  background:linear-gradient(145deg,#6f3ae0,#a13cff) !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  box-shadow:0 0 8px rgba(142,57,255,.14) !important;
+}
+
+.lobby-v5-edit-stepper button:disabled {
+  opacity:.45 !important;
+}
+
+.lobby-v5-edit-stepper button img {
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+}
+
+.lobby-v5-edit-stepper strong {
+  min-width:0 !important;
+  text-align:center !important;
+  font-size:.78rem !important;
+  font-weight:900 !important;
+  white-space:nowrap !important;
+}
+
+.lobby-v5-edit-card.difficulty .lobby-v5-edit-stepper strong {
+  color:#55e4b5 !important;
+  font-size:.68rem !important;
+}
+
+.lobby-v5-settings-apply {
+  width:100% !important;
+  height:42px !important;
+  margin-top:11px !important;
+
+  border:1px solid #a35bff !important;
+  border-radius:14px !important;
+
+  background:linear-gradient(105deg,#7132ec,#9d3cff) !important;
+  color:white !important;
+
+  font-size:.60rem !important;
+  font-weight:900 !important;
+
+  box-shadow:
+    0 0 13px rgba(134,55,255,.14),
+    inset 0 0 9px rgba(255,255,255,.05) !important;
+}
+
+@media(max-height:690px) {
+  .lobby-v5-settings-sheet {
+    width:min(90vw,340px) !important;
+    padding:13px !important;
+  }
+
+  .lobby-v5-edit-card {
+    min-height:94px !important;
+    padding:8px !important;
+  }
+
+  .lobby-v5-edit-card > img {
+    width:29px !important;
+    height:29px !important;
+  }
+
+  .lobby-v5-settings-apply {
+    height:39px !important;
+  }
+}
+
+/* Ancienne page de paramètres désactivée */
+.lobby-settings-page {
+  display:none !important;
+}
