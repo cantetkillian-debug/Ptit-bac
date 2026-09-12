@@ -47,8 +47,8 @@
     setScreen(`
       <main class="asv1-screen">
         <header class="asv1-header">
-          <button class="asv1-quit" id="leaveGameBtn" type="button">
-            <img src="/lobby-exit.png" alt=""><span>Quitter<br>la partie</span>
+          <button class="asv1-quit" id="leaveGameBtn" type="button" aria-label="Quitter la partie">
+            <img src="/lobby-exit.png" alt="">
           </button>
           <div class="asv1-status">
             <div class="asv1-coins"><img src="/coin.png" alt=""><b>${adminCoins()}</b></div>
@@ -59,7 +59,7 @@
         <section class="asv1-hero">
           <div class="asv1-letter-card">
             <small>Lettre actuelle</small>
-            <strong>${esc(letter)}</strong>
+            <strong class="asv1-letter-plain">${esc(letter)}</strong>
           </div>
 
           <div class="asv1-timer" id="timerRing" style="--progress:100%">

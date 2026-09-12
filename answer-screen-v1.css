@@ -34,3 +34,138 @@ body:has(.asv1-screen) .economy-hud{display:none!important}
 .asv1-footer{margin-top:28px!important}
 @media(max-width:370px){.asv1-screen{padding-left:11px;padding-right:11px}.asv1-row{grid-template-columns:112px 1fr}.asv1-category strong{font-size:.62rem}.asv1-hero{gap:6px}.asv1-tip p{font-size:.5rem}}
 @media(max-height:760px){.asv1-header{min-height:56px}.asv1-hero{margin:8px 0 11px}.asv1-letter-card,.asv1-tip{min-height:92px}.asv1-row{min-height:55px}.asv1-footer{margin-top:18px!important}}
+
+
+/* =========================================================
+   Page réponses V2 — proportions compactes
+   ========================================================= */
+
+/* Exit : uniquement l'icône, sans cadre ni texte */
+.asv1-quit{
+  width:42px !important;
+  height:42px !important;
+  padding:5px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  gap:0 !important;
+}
+.asv1-quit img{
+  width:32px !important;
+  height:32px !important;
+}
+.asv1-quit span{display:none !important;}
+
+/* En-tête plus léger */
+.asv1-header{
+  min-height:50px !important;
+  align-items:flex-start !important;
+}
+.asv1-status{
+  width:91px !important;
+  border-radius:14px !important;
+}
+.asv1-coins{
+  height:31px !important;
+  gap:6px !important;
+}
+.asv1-coins img{
+  width:21px !important;
+  height:21px !important;
+}
+.asv1-coins b{font-size:.82rem !important;}
+.asv1-round{
+  padding:6px 3px !important;
+  font-size:.58rem !important;
+}
+.asv1-round b{font-size:.78rem !important;}
+
+/* Lettre / timer / consigne : moins gros et moins étirés */
+.asv1-hero{
+  width:min(100%,365px) !important;
+  margin:10px auto 14px !important;
+  grid-template-columns:92px 118px 112px !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+}
+
+.asv1-letter-card,
+.asv1-tip{
+  min-height:88px !important;
+  height:88px !important;
+  border-radius:15px !important;
+}
+
+/* Suppression du cadre autour de la lettre elle-même */
+.asv1-letter-card{
+  padding:10px 5px 6px !important;
+}
+.asv1-letter-card small{
+  font-size:.47rem !important;
+}
+.asv1-letter-card > strong,
+.asv1-letter-plain{
+  width:auto !important;
+  height:auto !important;
+  margin:7px auto 0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  display:block !important;
+  color:#c15cff !important;
+  font-size:2.15rem !important;
+  line-height:1 !important;
+  text-shadow:0 0 12px rgba(192,81,255,.58) !important;
+}
+
+/* Timer réduit */
+.asv1-timer{
+  width:112px !important;
+  height:112px !important;
+  justify-self:center !important;
+  padding:6px !important;
+}
+.asv1-timer strong{
+  font-size:1.75rem !important;
+}
+.asv1-timer span{
+  font-size:.46rem !important;
+}
+
+/* Consigne compacte */
+.asv1-tip{
+  padding:8px 7px !important;
+  gap:5px !important;
+}
+.asv1-tip img{
+  width:25px !important;
+  height:35px !important;
+}
+.asv1-tip p{
+  font-size:.50rem !important;
+  line-height:1.35 !important;
+}
+
+/* Écrans plus étroits */
+@media(max-width:390px){
+  .asv1-hero{
+    width:100% !important;
+    grid-template-columns:84px 105px 103px !important;
+    gap:7px !important;
+  }
+  .asv1-timer{
+    width:105px !important;
+    height:105px !important;
+  }
+  .asv1-letter-card,
+  .asv1-tip{
+    min-height:82px !important;
+    height:82px !important;
+  }
+  .asv1-letter-card > strong,
+  .asv1-letter-plain{
+    font-size:1.95rem !important;
+  }
+}
