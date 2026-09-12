@@ -319,6 +319,10 @@
       });
     };
 
+    document.querySelectorAll(".letter-v2-wait-status, #letterV2StatusText").forEach(element => {
+      element.remove();
+    });
+
     const exitButton = document.getElementById("letterV2ExitBtn");
     exitButton?.addEventListener("click", () => {
       if (document.getElementById("letterV2ExitOverlay")) return;

@@ -2543,3 +2543,87 @@ body:has(.letter-v2-screen) .economy-hud {
     transform:translateY(-10px) !important;
   }
 }
+
+
+/* =========================================================
+   Tirage lettre V15 — flèche + actions + centre
+   ========================================================= */
+
+/* Flèche toujours visible AU-DESSUS de la roue */
+.letter-v2-pointer {
+  z-index:30 !important;
+  top:-15px !important;
+
+  border-top-color:#ffc629 !important;
+
+  filter:
+    drop-shadow(0 0 5px rgba(255,226,105,.98))
+    drop-shadow(0 0 13px rgba(255,165,0,.62)) !important;
+
+  pointer-events:none !important;
+}
+
+.letter-v2-wheel-shell {
+  z-index:2 !important;
+}
+
+/* Supprime définitivement l'ancien texte "Lettre tirée !" */
+.letter-v2-wait-status,
+#letterV2StatusText {
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  height:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+}
+
+/* Remonte les deux boutons à la place de l'ancien texte */
+.letter-v2-actions {
+  margin-top:4px !important;
+  transform:translateY(-42px) !important;
+  gap:13px !important;
+}
+
+/* Relancer */
+.letter-v2-reroll {
+  margin:0 !important;
+}
+
+/* Valider */
+.letter-v2-confirm {
+  margin:0 !important;
+}
+
+/* Remonte la couronne et la lettre à l'intérieur du disque central */
+.letter-v2-wheel-center img {
+  top:6px !important;
+}
+
+#letterV2CenterLetter {
+  top:40px !important;
+}
+
+/* Garde les deux parfaitement centrés horizontalement */
+.letter-v2-wheel-center img,
+#letterV2CenterLetter {
+  left:50% !important;
+}
+
+/* Ajustement petits écrans */
+@media(max-height:760px) {
+  .letter-v2-actions {
+    transform:translateY(-34px) !important;
+    gap:10px !important;
+  }
+
+  .letter-v2-wheel-center img {
+    top:5px !important;
+  }
+
+  #letterV2CenterLetter {
+    top:37px !important;
+  }
+}
