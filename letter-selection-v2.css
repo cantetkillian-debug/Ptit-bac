@@ -2944,3 +2944,82 @@ body:has(.letter-v2-screen) .economy-hud {
     min-height:26px !important;
   }
 }
+
+
+/* =========================================================
+   Tirage lettre V19 — flèche sélection + actions plus basses
+   ========================================================= */
+
+/* Flèche simple au-dessus de la roue pour indiquer le secteur sélectionné */
+.letter-v2-pointer {
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+
+  position:absolute !important;
+  z-index:25 !important;
+
+  left:50% !important;
+  top:-18px !important;
+
+  width:0 !important;
+  height:0 !important;
+
+  transform:translateX(-50%) !important;
+
+  border-left:14px solid transparent !important;
+  border-right:14px solid transparent !important;
+  border-top:22px solid #b45cff !important;
+
+  background:transparent !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+
+  filter:
+    drop-shadow(0 0 5px rgba(192,98,255,.95))
+    drop-shadow(0 0 11px rgba(139,64,255,.55)) !important;
+
+  pointer-events:none !important;
+}
+
+/* Pendant la rotation la flèche reste parfaitement fixe */
+.letter-v2-wheel-zone.is-dragging .letter-v2-pointer,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-pointer,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-pointer,
+.letter-v2-wheel-zone.is-wheel-landed .letter-v2-pointer {
+  animation:none !important;
+  transform:translateX(-50%) !important;
+}
+
+/* Descend le groupe d'actions */
+.letter-v2-actions {
+  margin-top:30px !important;
+  transform:translateY(4px) !important;
+  gap:15px !important;
+}
+
+/* Garde le bouton relancer compact */
+.letter-v2-reroll {
+  min-width:82px !important;
+  max-width:94px !important;
+}
+
+/* Valider légèrement plus bas sans toucher au footer */
+.letter-v2-confirm {
+  margin-top:2px !important;
+}
+
+@media(max-height:760px) {
+  .letter-v2-pointer {
+    top:-16px !important;
+    border-left-width:12px !important;
+    border-right-width:12px !important;
+    border-top-width:19px !important;
+  }
+
+  .letter-v2-actions {
+    margin-top:23px !important;
+    transform:translateY(2px) !important;
+    gap:12px !important;
+  }
+}

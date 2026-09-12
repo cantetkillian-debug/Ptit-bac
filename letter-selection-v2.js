@@ -249,6 +249,8 @@
           role="${isChooser && !selectedLetter ? "button" : "presentation"}"
           ${isChooser && !selectedLetter ? 'tabindex="0" aria-label="Lancer la roue"' : ""}
         >
+          <div class="letter-v2-pointer" aria-hidden="true"></div>
+
           <div class="letter-v2-wheel-shell">
             <div
               class="letter-v2-wheel"
