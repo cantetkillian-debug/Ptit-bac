@@ -2125,3 +2125,258 @@ body:has(.letter-v2-screen) .economy-hud {
     font-size:1.62rem !important;
   }
 }
+
+
+/* =========================================================
+   Tirage lettre V13 — roue OR 26 secteurs + équilibrage page
+   ========================================================= */
+
+/* Joueur sélectionné : avatar inchangé, texte plus lisible */
+.letter-v2-chooser-copy small {
+  font-size:.66rem !important;
+}
+.letter-v2-chooser-copy strong {
+  font-size:1.28rem !important;
+  line-height:.98 !important;
+}
+.letter-v2-chooser-copy span {
+  font-size:.69rem !important;
+  font-weight:750 !important;
+}
+
+/* Descend légèrement la roue pour mieux équilibrer la page */
+.letter-v2-wheel-zone {
+  margin-top:48px !important;
+}
+
+/* Coque métallique or inspirée du nouveau modèle */
+.letter-v2-wheel-shell {
+  padding:8px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe996 0%,
+      #b26e00 18%,
+      #ffd34f 36%,
+      #5c3500 50%,
+      #ffc928 67%,
+      #9c5a00 83%,
+      #fff0a6 100%
+    ) !important;
+
+  box-shadow:
+    0 0 0 2px rgba(255,194,35,.98),
+    0 0 0 5px rgba(73,42,3,.92),
+    0 0 16px rgba(255,184,20,.68),
+    0 0 34px rgba(255,153,0,.24),
+    inset 0 0 8px rgba(255,246,193,.40) !important;
+}
+
+/* 26 secteurs générés dynamiquement par le JS.
+   Le premier (A) est blanc/crème et les 25 autres sont dorés. */
+.letter-v2-wheel {
+  background:var(--wheel-sectors) !important;
+
+  box-shadow:
+    inset 0 0 0 2px rgba(90,49,0,.90),
+    inset 0 0 22px rgba(57,31,0,.34) !important;
+}
+
+/* Traits fins entre chaque secteur : 26 divisions parfaitement régulières */
+.letter-v2-wheel::after {
+  content:"" !important;
+  position:absolute !important;
+  inset:0 !important;
+  border-radius:50% !important;
+  pointer-events:none !important;
+
+  background:
+    repeating-conic-gradient(
+      from -6.923076923deg,
+      rgba(65,35,0,.95) 0deg .34deg,
+      transparent .34deg 13.846153846deg
+    ) !important;
+
+  box-shadow:
+    inset 0 0 0 2px rgba(255,216,99,.42) !important;
+}
+
+/* Les lettres restent centrées et droites */
+.letter-v2-wheel-label {
+  transform:
+    rotate(var(--letter-angle))
+    translateY(-121px) !important;
+}
+.letter-v2-wheel-label b {
+  width:19px !important;
+  height:19px !important;
+  left:-9.5px !important;
+  top:-9.5px !important;
+
+  color:#fff !important;
+  font-size:.65rem !important;
+  font-weight:950 !important;
+
+  text-shadow:
+    0 1px 2px rgba(42,22,0,.95),
+    0 0 5px rgba(255,216,118,.30) !important;
+}
+
+/* Sur la case blanche, A reste bien lisible */
+.letter-v2-wheel-label:first-child b {
+  color:#6c3b00 !important;
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.85),
+    0 0 4px rgba(170,99,0,.22) !important;
+}
+
+/* Flèche simple en or, au-dessus de la case blanche */
+.letter-v2-pointer {
+  border-left-color:transparent !important;
+  border-right-color:transparent !important;
+  border-top-color:#ffc629 !important;
+
+  filter:
+    drop-shadow(0 0 4px rgba(255,223,98,.95))
+    drop-shadow(0 0 12px rgba(255,166,0,.58)) !important;
+}
+
+/* Centre : couronne plus discrète, lettre principale plus forte */
+.letter-v2-wheel-center {
+  background:
+    radial-gradient(circle at 50% 35%,#151515,#070707 72%) !important;
+
+  border-color:#d9960a !important;
+
+  box-shadow:
+    0 0 0 2px rgba(255,210,64,.92),
+    0 0 11px rgba(255,174,19,.38),
+    inset 0 0 12px rgba(255,187,33,.12) !important;
+}
+
+.letter-v2-wheel-center img {
+  width:25px !important;
+  height:25px !important;
+  margin-bottom:-1px !important;
+}
+
+#letterV2CenterLetter {
+  min-height:30px !important;
+
+  font-size:2.25rem !important;
+  line-height:.88 !important;
+  font-weight:950 !important;
+
+  color:#ffd45b !important;
+
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.35),
+    0 0 7px rgba(255,197,48,.52),
+    0 0 14px rgba(255,156,0,.25) !important;
+}
+
+/* Le disque central ne grossit plus à l'apparition.
+   Seuls la couronne et la lettre sont animées. */
+.letter-v2-wheel-center.is-revealed {
+  animation:none !important;
+}
+
+.letter-v2-wheel-center.is-revealed img {
+  animation:letterV13CrownRise .34s cubic-bezier(.2,.9,.22,1.14) both !important;
+}
+
+.letter-v2-wheel-center.is-revealed strong {
+  animation:letterV13LetterPop .38s cubic-bezier(.16,.94,.2,1.16) .07s both !important;
+}
+
+@keyframes letterV13CrownRise {
+  0% {
+    opacity:0;
+    transform:translateY(8px) scale(.72);
+    filter:brightness(.7);
+  }
+  70% {
+    opacity:1;
+    transform:translateY(-2px) scale(1.06);
+    filter:brightness(1.18);
+  }
+  100% {
+    opacity:1;
+    transform:translateY(0) scale(1);
+    filter:brightness(1);
+  }
+}
+
+@keyframes letterV13LetterPop {
+  0% {
+    opacity:0;
+    transform:translateY(7px) scale(.62);
+    filter:blur(1.5px) brightness(.85);
+  }
+  68% {
+    opacity:1;
+    transform:translateY(-2px) scale(1.12);
+    filter:blur(0) brightness(1.25);
+  }
+  100% {
+    opacity:1;
+    transform:translateY(0) scale(1);
+    filter:blur(0) brightness(1);
+  }
+}
+
+/* État sous la roue */
+.letter-v2-wait-status {
+  margin-top:27px !important;
+}
+.letter-v2-wait-status.is-result strong {
+  color:#ffd45b !important;
+  font-size:.66rem !important;
+  text-shadow:0 0 8px rgba(255,186,31,.24) !important;
+}
+
+/* Actions plus aérées mais regroupées un peu plus haut */
+.letter-v2-actions {
+  margin-top:13px !important;
+  transform:translateY(-5px) !important;
+  gap:15px !important;
+}
+
+.letter-v2-reroll {
+  margin-bottom:0 !important;
+}
+
+.letter-v2-confirm {
+  font-size:.84rem !important;
+}
+
+/* Le groupe reste clairement détaché du footer sans gros vide */
+.letter-v2-footer {
+  z-index:1 !important;
+}
+
+@media(max-height:760px) {
+  .letter-v2-wheel-zone {
+    margin-top:34px !important;
+  }
+
+  .letter-v2-wheel-label {
+    transform:
+      rotate(var(--letter-angle))
+      translateY(-107px) !important;
+  }
+
+  .letter-v2-chooser-copy strong {
+    font-size:1.12rem !important;
+  }
+
+  .letter-v2-chooser-copy span {
+    font-size:.60rem !important;
+  }
+
+  .letter-v2-actions {
+    gap:11px !important;
+    transform:translateY(-3px) !important;
+  }
+}

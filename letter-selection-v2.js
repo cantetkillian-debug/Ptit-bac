@@ -200,7 +200,11 @@
     const wheelStops = LETTERS.map((_, index) => {
       const start = index * segmentAngle;
       const end = (index + 1) * segmentAngle;
-      const color = index % 2 === 0 ? "#38208f" : "#6637df";
+
+      const color = index === 0
+        ? "#fff4d1"
+        : (index % 2 === 0 ? "#f2b414" : "#b97b05");
+
       return `${color} ${start}deg ${end}deg`;
     }).join(",");
 
@@ -253,7 +257,7 @@
             <div
               class="letter-v2-wheel"
               id="letterV2Wheel"
-              style="background:conic-gradient(${wheelStops})"
+              style="--wheel-sectors:conic-gradient(from -${segmentAngle / 2}deg, ${wheelStops})"
             >
               ${wheelLabels}
             </div>
@@ -272,7 +276,7 @@
 
         <div class="letter-v2-wait-status ${selectedLetter ? "has-result" : ""}">
           ${selectedLetter ? "" : "<span></span>"}
-          <strong>${selectedLetter ? `En attente de ${escapeHtml(chooserName)} …` : `En attente de ${escapeHtml(chooserName)} …`}</strong>
+          <strong id="letterV2StatusText">En attente de ${escapeHtml(chooserName)} …</strong>
         </div>
 
         ${isChooser && selectedLetter ? `
@@ -313,6 +317,12 @@
       const center = document.getElementById("letterV2WheelCenter");
       center?.classList.remove("is-pending");
       center?.classList.add("is-revealed");
+
+      const statusText = document.getElementById("letterV2StatusText");
+      if (statusText) statusText.textContent = "Lettre tirée !";
+
+      const status = document.querySelector(".letter-v2-wait-status");
+      status?.classList.add("is-result");
 
       document.querySelectorAll(".letter-v2-delayed-result").forEach(element => {
         element.classList.remove("is-hidden");
@@ -394,19 +404,24 @@
       } catch {}
       wheelRuntime.animation = null;
 
+      const rebound = direction * 1.6;
       const frames = [
         { transform: `rotate(${startRotation}deg)`, offset: 0 },
         {
-          transform: `rotate(${startRotation + (finalRotation - startRotation) * 0.44}deg)`,
-          offset: 0.22
+          transform: `rotate(${startRotation + (finalRotation - startRotation) * 0.42}deg)`,
+          offset: 0.20
         },
         {
-          transform: `rotate(${startRotation + (finalRotation - startRotation) * 0.78}deg)`,
-          offset: 0.58
+          transform: `rotate(${startRotation + (finalRotation - startRotation) * 0.77}deg)`,
+          offset: 0.56
         },
         {
-          transform: `rotate(${startRotation + (finalRotation - startRotation) * 0.95}deg)`,
-          offset: 0.86
+          transform: `rotate(${startRotation + (finalRotation - startRotation) * 0.965}deg)`,
+          offset: 0.88
+        },
+        {
+          transform: `rotate(${finalRotation + rebound}deg)`,
+          offset: 0.965
         },
         { transform: `rotate(${finalRotation}deg)`, offset: 1 }
       ];
