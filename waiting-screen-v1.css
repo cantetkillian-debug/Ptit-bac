@@ -229,3 +229,64 @@ body:has(.wsv1-screen) .economy-hud{display:none!important}
   line-height:1 !important;
   text-align:center !important;
 }
+
+
+/* =========================================================
+   Waiting V5 — header simplifié + avatars recentrés
+   ========================================================= */
+
+/* Les blocs Manche / Lettre / Catégories sont retirés du DOM. */
+.wsv1-top{
+  display:none !important;
+}
+
+/* Le contenu remonte naturellement sous le bouton Exit. */
+.wsv1-main{
+  margin:18px 0 18px !important;
+}
+
+/* Avatar parfaitement centré dans son cadre carré. */
+.wsv1-player .wsv1-avatar{
+  width:50px !important;
+  height:50px !important;
+  min-width:50px !important;
+  display:grid !important;
+  place-items:center !important;
+  overflow:hidden !important;
+  border:1.4px solid #a24fff !important;
+  border-radius:10px !important;
+  background:#081d52 !important;
+  box-shadow:0 0 9px rgba(155,72,255,.28) !important;
+}
+
+.wsv1-player .wsv1-avatar img{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  object-position:center center !important;
+  margin:auto !important;
+  border-radius:7px !important;
+}
+
+.wsv1-player .wsv1-avatar span{
+  width:100% !important;
+  height:100% !important;
+  display:grid !important;
+  place-items:center !important;
+  text-align:center !important;
+  line-height:1 !important;
+  font-size:1.45rem !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+
+@media(max-width:370px){
+  .wsv1-player .wsv1-avatar{
+    width:46px !important;
+    height:46px !important;
+    min-width:46px !important;
+  }
+}

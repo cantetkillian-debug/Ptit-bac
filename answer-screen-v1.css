@@ -255,3 +255,21 @@ body:has(.asv1-screen) .economy-hud{display:none!important}
 .asv1-exit-modal-actions{display:grid;gap:9px}
 .asv1-exit-modal-actions button{min-height:47px;border:1px solid #7041d8;border-radius:14px;background:#10245d;color:#fff;font:800 .72rem "DM Sans",system-ui,sans-serif}
 .asv1-exit-modal-actions button.danger{background:linear-gradient(100deg,#8d35ff,#5e17ed);border-color:#a251ff}
+
+
+/* =========================================================
+   Réponses V5 — suppression pièces/manche en haut à droite
+   ========================================================= */
+
+.asv1-status{
+  display:none !important;
+}
+
+.asv1-header{
+  min-height:46px !important;
+  justify-content:flex-start !important;
+}
+
+.asv1-hero{
+  margin-top:8px !important;
+}

@@ -580,3 +580,153 @@ body:has(.fsv1-screen) .economy-hud{display:none!important}
     grid-template-columns:repeat(2,1fr)!important;
   }
 }
+
+
+/* =========================================================
+   Fin de partie V3 — classement/stats compacts
+   ========================================================= */
+
+/* Bloc classement plus fin et légèrement moins large. */
+.fsv1-ranking{
+  width:96% !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+  border-radius:15px !important;
+}
+
+.fsv1-ranking-head,
+.fsv1-row{
+  grid-template-columns:24px 1fr 46px 72px !important;
+  gap:5px !important;
+}
+
+.fsv1-ranking-head{
+  min-height:30px !important;
+  padding:0 8px !important;
+  font-size:.37rem !important;
+}
+
+.fsv1-row{
+  min-height:37px !important;
+  padding:3px 8px !important;
+}
+
+.fsv1-rank{
+  width:21px !important;
+  height:21px !important;
+  font-size:.42rem !important;
+}
+
+.fsv1-row-avatar{
+  width:24px !important;
+  height:24px !important;
+  min-width:24px !important;
+}
+
+.fsv1-row-player{
+  gap:6px !important;
+}
+
+.fsv1-row-player strong{
+  font-size:.45rem !important;
+}
+
+.fsv1-row>b{
+  font-size:.47rem !important;
+}
+
+.fsv1-row-reward{
+  font-size:.42rem !important;
+}
+
+.fsv1-row-reward img{
+  width:16px !important;
+  height:16px !important;
+}
+
+/* Les 4 cartes statistiques sont plus petites. */
+.fsv1-stats{
+  width:96% !important;
+  margin:9px auto 0 !important;
+  gap:5px !important;
+}
+
+.fsv1-stats>div{
+  min-height:49px !important;
+  padding:5px 4px !important;
+  border-radius:11px !important;
+  grid-template-columns:24px 1fr !important;
+  column-gap:4px !important;
+}
+
+.fsv1-stat-icon{
+  width:24px !important;
+  height:24px !important;
+  border-radius:7px !important;
+}
+
+.fsv2-stats .fsv1-stat-icon img{
+  width:19px !important;
+  height:19px !important;
+}
+
+.fsv1-stats strong{
+  font-size:.51rem !important;
+}
+
+.fsv1-stats small{
+  font-size:.27rem !important;
+}
+
+/* Bloc gain sans la carte "Merci d'avoir joué". */
+.fsv1-gain{
+  width:96% !important;
+  margin:9px auto 0 !important;
+  min-height:78px !important;
+  grid-template-columns:62px 1fr !important;
+  gap:9px !important;
+  padding:9px 11px !important;
+}
+
+.fsv1-thanks{
+  display:none !important;
+}
+
+.fsv1-gain-coins{
+  width:59px !important;
+  height:50px !important;
+}
+
+.fsv1-gain-coins img{
+  width:38px !important;
+  height:38px !important;
+}
+
+.fsv1-gain-copy strong{
+  font-size:.80rem !important;
+}
+
+/* Retour accueil : texte seul. */
+.fsv1-home{
+  gap:0 !important;
+}
+
+.fsv1-home svg,
+.fsv1-home > img{
+  display:none !important;
+}
+
+@media(max-width:370px){
+  .fsv1-ranking-head,
+  .fsv1-row{
+    grid-template-columns:22px 1fr 40px 64px !important;
+  }
+
+  .fsv1-stats{
+    grid-template-columns:repeat(4,1fr) !important;
+  }
+
+  .fsv1-gain{
+    grid-template-columns:56px 1fr !important;
+  }
+}
