@@ -6,6 +6,28 @@
 
   let categoryExitMenuOpen = false;
 
+  socket.on("room:closed", payload => {
+    if (!payload || payload.reason !== "forfeit_win") return;
+
+    if (Number.isFinite(Number(payload.balance))) {
+      setWalletState(session.walletToken, Number(payload.balance));
+    }
+
+    const message = String(
+      payload.message ||
+      "Victoire par forfait ! La partie est terminée."
+    );
+
+    categoryExitMenuOpen = false;
+    clearSession();
+    renderHome();
+    toast(
+      Number(payload.reward || 0) > 0
+        ? `${message} +${Number(payload.reward)} pièces`
+        : message
+    );
+  });
+
   function categoryDecorLetters() {
     return "";
   }
@@ -170,38 +192,27 @@
       const buttons = document.querySelectorAll(".cat-v2-exit-actions button");
       buttons.forEach(button => { button.disabled = true; });
 
-      /*
-       * On passe d'abord par game:returnLobby :
-       * le serveur rembourse alors les 5 pièces de participation.
-       * Dès que l'état "lobby" revient, on quitte le salon puis on
-       * nettoie la session locale et on affiche l'accueil.
-       */
-      socket.once("room:state", nextState => {
-        if (String(nextState?.code || "") !== String(state.code || "") || nextState?.phase !== "lobby") {
-          categoryExitMenuOpen = false;
-          renderCategorySelectionV2();
-          toast("Impossible de quitter la partie pour le moment.");
-          return;
+      socket.emit("game:leave", {
+        code: state.code,
+        playerId: session.playerId
+      }, res => {
+        if (!res?.ok) {
+          buttons.forEach(button => { button.disabled = false; });
+          return toast(res?.error || "Impossible de quitter la partie.");
         }
-
-        socket.emit("room:leave", {
-          code: state.code,
-          playerId: session.playerId
-        });
 
         categoryExitMenuOpen = false;
         clearSession();
 
         if (typeof initWallet === "function") {
-          initWallet(() => renderHome());
+          initWallet(() => {
+            renderHome();
+            if (res?.message) toast(res.message);
+          });
         } else {
           renderHome();
+          if (res?.message) toast(res.message);
         }
-      });
-
-      socket.emit("game:returnLobby", {
-        code: state.code,
-        playerId: session.playerId
       });
     });
 
