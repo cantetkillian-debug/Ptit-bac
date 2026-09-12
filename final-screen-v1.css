@@ -730,3 +730,76 @@ body:has(.fsv1-screen) .economy-hud{display:none!important}
     grid-template-columns:56px 1fr !important;
   }
 }
+
+
+/* =========================================================
+   Fin de partie V4 — lisibilité finale
+   ========================================================= */
+
+/* Plus de sous-titre "Merci d’avoir joué !" en haut */
+.fsv1-heading p{
+  display:none !important;
+}
+
+/* En-tête du tableau plus lisible */
+.fsv1-ranking-head{
+  font-size:.46rem !important;
+  font-weight:900 !important;
+  color:#c4b8df !important;
+  min-height:32px !important;
+}
+
+.fsv1-ranking-head span{
+  line-height:1.1 !important;
+}
+
+/* 4 cartes stats : texte augmenté */
+.fsv1-stats strong{
+  font-size:.61rem !important;
+  font-weight:900 !important;
+}
+
+.fsv1-stats small{
+  font-size:.33rem !important;
+  font-weight:800 !important;
+  line-height:1.15 !important;
+}
+
+.fsv2-difficulty{
+  font-size:.57rem !important;
+}
+
+/* Bloc total gains : textes plus grands */
+.fsv1-gain-copy small{
+  font-size:.56rem !important;
+  font-weight:850 !important;
+}
+
+.fsv1-gain-copy strong{
+  font-size:.96rem !important;
+  font-weight:900 !important;
+}
+
+.fsv1-gain-copy span{
+  font-size:.46rem !important;
+  font-weight:750 !important;
+}
+
+/* Retour accueil : aucun pictogramme résiduel */
+.fsv1-home{
+  gap:0 !important;
+}
+.fsv1-home svg,
+.fsv1-home img,
+.fsv1-home::before,
+.fsv1-home::after{
+  display:none !important;
+  content:none !important;
+}
+
+/* Le bouton reste bien centré avec texte seul */
+.fsv1-home span{
+  display:block !important;
+  width:100% !important;
+  text-align:center !important;
+}

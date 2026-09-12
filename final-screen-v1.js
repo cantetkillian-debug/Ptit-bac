@@ -115,7 +115,6 @@
 
         <section class="fsv1-heading">
           <h1>Partie <span>terminée !</span></h1>
-          <p>Merci d’avoir joué !</p>
         </section>
 
         <section class="fsv1-podium fsv1-podium-${Math.min(3,top3.length)}">
