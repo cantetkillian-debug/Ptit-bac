@@ -2001,3 +2001,127 @@ body:has(.letter-v2-screen) .economy-hud {
   transition:opacity .18s ease .05s, transform .24s cubic-bezier(.2,.9,.2,1.12) .05s !important;
   transform:scale(1) !important;
 }
+
+
+/* =========================================================
+   Roue V12 — centre réduit + reveal premium + typo résultat
+   ========================================================= */
+
+/* Cercle central plus petit */
+.letter-v2-wheel-center {
+  width:82px !important;
+  height:82px !important;
+  padding-top:5px !important;
+  border-width:4px !important;
+  gap:0 !important;
+}
+
+.letter-v2-wheel-center img {
+  width:34px !important;
+  height:34px !important;
+  margin-bottom:-1px !important;
+}
+
+/* Lettre choisie : police plus élégante / arcade */
+#letterV2CenterLetter {
+  min-height:27px !important;
+
+  font-family:
+    "Arial Rounded MT Bold",
+    "Trebuchet MS",
+    "DM Sans",
+    system-ui,
+    sans-serif !important;
+
+  font-size:1.82rem !important;
+  line-height:.92 !important;
+  font-weight:900 !important;
+  letter-spacing:-.045em !important;
+
+  color:#7c39e7 !important;
+
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.55),
+    0 0 7px rgba(177,87,255,.34),
+    0 0 14px rgba(116,54,230,.18) !important;
+}
+
+/* Révélation : couronne puis lettre */
+.letter-v2-wheel-center.is-revealed {
+  animation:letterV12CenterPop .42s cubic-bezier(.18,.9,.2,1.15) both !important;
+}
+
+.letter-v2-wheel-center.is-revealed img {
+  animation:letterV12CrownReveal .46s cubic-bezier(.16,.92,.18,1.18) both !important;
+}
+
+.letter-v2-wheel-center.is-revealed strong {
+  animation:letterV12LetterReveal .44s cubic-bezier(.18,.9,.2,1.12) .08s both !important;
+}
+
+@keyframes letterV12CenterPop {
+  0% {
+    opacity:0;
+    transform:translate(-50%,-50%) scale(.72);
+    filter:brightness(.9);
+  }
+  65% {
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1.07);
+    filter:brightness(1.10);
+  }
+  100% {
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1);
+    filter:brightness(1);
+  }
+}
+
+@keyframes letterV12CrownReveal {
+  0% {
+    opacity:0;
+    transform:translateY(-8px) scale(.65) rotate(-6deg);
+  }
+  65% {
+    opacity:1;
+    transform:translateY(1px) scale(1.12) rotate(3deg);
+  }
+  100% {
+    opacity:1;
+    transform:translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes letterV12LetterReveal {
+  0% {
+    opacity:0;
+    transform:translateY(7px) scale(.55);
+    filter:blur(2px);
+  }
+  62% {
+    opacity:1;
+    transform:translateY(-1px) scale(1.12);
+    filter:blur(0);
+  }
+  100% {
+    opacity:1;
+    transform:translateY(0) scale(1);
+    filter:blur(0);
+  }
+}
+
+@media(max-height:760px) {
+  .letter-v2-wheel-center {
+    width:74px !important;
+    height:74px !important;
+  }
+
+  .letter-v2-wheel-center img {
+    width:30px !important;
+    height:30px !important;
+  }
+
+  #letterV2CenterLetter {
+    font-size:1.62rem !important;
+  }
+}

@@ -381,7 +381,7 @@
       const finalRotation =
         baseLanding + direction * fullTurns * 360;
 
-      const spinDuration = 3000 + Math.min(900, Math.abs(wheelRuntime.velocity) * 95);
+      const spinDuration = 5000 + Math.min(900, Math.abs(wheelRuntime.velocity) * 95);
 
       // Le nouvel élément DOM reprend exactement l'angle mémorisé.
       wheel.style.transform = `rotate(${startRotation}deg)`;
