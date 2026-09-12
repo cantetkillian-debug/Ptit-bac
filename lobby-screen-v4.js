@@ -11,6 +11,10 @@
   let lobbyOpenedPlayerId = "";
   let lobbyDifficultyLockUntil = 0;
   let lobbySettingsOpen = false;
+  let lobbyInviteOpen = false;
+  let lobbyInviteFriends = [];
+  let lobbyInviteLoading = false;
+  const lobbyInviteSocket = io({ forceNew: true });
 
   Object.values(DIFFICULTY_ICON_URLS).forEach(src => {
     const img = new Image();
@@ -205,6 +209,99 @@
     `;
   }
 
+  function lobbyInviteIdentity(extra = {}) {
+    return {
+      walletToken: localStorage.getItem("petitbac_walletToken") || "",
+      username: localStorage.getItem("petitbac_profile_name") || "Joueur",
+      avatar: localStorage.getItem("petitbac_profile_icon") || "🐼",
+      ...extra
+    };
+  }
+
+  function lobbyInviteAvatar(user) {
+    const raw = String(user?.avatar || "");
+    if (isImageAvatar(raw)) {
+      return `<img src="${raw}" alt="" draggable="false">`;
+    }
+    return `<span>${escapeHtml(raw || String(user?.username || "?").charAt(0).toUpperCase())}</span>`;
+  }
+
+  function lobbyInviteOverlay(state) {
+    if (!lobbyInviteOpen) return "";
+
+    const rows = lobbyInviteLoading
+      ? `<div class="lobby-v5-invite-loading">
+          <span class="spinner small-spinner"></span>
+          Chargement des amis…
+        </div>`
+      : lobbyInviteFriends.length
+        ? lobbyInviteFriends.map(friend => `
+            <article class="lobby-v5-invite-friend">
+              <div class="lobby-v5-invite-friend-avatar">
+                ${lobbyInviteAvatar(friend)}
+              </div>
+
+              <div class="lobby-v5-invite-friend-copy">
+                <strong>${escapeHtml(friend.username || "Joueur")}</strong>
+                <small class="${friend.online ? "online" : ""}">
+                  ${friend.online ? "En ligne" : "Hors ligne"}
+                </small>
+              </div>
+
+              <button
+                type="button"
+                class="lobby-v5-invite-friend-btn"
+                data-lobby-invite-friend="${escapeHtml(friend.id)}"
+              >
+                <img src="/friends.png" alt="">
+                <span>Inviter</span>
+              </button>
+            </article>
+          `).join("")
+        : `<div class="lobby-v5-invite-empty">
+            <img src="/friends.png" alt="">
+            <strong>Aucun ami disponible</strong>
+            <small>Ajoute des amis depuis ton profil pour les inviter ici.</small>
+          </div>`;
+
+    return `
+      <div class="lobby-v5-invite-overlay" id="lobbyInviteOverlay">
+        <section class="lobby-v5-invite-sheet" role="dialog" aria-modal="true" aria-label="Inviter des amis">
+          <header class="lobby-v5-invite-sheet-header">
+            <div>
+              <small>SALON ${escapeHtml(state.code)}</small>
+              <h2>Inviter des amis</h2>
+            </div>
+
+            <button id="lobbyInviteClose" type="button" aria-label="Fermer">×</button>
+          </header>
+
+          <div class="lobby-v5-invite-list">
+            ${rows}
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  function loadLobbyInviteFriends() {
+    lobbyInviteLoading = true;
+    renderLobbyV5();
+
+    lobbyInviteSocket.emit("friends:list", lobbyInviteIdentity(), res => {
+      lobbyInviteLoading = false;
+
+      if (!res?.ok) {
+        lobbyInviteFriends = [];
+        toast(res?.error || "Impossible de charger tes amis.");
+        return renderLobbyV5();
+      }
+
+      lobbyInviteFriends = Array.isArray(res.friends) ? res.friends : [];
+      renderLobbyV5();
+    });
+  }
+
   function renderLobbyV5() {
     clearInterval(session.timerHandle);
     session.localAnswers = {};
@@ -333,11 +430,13 @@
 
         ${playerProfileModal(state)}
         ${lobbySettingsOverlay(state, user)}
+        ${lobbyInviteOverlay(state)}
       </main>
     `);
 
     const leave = () => {
       lobbySettingsOpen = false;
+      lobbyInviteOpen = false;
       socket.emit("room:leave", { code: state.code, playerId: session.playerId });
       clearSession();
       renderHome();
@@ -439,18 +538,51 @@
       });
     });
 
-    document.getElementById("inviteFriendsBtn")?.addEventListener("click", async () => {
-      const text = `Rejoins mon salon P’tit Bac avec le code ${state.code}`;
-      try {
-        if (navigator.share) {
-          await navigator.share({ title: "P’tit Bac", text, url: window.location.origin });
-        } else {
-          await navigator.clipboard.writeText(`${text} — ${window.location.origin}`);
-          toast("Invitation copiée !");
-        }
-      } catch (err) {
-        if (err?.name !== "AbortError") toast(`Code : ${state.code}`);
-      }
+    document.getElementById("inviteFriendsBtn")?.addEventListener("click", () => {
+      lobbyInviteOpen = true;
+      lobbyInviteFriends = [];
+      renderLobbyV5();
+      loadLobbyInviteFriends();
+    });
+
+    const closeLobbyInvite = () => {
+      lobbyInviteOpen = false;
+      lobbyInviteLoading = false;
+      renderLobbyV5();
+    };
+
+    document.getElementById("lobbyInviteClose")?.addEventListener("click", closeLobbyInvite);
+
+    document.getElementById("lobbyInviteOverlay")?.addEventListener("click", event => {
+      if (event.target.id === "lobbyInviteOverlay") closeLobbyInvite();
+    });
+
+    document.querySelectorAll("[data-lobby-invite-friend]").forEach(button => {
+      button.addEventListener("click", () => {
+        const friendId = button.dataset.lobbyInviteFriend || "";
+        if (!friendId) return;
+
+        button.disabled = true;
+
+        lobbyInviteSocket.emit(
+          "friends:invite",
+          lobbyInviteIdentity({
+            friendId,
+            roomCode: state.code
+          }),
+          res => {
+            button.disabled = false;
+
+            if (!res?.ok) {
+              return toast(res?.error || "Invitation impossible.");
+            }
+
+            button.classList.add("sent");
+            button.innerHTML = `<span>${res.delivered ? "Envoyé ✓" : "Hors ligne"}</span>`;
+            toast(res.delivered ? "Invitation envoyée !" : "Ami hors ligne pour le moment.");
+          }
+        );
+      });
     });
 
     document.querySelectorAll("[data-add-bot]").forEach(btn => {
