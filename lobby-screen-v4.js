@@ -83,19 +83,13 @@
       </div>`;
   }
 
-  function settingCard({ key, label, value, icon, host, difficulty = false }) {
+  function settingCard({ key, label, value, icon, difficulty = false }) {
     return `
       <article class="lobby-v5-setting-card ${difficulty ? "is-difficulty" : ""}">
         <img class="lobby-v5-setting-icon" src="${icon}" alt="">
         <small>${label}</small>
         <div class="lobby-v5-setting-value">
-          ${host ? `<button type="button" data-lobby-v5-step="${key}" data-dir="-1" aria-label="Précédent">
-            <img src="/lobby-minus.png" alt="">
-          </button>` : ""}
           <strong>${value}</strong>
-          ${host ? `<button type="button" data-lobby-v5-step="${key}" data-dir="1" aria-label="Suivant">
-            <img src="/lobby-plus.png" alt="">
-          </button>` : ""}
         </div>
       </article>`;
   }
@@ -158,10 +152,10 @@
     const coins = typeof getCoins === "function" ? getCoins() : 0;
 
     const players = state.players.map((p, index) => playerRow(p, index, user)).join("");
-    const emptySlots = Array.from(
-      { length: Math.max(0, LOBBY_MAX_PLAYERS - playerCount) },
-      (_, i) => emptyPlayerRow(!!user?.isHost, i)
-    ).join("");
+    const emptySlots =
+      playerCount < LOBBY_MAX_PLAYERS
+        ? emptyPlayerRow(!!user?.isHost, 0)
+        : "";
 
     setScreen(`
       <main class="screen lobby-v5">
@@ -186,7 +180,7 @@
         </header>
 
         <section class="lobby-v5-host-card">
-          <div class="lobby-v5-host-crown">👑</div>
+          <div class="lobby-v5-host-crown"><img src="/admin-crown.png" alt=""></div>
           <div class="lobby-v5-host-avatar">${avatarMarkup(user || state.players[0])}</div>
           <div class="lobby-v5-host-copy">
             <small>Hôte de la partie</small>
@@ -212,29 +206,25 @@
               key: "rounds",
               label: "Manches",
               value: state.rounds,
-              icon: "/lightning.png",
-              host: !!user?.isHost
+              icon: "/lightning.png"
             })}
             ${settingCard({
               key: "categoryCount",
               label: "Catégories",
               value: categoryCount,
-              icon: "/lobby-categories.png",
-              host: !!user?.isHost
+              icon: "/lobby-categories.png"
             })}
             ${settingCard({
               key: "duration",
               label: "Temps",
               value: `${Number(state.duration || 60)}s`,
-              icon: "/lobby-clock.png",
-              host: !!user?.isHost
+              icon: "/lobby-clock.png"
             })}
             ${settingCard({
               key: "categoryDifficulty",
               label: "Difficulté",
               value: difficulty.label,
               icon: difficulty.icon,
-              host: !!user?.isHost,
               difficulty: true
             })}
           </div>
@@ -306,59 +296,6 @@
       } catch (err) {
         if (err?.name !== "AbortError") toast(`Code : ${state.code}`);
       }
-    });
-
-    const updateSetting = (setting, dir) => {
-      if (!user?.isHost) return;
-
-      if (setting === "categoryDifficulty") {
-        const now = Date.now();
-        if (now < lobbyDifficultyLockUntil) return;
-        lobbyDifficultyLockUntil = now + 280;
-      }
-
-      const rounds = [1, 3, 5];
-      const durations = [30, 60, 90];
-      const difficulties = ["beginner", "medium", "hard"];
-
-      let nextRounds = Number(state.rounds || 1);
-      let nextDuration = Number(state.duration || 60);
-      let nextDifficulty = state.categoryDifficulty || "beginner";
-      let nextCategoryCount = categoryCount;
-
-      const cycle = (arr, current, direction) => {
-        let i = arr.indexOf(current);
-        if (i < 0) i = 0;
-        return arr[(i + direction + arr.length) % arr.length];
-      };
-
-      if (setting === "rounds") nextRounds = cycle(rounds, nextRounds, dir);
-      if (setting === "duration") nextDuration = cycle(durations, nextDuration, dir);
-      if (setting === "categoryDifficulty") nextDifficulty = cycle(difficulties, nextDifficulty, dir);
-      if (setting === "categoryCount") nextCategoryCount = Math.max(5, Math.min(10, nextCategoryCount + dir));
-
-      socket.emit("room:updateSettings", {
-        code: state.code,
-        playerId: session.playerId,
-        rounds: nextRounds,
-        duration: nextDuration,
-        categoryCount: nextCategoryCount,
-        categoryDifficulty: nextDifficulty
-      }, res => {
-        if (!res?.ok) {
-          lobbyDifficultyLockUntil = 0;
-          toast(res?.error || "Impossible de modifier ce paramètre.");
-        }
-        if (res?.state) session.state = res.state;
-      });
-    };
-
-    document.querySelectorAll("[data-lobby-v5-step]").forEach(btn => {
-      btn.addEventListener("click", event => {
-        event.preventDefault();
-        event.stopPropagation();
-        updateSetting(btn.dataset.lobbyV5Step, Number(btn.dataset.dir) || 1);
-      });
     });
 
     document.querySelectorAll("[data-add-bot]").forEach(btn => {

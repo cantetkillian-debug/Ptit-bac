@@ -401,3 +401,89 @@ html.ptb-admin-infinite-coins .lobby-v5-coin-pill strong::after {content:"∞";f
   .lobby-v5-empty-player {min-height:42px;}
   .lobby-v5-actions {min-height:42px;}
 }
+
+
+/* =========================================================
+   Salon V5 — Raffinement demandé
+   ========================================================= */
+
+/* Sortie du salon : icône seule, aucun cadre */
+.lobby-v5-back {
+  width:38px !important;
+  height:38px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+.lobby-v5-back img {
+  width:34px !important;
+  height:34px !important;
+  object-fit:contain !important;
+  filter:drop-shadow(0 0 6px rgba(166,76,255,.35)) !important;
+}
+
+/* Capsule pièces plus petite */
+.lobby-v5-coin-pill {
+  height:36px !important;
+  min-width:72px !important;
+  padding:0 9px !important;
+  gap:5px !important;
+  border-radius:999px !important;
+}
+.lobby-v5-coin-pill img {
+  width:22px !important;
+  height:22px !important;
+}
+.lobby-v5-coin-pill strong {
+  font-size:.75rem !important;
+}
+
+/* Couronne hôte via admin-crown.png, purement décorative */
+.lobby-v5-host-crown {
+  width:24px !important;
+  height:24px !important;
+  display:grid !important;
+  place-items:center !important;
+}
+.lobby-v5-host-crown img {
+  width:24px !important;
+  height:24px !important;
+  object-fit:contain !important;
+  filter:drop-shadow(0 0 5px rgba(181,78,255,.35)) !important;
+}
+
+/* Bouton paramètres plus compact */
+.lobby-v5-settings-shortcut {
+  height:34px !important;
+  padding:0 9px !important;
+  gap:5px !important;
+  border-radius:12px !important;
+  font-size:.50rem !important;
+}
+.lobby-v5-settings-shortcut img {
+  width:19px !important;
+  height:19px !important;
+}
+
+/* Paramètres : affichage seulement, sans contrôles */
+.lobby-v5-setting-value {
+  display:block !important;
+  width:100% !important;
+  margin-top:5px !important;
+}
+.lobby-v5-setting-value strong {
+  display:block !important;
+  width:100% !important;
+  text-align:center !important;
+  font-size:.82rem !important;
+}
+.lobby-v5-setting-card.is-difficulty .lobby-v5-setting-value strong {
+  font-size:.67rem !important;
+}
+
+/* Une seule ligne "En attente d’un joueur…" */
+.lobby-v5-empty-player {
+  margin-bottom:0 !important;
+}
