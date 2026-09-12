@@ -1291,3 +1291,193 @@ body:has(.letter-v2-screen) .economy-hud {
     margin-top:26px !important;
   }
 }
+
+
+/* =========================================================
+   P'tit Bac — Tirage lettre V6
+   Prototype validé : header salon + interface épurée
+   ========================================================= */
+
+/* Même placement horizontal que le salon */
+.letter-v2-screen {
+  padding-left:15px !important;
+  padding-right:15px !important;
+}
+
+.letter-v2-top {
+  width:100% !important;
+  min-height:43px !important;
+  align-items:flex-start !important;
+}
+
+/* Quitter : mêmes dimensions que le bouton du salon */
+.letter-v2-exit-btn {
+  width:42px !important;
+  height:42px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.letter-v2-exit-btn img {
+  width:30px !important;
+  height:30px !important;
+  object-fit:contain !important;
+}
+
+/* Pièces : mêmes dimensions que le salon */
+.letter-v2-wallet {
+  height:43px !important;
+  min-width:88px !important;
+  padding:0 11px !important;
+  gap:7px !important;
+  border:1.3px solid #7841e8 !important;
+  border-radius:999px !important;
+  background:#081d52 !important;
+}
+.letter-v2-wallet img {
+  width:27px !important;
+  height:27px !important;
+}
+.letter-v2-wallet strong {
+  font-size:.86rem !important;
+  font-weight:900 !important;
+}
+
+/* Joueur en haut : plus de cadre, contenu plus lisible */
+.letter-v2-chooser {
+  width:auto !important;
+  min-width:0 !important;
+  min-height:52px !important;
+  margin-top:8px !important;
+  padding:2px 4px !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+
+  grid-template-columns:45px auto !important;
+  gap:10px !important;
+}
+
+.letter-v2-chooser-avatar {
+  width:43px !important;
+  height:43px !important;
+  border:0 !important;
+  border-radius:10px !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+
+.letter-v2-chooser-avatar img,
+.letter-v2-chooser-avatar span {
+  width:100% !important;
+  height:100% !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+}
+
+.letter-v2-chooser-copy small,
+.letter-v2-chooser-copy span {
+  font-size:.54rem !important;
+  line-height:1.08 !important;
+}
+
+.letter-v2-chooser-copy strong {
+  font-size:1.05rem !important;
+  line-height:1 !important;
+}
+
+/* Les éléments supprimés du proto restent masqués même si un ancien cache HTML les contient */
+.letter-v2-round-dots,
+.letter-v2-heading {
+  display:none !important;
+}
+
+/* Espace propre avant la roue */
+.letter-v2-wheel-zone {
+  margin-top:42px !important;
+}
+
+/* Résultat : petit carré comme sur le proto */
+.letter-v2-selected {
+  width:52px !important;
+  min-width:52px !important;
+  height:46px !important;
+  min-height:46px !important;
+  margin-top:16px !important;
+  padding:0 !important;
+  border:1.2px solid #8b47f3 !important;
+  border-radius:11px !important;
+  background:rgba(8,27,74,.82) !important;
+}
+.letter-v2-selected strong {
+  font-size:1.18rem !important;
+}
+
+/* Plus d'espace entre la lettre et les actions */
+.letter-v2-actions {
+  margin-top:16px !important;
+  gap:12px !important;
+  align-items:center !important;
+}
+
+/* Relancer : petit bouton compact */
+.letter-v2-reroll {
+  width:auto !important;
+  min-width:112px !important;
+  max-width:128px !important;
+  height:34px !important;
+  min-height:34px !important;
+  padding:0 7px 0 11px !important;
+  border-radius:999px !important;
+  gap:7px !important;
+}
+.letter-v2-reroll > span {
+  font-size:0 !important;
+}
+.letter-v2-reroll > span::after {
+  content:"↻" !important;
+  font-size:1rem !important;
+  font-weight:900 !important;
+}
+.letter-v2-reroll b {
+  height:25px !important;
+  padding:0 7px !important;
+  gap:4px !important;
+  font-size:.58rem !important;
+}
+.letter-v2-reroll b img {
+  width:18px !important;
+  height:18px !important;
+}
+
+/* Validation : compact mais texte nettement plus grand */
+.letter-v2-confirm {
+  width:min(72%,220px) !important;
+  min-height:46px !important;
+  height:46px !important;
+  padding:0 15px !important;
+  border-radius:13px !important;
+  font-size:.82rem !important;
+  line-height:1 !important;
+  font-weight:900 !important;
+}
+.letter-v2-confirm span {
+  font-size:1.18rem !important;
+}
+
+/* Sur petits iPhone, on conserve les proportions sans collision avec le footer */
+@media(max-height:760px) {
+  .letter-v2-wheel-zone {
+    margin-top:28px !important;
+  }
+  .letter-v2-actions {
+    margin-top:12px !important;
+    gap:9px !important;
+  }
+}

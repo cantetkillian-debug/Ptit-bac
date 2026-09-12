@@ -108,19 +108,6 @@
           </div>
         </section>
 
-        <div class="letter-v2-round-dots" aria-label="Manche ${roundNumber} sur ${totalRounds}">
-          ${roundDots}
-        </div>
-
-        <section class="letter-v2-heading">
-          <h1>Tirage de la <span>lettre</span></h1>
-          <p>
-            ${isChooser
-              ? (selectedLetter ? "La lettre est prête !" : "Appuie sur la roue pour la faire tourner !")
-              : `En attente du tirage de ${escapeHtml(chooserName)}.`}
-          </p>
-        </section>
-
         <section
           class="letter-v2-wheel-zone ${isChooser && !selectedLetter ? "is-tappable" : ""}"
           id="letterV2WheelTapZone"
