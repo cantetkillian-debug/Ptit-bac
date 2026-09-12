@@ -616,3 +616,41 @@ body:has(.ssv1-screen) .economy-hud{display:none!important}
     height:38px !important;
   }
 }
+
+
+/* =========================================================
+   Résultats V3 — titre en haut, suppression du header
+   ========================================================= */
+
+.ssv1-top{
+  display:none !important;
+}
+
+.ssv1-heading-top{
+  margin:8px 0 18px !important;
+  padding:0 46px !important;
+  text-align:center !important;
+}
+
+.ssv1-heading-top h1{
+  margin:0 !important;
+  font-size:1.5rem !important;
+  line-height:1.05 !important;
+}
+
+.ssv1-heading-top p{
+  margin-top:8px !important;
+}
+
+.ssv1-board-wrap{
+  margin-top:2px !important;
+}
+
+@media(max-width:370px){
+  .ssv1-heading-top{
+    padding:0 38px !important;
+  }
+  .ssv1-heading-top h1{
+    font-size:1.32rem !important;
+  }
+}
