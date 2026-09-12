@@ -6,26 +6,81 @@
 
   let categoryExitMenuOpen = false;
 
-  socket.on("room:closed", payload => {
-    if (!payload || payload.reason !== "forfeit_win") return;
+  function ptitBacImageAvatar(value) {
+    return typeof value === "string" &&
+      /^data:image\/(?:png|jpeg|webp);base64,/i.test(value);
+  }
 
+  // Les écrans historiques du jeu utilisaient avatarMarkup(),
+  // qui affichait une data URL comme du texte. On le remplace pour
+  // que TOUS les joueurs voient aussi les photos importées.
+  function ptitBacSharedAvatarMarkup(player, index = 0, extra = "") {
+    const raw = String(player?.avatar || "");
+    const safeExtra = String(extra || "").replace(/[^a-zA-Z0-9 _-]/g, "");
+
+    if (ptitBacImageAvatar(raw)) {
+      return `
+        <div class="avatar avatar-${index % 6} ptb-avatar-photo ${safeExtra}">
+          <img src="${raw}" alt="" draggable="false">
+        </div>`;
+    }
+
+    const value = raw || String(player?.name || "?").charAt(0).toUpperCase();
+    return `
+      <div class="avatar avatar-${index % 6} ${raw ? "avatar-emoji" : ""} ${safeExtra}">
+        ${escapeHtml(value)}
+      </div>`;
+  }
+
+  window.avatarMarkup = ptitBacSharedAvatarMarkup;
+  try { avatarMarkup = ptitBacSharedAvatarMarkup; } catch {}
+
+  function renderForfeitWinScreen(payload = {}) {
     if (Number.isFinite(Number(payload.balance))) {
       setWalletState(session.walletToken, Number(payload.balance));
     }
 
-    const message = String(
-      payload.message ||
-      "Victoire par forfait ! La partie est terminée."
-    );
+    const reward = Math.max(0, Math.floor(Number(payload.reward || 0)));
+    const quitterName = String(payload.quitterName || "L’autre joueur");
+    const winnerName = String(payload.winnerName || getProfile()?.name || "Joueur");
 
     categoryExitMenuOpen = false;
     clearSession();
-    renderHome();
-    toast(
-      Number(payload.reward || 0) > 0
-        ? `${message} +${Number(payload.reward)} pièces`
-        : message
-    );
+
+    setScreen(`
+      <main class="screen ptb-forfeit-screen">
+        <section class="ptb-forfeit-card">
+          <div class="ptb-forfeit-trophy">🏆</div>
+          <small>PARTIE TERMINÉE</small>
+          <h1>Victoire par forfait</h1>
+          <p><strong>${escapeHtml(quitterName)}</strong> a quitté la partie.</p>
+          <div class="ptb-forfeit-winner">${escapeHtml(winnerName)} remporte la partie</div>
+
+          ${reward > 0 ? `
+            <div class="ptb-forfeit-reward">
+              <img src="/coin.png" alt="">
+              <strong>+${reward}</strong>
+              <span>pièces</span>
+            </div>
+          ` : ""}
+
+          <button id="forfeitHomeBtn" type="button">Retour à l’accueil</button>
+        </section>
+
+        <footer class="ptb-shared-footer" aria-hidden="true">
+          <img src="/shared-footer-v1.png" alt="">
+        </footer>
+      </main>
+    `);
+
+    document.getElementById("forfeitHomeBtn")?.addEventListener("click", () => {
+      renderHome();
+    });
+  }
+
+  socket.on("room:closed", payload => {
+    if (!payload || payload.reason !== "forfeit_win") return;
+    renderForfeitWinScreen(payload);
   });
 
   function categoryDecorLetters() {
@@ -90,6 +145,7 @@
     const balance = getCoins();
     const host = !!user?.isHost;
     const insufficient = balance < categoryRerollCost;
+    const missingCoins = Math.max(0, categoryRerollCost - balance);
     const categoryCountClass =
       categories.length >= 9 ? "cat-v2-many" :
       categories.length >= 7 ? "cat-v2-medium" : "cat-v2-normal";
@@ -134,7 +190,7 @@
 
             ${insufficient
               ? `<p class="letter-cost-note cat-v2-cost-note">
-                  Il te faut ${categoryRerollCost} pièces pour relancer les catégories.
+                  Il te manque ${missingCoins} pièce${missingCoins > 1 ? "s" : ""} pour relancer le tirage.
                 </p>`
               : ""}
 

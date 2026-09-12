@@ -135,6 +135,13 @@
       return p;
     };
 
+    const ensureHydratedProfile = async () => {
+      try {
+        await window.PtitBacProfilePhoto?.hydrateSelectedPhoto?.();
+      } catch {}
+      return ensureProfile();
+    };
+
     document.getElementById("homePlaqueAvatar")?.addEventListener("click", renderProfile);
 
     const coinsButton = document.getElementById("homePlaqueCoinsBtn");
@@ -162,8 +169,8 @@
       toast("La partie rapide en ligne arrive bientôt !");
     });
 
-    document.getElementById("homePlaqueCreate")?.addEventListener("click", () => {
-      const p = ensureProfile();
+    document.getElementById("homePlaqueCreate")?.addEventListener("click", async () => {
+      const p = await ensureHydratedProfile();
       if (!p) return;
 
       socket.emit("room:create", {
@@ -197,8 +204,8 @@
       });
     }
 
-    document.getElementById("homePlaqueJoin")?.addEventListener("click", () => {
-      const p = ensureProfile();
+    document.getElementById("homePlaqueJoin")?.addEventListener("click", async () => {
+      const p = await ensureHydratedProfile();
       if (!p) return;
 
       const code = String(codeInput?.value || "").trim();

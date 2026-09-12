@@ -58,7 +58,9 @@ Module._extensions[".js"] = function ptitBacRoomPatchLoader(module, filename) {
     );
 
 
-  // Gestion complète d'un départ volontaire pendant une partie.
+  // ============================================================
+  // Départ volontaire d'un joueur pendant une partie.
+  // ============================================================
   source = source.replace(
     '\nio.on("connection", socket => {',
     `
@@ -67,10 +69,10 @@ function ptitBacTransferHost(room) {
   room.players.forEach(p => { p.isHost = !!nextHost && p.id === nextHost.id; });
 }
 
-function ptitBacDetachSocketFromRoom(socket, room) {
+function ptitBacDetachSocketFromRoom(socket, room, player) {
   try { socket.leave(room.code); } catch {}
   if (socket.data?.code === room.code) socket.data.code = "";
-  if (socket.data?.playerId) socket.data.playerId = "";
+  if (socket.data?.playerId === player?.id) socket.data.playerId = "";
 }
 
 function ptitBacCloseRoomSockets(room, payload = {}) {
@@ -78,7 +80,9 @@ function ptitBacCloseRoomSockets(room, payload = {}) {
     if (!player.socketId) return;
     const targetSocket = io.sockets.sockets.get(player.socketId);
     if (!targetSocket) return;
+
     targetSocket.emit("room:closed", payload);
+
     try { targetSocket.leave(room.code); } catch {}
     if (targetSocket.data?.code === room.code) targetSocket.data.code = "";
     if (targetSocket.data?.playerId === player.id) targetSocket.data.playerId = "";
@@ -89,13 +93,15 @@ function ptitBacAwardForfeit(room, winner, quitterName) {
   const reward = Math.max(0, Math.floor(Number(room.pot || 0)));
   let balance = winner?.walletToken ? walletBalance(winner.walletToken) : 0;
 
-  if (
-    winner &&
-    winner.walletToken &&
-    reward > 0 &&
-    !room.rewardsDistributed
-  ) {
-    const key = "forfeit:" + room.code + ":" + String(room.gameSessionId || room.createdAt || "") + ":" + winner.id;
+  if (winner && winner.walletToken && reward > 0 && !room.rewardsDistributed) {
+    const key =
+      "forfeit:" +
+      room.code +
+      ":" +
+      String(room.gameSessionId || room.createdAt || "") +
+      ":" +
+      winner.id;
+
     walletTransaction(
       winner.walletToken,
       reward,
@@ -108,8 +114,11 @@ function ptitBacAwardForfeit(room, winner, quitterName) {
     );
 
     room.rewardsDistributed = true;
-    room.rewardsByPlayerId = Object.fromEntries(room.players.map(p => [p.id, p.id === winner.id ? reward : 0]));
+    room.rewardsByPlayerId = Object.fromEntries(
+      room.players.map(p => [p.id, p.id === winner.id ? reward : 0])
+    );
     room.rewardsDistributedAt = Date.now();
+
     balance = walletBalance(winner.walletToken);
     emitWallet(winner);
   }
@@ -119,18 +128,23 @@ function ptitBacAwardForfeit(room, winner, quitterName) {
 
 function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
   const { room, player } = requireMember(socket, payload);
-  if (!room || !player) return cb({ ok: false, error: "Partie introuvable." });
+  if (!room || !player) {
+    return cb({ ok: false, error: "Partie introuvable." });
+  }
 
   const phaseBeforeLeave = room.phase;
-  const isActiveGame = phaseBeforeLeave !== "lobby" && phaseBeforeLeave !== "finished";
+  const isActiveGame =
+    phaseBeforeLeave !== "lobby" &&
+    phaseBeforeLeave !== "finished";
+
   const humanCountBefore = room.players.filter(p => !p.isBot).length;
   const wasHost = !!player.isHost;
   const quitterName = String(player.name || "Un joueur");
 
   room.players = room.players.filter(p => p.id !== player.id);
-  ptitBacDetachSocketFromRoom(socket, room);
+  ptitBacDetachSocketFromRoom(socket, room, player);
 
-  // Départ depuis le salon : comportement classique.
+  // Départ classique depuis le salon.
   if (!isActiveGame) {
     if (room.players.length === 0) {
       rooms.delete(room.code);
@@ -144,11 +158,10 @@ function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
 
   const remainingHumans = room.players.filter(p => !p.isBot);
 
-  // Le dernier humain quitte et il ne reste que des bots :
-  // on clôture totalement la room, les timers bots deviennent inactifs
-  // car rooms.get(code) ne renverra plus rien.
+  // Aucun humain restant : la partie et les bots sont clôturés.
   if (remainingHumans.length === 0) {
     rooms.delete(room.code);
+
     return cb({
       ok: true,
       outcome: "room_closed_bots_only",
@@ -156,16 +169,15 @@ function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
     });
   }
 
-  // Il ne reste plus qu'un humain après un duel :
-  // victoire immédiate par forfait, versement de tout le pot,
-  // puis fermeture complète de la partie.
+  // Duel : l'autre humain gagne immédiatement par forfait.
   if (humanCountBefore === 2 && remainingHumans.length === 1) {
     const winner = remainingHumans[0];
     const payout = ptitBacAwardForfeit(room, winner, quitterName);
 
     ptitBacCloseRoomSockets(room, {
       reason: "forfeit_win",
-      message: quitterName + " a quitté la partie. Victoire par forfait !",
+      message: quitterName + " a quitté la partie.",
+      quitterName,
       winnerId: winner.id,
       winnerName: winner.name,
       reward: payout.reward,
@@ -181,8 +193,7 @@ function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
     });
   }
 
-  // Partie à 3 joueurs humains ou plus :
-  // le joueur sort, les autres continuent normalement.
+  // 3 humains ou plus : on retire uniquement le joueur.
   if (wasHost) ptitBacTransferHost(room);
 
   if (room.letterChooserPlayerId === player.id) {
@@ -195,8 +206,8 @@ function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
   io.to(room.code).emit("toast", quitterName + " a quitté la partie");
   emitRoom(room);
 
-  // Si tous les joueurs restants ont déjà validé pendant une manche,
-  // ne pas attendre inutilement la fin du chrono.
+  // Si le joueur parti bloquait la fin d'une manche,
+  // terminer immédiatement lorsque tous les restants ont validé.
   if (
     room.phase === "round" &&
     room.players.length > 0 &&

@@ -743,127 +743,199 @@ body:has(.cat-v2) {
 
 
 /* =========================================================
-   Sélection catégories V8 — sortie custom
+   Victoire par forfait + avatars importés compacts
    ========================================================= */
 
-/* Plus aucune lettre décorative errante en bas de cette page. */
-.cat-v2 .cat-v2-letter {
-  display:none !important;
-}
+/* ---------- Écran "Victoire par forfait" ---------- */
 
-/* Fond du menu */
-.cat-v2-exit-backdrop {
-  position:fixed !important;
-  inset:0 !important;
-  z-index:1000 !important;
+.ptb-forfeit-screen {
+  position:relative !important;
+  width:min(100%,430px) !important;
+  height:100dvh !important;
+  min-height:100dvh !important;
+  max-height:100dvh !important;
+  margin:0 auto !important;
+  padding:24px 18px 150px !important;
+  overflow:hidden !important;
 
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
 
-  padding:20px !important;
-  background:rgba(2,8,31,.68) !important;
-  backdrop-filter:blur(8px) !important;
-  -webkit-backdrop-filter:blur(8px) !important;
-}
-
-/* Carte */
-.cat-v2-exit-modal {
-  box-sizing:border-box !important;
-  width:min(100%,310px) !important;
-  padding:21px 18px 17px !important;
-
-  border:1.4px solid #7446ef !important;
-  border-radius:23px !important;
-
+  color:#fff !important;
   background:
-    radial-gradient(circle at 50% 0%,rgba(111,53,242,.18),transparent 46%),
-    linear-gradient(160deg,rgba(13,35,91,.99),rgba(6,21,64,.99)) !important;
+    radial-gradient(circle at 50% 28%,rgba(117,54,241,.27),transparent 28%),
+    linear-gradient(180deg,#06133b 0%,#071a4d 58%,#06133b 100%) !important;
+}
 
+.ptb-forfeit-card {
+  width:min(100%,300px) !important;
+  padding:22px 18px 18px !important;
+  border:1.4px solid #7748ec !important;
+  border-radius:23px !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(130,62,255,.17),transparent 50%),
+    linear-gradient(150deg,rgba(12,36,92,.98),rgba(7,25,70,.99)) !important;
   box-shadow:
-    0 22px 60px rgba(0,0,0,.42),
-    0 0 24px rgba(126,61,255,.18) !important;
-
+    0 18px 44px rgba(0,0,0,.30),
+    0 0 24px rgba(126,60,255,.14) !important;
   text-align:center !important;
-  color:#fff !important;
 }
 
-.cat-v2-exit-modal h2 {
-  margin:0 0 17px !important;
-  color:#fff !important;
-  font-size:1.03rem !important;
-  line-height:1.22 !important;
+.ptb-forfeit-trophy {
+  font-size:2.35rem !important;
+  line-height:1 !important;
+  margin-bottom:9px !important;
+  filter:drop-shadow(0 0 10px rgba(178,88,255,.35));
+}
+
+.ptb-forfeit-card > small {
+  display:block !important;
+  color:#a99cda !important;
+  font-size:.48rem !important;
   font-weight:900 !important;
-  letter-spacing:-.02em !important;
+  letter-spacing:.15em !important;
 }
 
-/* Boutons */
-.cat-v2-exit-actions {
-  display:grid !important;
-  gap:8px !important;
+.ptb-forfeit-card h1 {
+  margin:8px 0 10px !important;
+  color:#fff !important;
+  font-size:1.38rem !important;
+  line-height:1 !important;
+  font-weight:900 !important;
+  letter-spacing:-.04em !important;
 }
 
-.cat-v2-exit-actions button {
-  width:100% !important;
-  min-height:43px !important;
-  padding:0 14px !important;
+.ptb-forfeit-card p {
+  margin:0 !important;
+  color:#b7addb !important;
+  font-size:.62rem !important;
+  line-height:1.35 !important;
+}
 
-  border-radius:13px !important;
+.ptb-forfeit-card p strong {
+  color:#fff !important;
+}
 
-  font-family:"DM Sans",system-ui,sans-serif !important;
+.ptb-forfeit-winner {
+  margin:9px 0 0 !important;
+  color:#d7c5ff !important;
   font-size:.68rem !important;
   font-weight:900 !important;
 }
 
-.cat-v2-exit-no {
-  border:1px solid #3c4995 !important;
-  background:rgba(8,28,76,.80) !important;
-  color:#a9a3ce !important;
+.ptb-forfeit-reward {
+  width:max-content !important;
+  min-width:104px !important;
+  height:38px !important;
+  margin:14px auto 0 !important;
+  padding:0 12px !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:6px !important;
+
+  border:1px solid #7e49ef !important;
+  border-radius:999px !important;
+  background:rgba(20,27,83,.90) !important;
 }
 
-.cat-v2-exit-lobby {
-  border:1px solid #8252f7 !important;
-  background:rgba(83,43,175,.18) !important;
-  color:#d1b8ff !important;
+.ptb-forfeit-reward img {
+  width:24px !important;
+  height:24px !important;
+  object-fit:contain !important;
 }
 
-.cat-v2-exit-home {
-  border:1px solid #ad66ff !important;
-  background:linear-gradient(110deg,#7133eb,#9840fa 67%,#a84cff) !important;
+.ptb-forfeit-reward strong {
   color:#fff !important;
+  font-size:.82rem !important;
+  font-weight:900 !important;
+}
 
+.ptb-forfeit-reward span {
+  color:#b7addb !important;
+  font-size:.53rem !important;
+  font-weight:700 !important;
+}
+
+#forfeitHomeBtn {
+  width:100% !important;
+  min-height:45px !important;
+  margin-top:16px !important;
+  border:1px solid #aa68ff !important;
+  border-radius:15px !important;
+
+  color:#fff !important;
+  background:linear-gradient(110deg,#7134eb,#9b40ff) !important;
   box-shadow:
-    0 0 16px rgba(129,58,255,.22),
-    inset 0 0 13px rgba(255,255,255,.05) !important;
+    0 0 16px rgba(132,58,255,.20),
+    inset 0 0 10px rgba(255,255,255,.05) !important;
+
+  font-size:.68rem !important;
+  font-weight:900 !important;
 }
 
-.cat-v2-exit-actions button:disabled {
-  opacity:.46 !important;
+/* ---------- Photos importées dans les avatars ---------- */
+
+/* Écrans historiques de partie (score, attente, etc.). */
+.avatar.ptb-avatar-photo {
+  overflow:hidden !important;
+  display:grid !important;
+  place-items:center !important;
 }
 
-/* Petite animation d'apparition */
-.cat-v2-exit-modal {
-  animation:catV2ExitIn .18s ease-out both !important;
+.avatar.ptb-avatar-photo img {
+  width:62% !important;
+  height:62% !important;
+  max-width:62% !important;
+  max-height:62% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:0 !important;
+  display:block !important;
 }
 
-@keyframes catV2ExitIn {
-  from {
-    opacity:0;
-    transform:translateY(8px) scale(.97);
-  }
-  to {
-    opacity:1;
-    transform:translateY(0) scale(1);
-  }
+/* Salon : la photo ne remplit plus tout le cercle. */
+.lobby-v4-avatar img {
+  width:60% !important;
+  height:60% !important;
+  max-width:60% !important;
+  max-height:60% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:0 !important;
 }
 
-@media (max-width:380px) {
-  .cat-v2-exit-modal {
-    width:min(100%,285px) !important;
-    padding:19px 15px 15px !important;
-  }
+/* Fiche joueur ouverte depuis le salon. */
+.lobby-player-modal-avatar img {
+  width:62% !important;
+  height:62% !important;
+  max-width:62% !important;
+  max-height:62% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:0 !important;
+}
 
-  .cat-v2-exit-modal h2 {
-    font-size:.94rem !important;
+/* Accueil / profil / amis / messages : même règle pour une photo importée. */
+.home-plaque-avatar-photo,
+.profile-v2-avatar-photo,
+.friends-v2-avatar-img,
+.chat-avatar-img {
+  width:68% !important;
+  height:68% !important;
+  max-width:68% !important;
+  max-height:68% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:0 !important;
+}
+
+@supports not (height:100dvh) {
+  .ptb-forfeit-screen {
+    height:100vh !important;
+    min-height:100vh !important;
+    max-height:100vh !important;
   }
 }
