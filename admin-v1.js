@@ -15,6 +15,12 @@
     state.infiniteCoins = !!r.infiniteCoins;
     state.infiniteLives = !!r.infiniteLives;
     decorate();
+
+    const crown = document.querySelector(".profile-v2-final .admin-v1-crown-btn");
+    if (crown) {
+      crown.setAttribute("aria-label", state.admin ? "Ouvrir le menu admin" : "Activer l'espace admin");
+      crown.onclick = ()=> state.admin ? adminMenu() : adminActivationModal();
+    }
   }
 
   function modal(inner, cls="") {
@@ -190,10 +196,20 @@
 
   function decorate() {
     const root=document.querySelector(".profile-v2-final");
-    if(root && state.admin && !root.querySelector(".admin-v1-crown-btn")) {
-      const b=document.createElement("button"); b.className="admin-v1-crown-btn"; b.type="button"; b.innerHTML='<img src="/admin-crown.png" alt="Admin">';
-      b.onclick=adminMenu; root.appendChild(b);
+
+    // La couronne est TOUJOURS visible sur Mon profil.
+    // - si ce compte est déjà admin -> ouvre directement le menu admin
+    // - sinon -> ouvre uniquement la fenêtre d'activation intégrée
+    if(root && !root.querySelector(".admin-v1-crown-btn")) {
+      const b=document.createElement("button");
+      b.className="admin-v1-crown-btn";
+      b.type="button";
+      b.setAttribute("aria-label", state.admin ? "Ouvrir le menu admin" : "Activer l'espace admin");
+      b.innerHTML='<img src="/admin-crown.png" alt="">';
+      b.onclick=()=> state.admin ? adminMenu() : adminActivationModal();
+      root.appendChild(b);
     }
+
     // Bulle avis uniquement sur l'accueil, discrète au-dessus du footer.
     const home=document.querySelector(".home-v129,.home-v130,.home-v150");
     if(home && !home.querySelector(".admin-v1-feedback-bubble")) {
@@ -209,28 +225,8 @@
     }
   }
 
-  // Activation initiale :
-  // 7 appuis rapides sur l'ID, uniquement quand la page Mon profil est affichée.
-  // Aucun prompt() navigateur n'est utilisé.
-  let taps = 0;
-  let tapTimer = null;
-
-  document.addEventListener("click", event => {
-    const idButton = event.target.closest("#profileV2CopyId");
-    const onProfilePage = !!document.querySelector(".profile-v2-final");
-
-    if (!idButton || !onProfilePage || state.admin) return;
-
-    taps += 1;
-    clearTimeout(tapTimer);
-    tapTimer = setTimeout(() => { taps = 0; }, 1800);
-
-    if (taps >= 7) {
-      taps = 0;
-      clearTimeout(tapTimer);
-      adminActivationModal();
-    }
-  }, true);
+  // Aucun raccourci caché / aucun déclenchement par 7 clics.
+  // L'entrée admin se fait uniquement avec l'icône couronne de Mon profil.
 
   const obs=new MutationObserver(()=>decorate());
   obs.observe(document.getElementById("app"),{childList:true,subtree:true});
