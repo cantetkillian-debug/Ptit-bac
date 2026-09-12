@@ -212,13 +212,13 @@
               style="background:conic-gradient(${wheelStops})"
             >
               ${wheelLabels}
+            </div>
 
-              <div class="letter-v2-wheel-center">
-                <img src="/admin-crown.png" alt="">
-                <strong id="letterV2CenterLetter" class="${selectedLetter ? "is-pending" : ""}">
-                  ${selectedLetter ? escapeHtml(selectedLetter) : ""}
-                </strong>
-              </div>
+            <div class="letter-v2-wheel-center ${selectedLetter ? "is-pending" : ""}" id="letterV2WheelCenter">
+              <img src="/admin-crown.png" alt="">
+              <strong id="letterV2CenterLetter">
+                ${selectedLetter ? escapeHtml(selectedLetter) : ""}
+              </strong>
             </div>
           </div>
         </section>
@@ -262,18 +262,16 @@
       wheelRuntime.revealTimer = null;
     }
 
-    if (selectedLetter) {
-      wheelRuntime.revealTimer = setTimeout(() => {
-        const centerLetter = document.getElementById("letterV2CenterLetter");
-        centerLetter?.classList.remove("is-pending");
-        centerLetter?.classList.add("is-revealed");
+    const revealLetterResult = () => {
+      const center = document.getElementById("letterV2WheelCenter");
+      center?.classList.remove("is-pending");
+      center?.classList.add("is-revealed");
 
-        document.querySelectorAll(".letter-v2-delayed-result").forEach(element => {
-          element.classList.remove("is-hidden");
-          element.classList.add("is-revealed");
-        });
-      }, 3600);
-    }
+      document.querySelectorAll(".letter-v2-delayed-result").forEach(element => {
+        element.classList.remove("is-hidden");
+        element.classList.add("is-revealed");
+      });
+    };
 
     const exitButton = document.getElementById("letterV2ExitBtn");
     exitButton?.addEventListener("click", () => {
@@ -390,6 +388,10 @@
           wheel.classList.remove("is-js-spinning");
           zone?.classList.remove("is-wheel-spinning");
           zone?.classList.add("is-wheel-landed");
+
+          wheelRuntime.revealTimer = setTimeout(() => {
+            revealLetterResult();
+          }, 180);
         };
       } else {
         wheel.style.transition = `transform ${spinDuration}ms cubic-bezier(.08,.68,.10,1)`;
@@ -403,6 +405,10 @@
           wheelRuntime.velocity = 0;
           zone?.classList.remove("is-wheel-spinning");
           zone?.classList.add("is-wheel-landed");
+
+          wheelRuntime.revealTimer = setTimeout(() => {
+            revealLetterResult();
+          }, 180);
         }, spinDuration);
       }
 

@@ -1858,3 +1858,75 @@ body:has(.letter-v2-screen) .economy-hud {
 .letter-v2-pointer {
   transform:translateX(-50%) !important;
 }
+
+
+/* =========================================================
+   Roue V10 — centre fixe + révélation après arrêt
+   ========================================================= */
+
+/* Le centre est désormais un calque fixe au-dessus de la roue.
+   Il ne tourne JAMAIS avec les secteurs. */
+.letter-v2-wheel-shell {
+  position:relative !important;
+}
+
+.letter-v2-wheel-center {
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+
+  transform:translate(-50%,-50%) !important;
+  z-index:8 !important;
+
+  pointer-events:none !important;
+
+  /* annule toute animation/rotation héritée */
+  animation:none !important;
+  transition:
+    opacity .22s ease,
+    transform .22s cubic-bezier(.2,.9,.2,1.1) !important;
+}
+
+/* La couronne ET la lettre sont invisibles tant que la roue tourne */
+.letter-v2-wheel-center.is-pending {
+  opacity:0 !important;
+  transform:translate(-50%,-50%) scale(.88) !important;
+}
+
+.letter-v2-wheel-center.is-revealed {
+  opacity:1 !important;
+  transform:translate(-50%,-50%) scale(1) !important;
+}
+
+/* Le résultat texte n'a plus sa propre logique de visibilité */
+#letterV2CenterLetter {
+  opacity:1 !important;
+  transform:none !important;
+  transition:none !important;
+}
+
+/* Pendant rotation, force le centre à rester invisible */
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-center,
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-wheel-center {
+  opacity:0 !important;
+}
+
+/* Petite apparition propre à l'arrêt */
+.letter-v2-wheel-zone.is-wheel-landed .letter-v2-wheel-center.is-revealed {
+  animation:letterV10CenterReveal .30s cubic-bezier(.2,.9,.2,1.15) both !important;
+}
+
+@keyframes letterV10CenterReveal {
+  0% {
+    opacity:0;
+    transform:translate(-50%,-50%) scale(.78);
+  }
+  70% {
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1.06);
+  }
+  100% {
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1);
+  }
+}
