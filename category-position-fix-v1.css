@@ -740,3 +740,130 @@ body:has(.cat-v2) {
     max-height:100vh !important;
   }
 }
+
+
+/* =========================================================
+   Sélection catégories V8 — sortie custom
+   ========================================================= */
+
+/* Plus aucune lettre décorative errante en bas de cette page. */
+.cat-v2 .cat-v2-letter {
+  display:none !important;
+}
+
+/* Fond du menu */
+.cat-v2-exit-backdrop {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:1000 !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  padding:20px !important;
+  background:rgba(2,8,31,.68) !important;
+  backdrop-filter:blur(8px) !important;
+  -webkit-backdrop-filter:blur(8px) !important;
+}
+
+/* Carte */
+.cat-v2-exit-modal {
+  box-sizing:border-box !important;
+  width:min(100%,310px) !important;
+  padding:21px 18px 17px !important;
+
+  border:1.4px solid #7446ef !important;
+  border-radius:23px !important;
+
+  background:
+    radial-gradient(circle at 50% 0%,rgba(111,53,242,.18),transparent 46%),
+    linear-gradient(160deg,rgba(13,35,91,.99),rgba(6,21,64,.99)) !important;
+
+  box-shadow:
+    0 22px 60px rgba(0,0,0,.42),
+    0 0 24px rgba(126,61,255,.18) !important;
+
+  text-align:center !important;
+  color:#fff !important;
+}
+
+.cat-v2-exit-modal h2 {
+  margin:0 0 17px !important;
+  color:#fff !important;
+  font-size:1.03rem !important;
+  line-height:1.22 !important;
+  font-weight:900 !important;
+  letter-spacing:-.02em !important;
+}
+
+/* Boutons */
+.cat-v2-exit-actions {
+  display:grid !important;
+  gap:8px !important;
+}
+
+.cat-v2-exit-actions button {
+  width:100% !important;
+  min-height:43px !important;
+  padding:0 14px !important;
+
+  border-radius:13px !important;
+
+  font-family:"DM Sans",system-ui,sans-serif !important;
+  font-size:.68rem !important;
+  font-weight:900 !important;
+}
+
+.cat-v2-exit-no {
+  border:1px solid #3c4995 !important;
+  background:rgba(8,28,76,.80) !important;
+  color:#a9a3ce !important;
+}
+
+.cat-v2-exit-lobby {
+  border:1px solid #8252f7 !important;
+  background:rgba(83,43,175,.18) !important;
+  color:#d1b8ff !important;
+}
+
+.cat-v2-exit-home {
+  border:1px solid #ad66ff !important;
+  background:linear-gradient(110deg,#7133eb,#9840fa 67%,#a84cff) !important;
+  color:#fff !important;
+
+  box-shadow:
+    0 0 16px rgba(129,58,255,.22),
+    inset 0 0 13px rgba(255,255,255,.05) !important;
+}
+
+.cat-v2-exit-actions button:disabled {
+  opacity:.46 !important;
+}
+
+/* Petite animation d'apparition */
+.cat-v2-exit-modal {
+  animation:catV2ExitIn .18s ease-out both !important;
+}
+
+@keyframes catV2ExitIn {
+  from {
+    opacity:0;
+    transform:translateY(8px) scale(.97);
+  }
+  to {
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+@media (max-width:380px) {
+  .cat-v2-exit-modal {
+    width:min(100%,285px) !important;
+    padding:19px 15px 15px !important;
+  }
+
+  .cat-v2-exit-modal h2 {
+    font-size:.94rem !important;
+  }
+}

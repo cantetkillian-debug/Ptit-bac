@@ -4,15 +4,35 @@
   const originalRenderCategorySelection =
     typeof renderCategorySelection === "function" ? renderCategorySelection : null;
 
+  let categoryExitMenuOpen = false;
+
   function categoryDecorLetters() {
+    return "";
+  }
+
+  function categoryExitMenu() {
+    if (!categoryExitMenuOpen) return "";
+
     return `
-      <span class="cat-v2-letter l-a">A</span>
-      <span class="cat-v2-letter l-b">B</span>
-      <span class="cat-v2-letter l-c">C</span>
-      <span class="cat-v2-letter l-f">F</span>
-      <span class="cat-v2-letter l-g">G</span>
-      <span class="cat-v2-letter l-z">Z</span>
-    `;
+      <div class="cat-v2-exit-backdrop" id="categoryExitBackdrop">
+        <section class="cat-v2-exit-modal" role="dialog" aria-modal="true" aria-labelledby="categoryExitTitle">
+          <h2 id="categoryExitTitle">Voulez-vous quitter la partie ?</h2>
+
+          <div class="cat-v2-exit-actions">
+            <button id="categoryExitNo" class="cat-v2-exit-no" type="button">
+              Non
+            </button>
+
+            <button id="categoryExitLobby" class="cat-v2-exit-lobby" type="button">
+              Revenir au salon
+            </button>
+
+            <button id="categoryExitHome" class="cat-v2-exit-home" type="button">
+              Revenir à l’accueil
+            </button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function categoryCoinPill(value, extra = "") {
@@ -108,6 +128,8 @@
           </section>
         `}
 
+        ${categoryExitMenu()}
+
         <footer class="ptb-shared-footer" aria-hidden="true">
           <img src="/shared-footer-v1.png" alt="">
         </footer>
@@ -117,14 +139,71 @@
     const backBtn = document.getElementById("returnLobbyCategoriesBtn");
     if (backBtn) {
       backBtn.onclick = () => {
-        if (!confirm("Retourner au salon ? Les 5 pièces de participation seront remboursées.")) return;
-        backBtn.disabled = true;
-        socket.emit("game:returnLobby", {
+        categoryExitMenuOpen = true;
+        renderCategorySelectionV2();
+      };
+    }
+
+    const closeExitMenu = () => {
+      categoryExitMenuOpen = false;
+      renderCategorySelectionV2();
+    };
+
+    document.getElementById("categoryExitNo")?.addEventListener("click", closeExitMenu);
+
+    document.getElementById("categoryExitBackdrop")?.addEventListener("click", event => {
+      if (event.target.id === "categoryExitBackdrop") closeExitMenu();
+    });
+
+    document.getElementById("categoryExitLobby")?.addEventListener("click", () => {
+      const buttons = document.querySelectorAll(".cat-v2-exit-actions button");
+      buttons.forEach(button => { button.disabled = true; });
+
+      categoryExitMenuOpen = false;
+      socket.emit("game:returnLobby", {
+        code: state.code,
+        playerId: session.playerId
+      });
+    });
+
+    document.getElementById("categoryExitHome")?.addEventListener("click", () => {
+      const buttons = document.querySelectorAll(".cat-v2-exit-actions button");
+      buttons.forEach(button => { button.disabled = true; });
+
+      /*
+       * On passe d'abord par game:returnLobby :
+       * le serveur rembourse alors les 5 pièces de participation.
+       * Dès que l'état "lobby" revient, on quitte le salon puis on
+       * nettoie la session locale et on affiche l'accueil.
+       */
+      socket.once("room:state", nextState => {
+        if (String(nextState?.code || "") !== String(state.code || "") || nextState?.phase !== "lobby") {
+          categoryExitMenuOpen = false;
+          renderCategorySelectionV2();
+          toast("Impossible de quitter la partie pour le moment.");
+          return;
+        }
+
+        socket.emit("room:leave", {
           code: state.code,
           playerId: session.playerId
         });
-      };
-    }
+
+        categoryExitMenuOpen = false;
+        clearSession();
+
+        if (typeof initWallet === "function") {
+          initWallet(() => renderHome());
+        } else {
+          renderHome();
+        }
+      });
+
+      socket.emit("game:returnLobby", {
+        code: state.code,
+        playerId: session.playerId
+      });
+    });
 
     if (host) {
       const rerollBtn = document.getElementById("rerollCategoriesBtn");
