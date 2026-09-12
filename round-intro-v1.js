@@ -110,7 +110,9 @@
         </header>
 
         <section class="pri-hero">
-          <div class="pri-flag" aria-hidden="true">🏁</div>
+          <div class="pri-flag" aria-hidden="true">
+            <img src="/round-flag.png" alt="">
+          </div>
           <h1>Manche <span>${roundNumber}</span></h1>
           <p>C’est parti !</p>
         </section>
