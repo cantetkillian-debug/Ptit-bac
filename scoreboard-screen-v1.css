@@ -1049,3 +1049,248 @@ body:has(.ssv1-screen) .economy-hud{display:none!important}
     height:38px !important;
   }
 }
+
+
+/* =========================================================
+   Résultats V6 — colonne Joueurs vraiment fixe
+   ========================================================= */
+
+.ssv1-board-wrap{display:none!important}
+
+.ssv1-board-shell{
+  width:100%;
+  display:grid;
+  grid-template-columns:92px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  gap:5px;
+  padding:6px;
+  overflow:hidden;
+  border:1px solid #3555a5;
+  border-radius:17px;
+  background:#071c50;
+}
+
+.ssv1-board-hint{
+  grid-column:2;
+  grid-row:1;
+  justify-self:end;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  padding:4px 8px;
+  border:1px solid #5b4ca5;
+  border-radius:999px;
+  color:#b8acd9;
+  background:#0a1b50;
+  font-size:.34rem;
+  font-weight:800;
+}
+
+/* Colonne fixe : elle est hors de la zone scrollable */
+.ssv1-board-fixed{
+  grid-column:1;
+  grid-row:2;
+  display:grid;
+  grid-template-rows:48px;
+  grid-auto-rows:56px;
+  gap:4px;
+  min-width:0;
+  background:#071c50;
+  position:relative;
+  z-index:4;
+}
+
+.ssv1-board-fixed .ssv1-player-title,
+.ssv1-board-fixed .ssv1-player{
+  position:relative!important;
+  left:auto!important;
+  top:auto!important;
+  right:auto!important;
+  z-index:auto!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  box-shadow:none!important;
+}
+
+.ssv1-board-fixed .ssv1-player-title{
+  height:48px!important;
+  min-height:48px!important;
+  padding:0 7px!important;
+  border:1px solid #3155a4!important;
+  border-radius:10px!important;
+  background:#0a2054!important;
+  justify-content:flex-start!important;
+  font-size:.56rem!important;
+}
+
+.ssv1-board-fixed .ssv1-player{
+  height:56px!important;
+  min-height:56px!important;
+  grid-template-columns:33px 1fr!important;
+  gap:5px!important;
+  padding:5px!important;
+  border:1px solid #3155a4!important;
+  border-radius:10px!important;
+  background:#071b4e!important;
+}
+
+.ssv1-board-fixed .ssv1-avatar{
+  width:33px!important;
+  height:33px!important;
+  min-width:33px!important;
+  border-radius:7px!important;
+}
+
+.ssv1-board-fixed .ssv1-player-copy strong{
+  display:block!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:.47rem!important;
+}
+.ssv1-board-fixed .ssv1-player-copy small{
+  display:block!important;
+  margin-top:2px!important;
+  color:#ae5dff!important;
+  font-size:.34rem!important;
+  font-weight:900!important;
+}
+
+/* Seule cette partie défile */
+.ssv1-board-scroll{
+  grid-column:2;
+  grid-row:2;
+  min-width:0;
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+  touch-action:pan-x;
+  scrollbar-width:thin;
+  scrollbar-color:#7042d7 transparent;
+}
+
+.ssv1-board-scroll-inner{
+  width:max-content;
+  min-width:100%;
+  display:grid;
+  gap:4px;
+}
+
+.ssv1-grid-head-scroll,
+.ssv1-player-row-scroll{
+  display:grid!important;
+  grid-template-columns:repeat(var(--ssv1-cols),64px)!important;
+  gap:4px!important;
+  margin:0!important;
+}
+
+/* Cases catégories plus petites */
+.ssv1-grid-head-scroll .ssv1-cat-head{
+  position:relative!important;
+  width:64px!important;
+  min-width:64px!important;
+  height:48px!important;
+  min-height:48px!important;
+  padding:3px 2px!important;
+  border-radius:10px!important;
+}
+.ssv1-grid-head-scroll .ssv1-cat-head span{
+  font-size:.80rem!important;
+}
+.ssv1-grid-head-scroll .ssv1-cat-head small{
+  max-width:58px!important;
+  margin-top:2px!important;
+  font-size:.31rem!important;
+  line-height:1.02!important;
+}
+
+/* Cases réponses plus petites */
+.ssv1-player-row-scroll .ssv1-answer{
+  position:relative!important;
+  width:64px!important;
+  min-width:64px!important;
+  height:56px!important;
+  min-height:56px!important;
+  padding:3px 2px!important;
+  border-radius:10px!important;
+}
+.ssv1-player-row-scroll .ssv1-answer strong{
+  max-width:58px!important;
+  font-size:.40rem!important;
+}
+.ssv1-player-row-scroll .ssv1-answer b{
+  margin-top:2px!important;
+  font-size:.60rem!important;
+}
+.ssv1-player-row-scroll .ssv1-answer small{
+  max-width:58px!important;
+  margin-top:2px!important;
+  font-size:.25rem!important;
+  line-height:1.02!important;
+}
+.ssv1-player-row-scroll .ssv1-report{
+  margin-top:2px!important;
+  padding:2px 4px!important;
+  font-size:.24rem!important;
+}
+
+/* Neutralise les anciens hacks sticky */
+.ssv1-board-shell .ssv1-player-title::after,
+.ssv1-board-shell .ssv1-player::after{
+  content:none!important;
+  display:none!important;
+}
+
+.ssv1-board-shell,
+.ssv1-board-scroll{
+  clip-path:none!important;
+}
+
+.ssv1-lobby{display:none!important}
+
+@media(max-width:370px){
+  .ssv1-board-shell{
+    grid-template-columns:84px minmax(0,1fr);
+    padding:5px;
+    gap:4px;
+  }
+  .ssv1-board-fixed{
+    grid-template-rows:45px;
+    grid-auto-rows:52px;
+  }
+  .ssv1-board-fixed .ssv1-player-title{
+    height:45px!important;
+    min-height:45px!important;
+  }
+  .ssv1-board-fixed .ssv1-player{
+    height:52px!important;
+    min-height:52px!important;
+    grid-template-columns:30px 1fr!important;
+  }
+  .ssv1-board-fixed .ssv1-avatar{
+    width:30px!important;
+    height:30px!important;
+    min-width:30px!important;
+  }
+  .ssv1-grid-head-scroll,
+  .ssv1-player-row-scroll{
+    grid-template-columns:repeat(var(--ssv1-cols),60px)!important;
+  }
+  .ssv1-grid-head-scroll .ssv1-cat-head{
+    width:60px!important;
+    min-width:60px!important;
+    height:45px!important;
+    min-height:45px!important;
+  }
+  .ssv1-player-row-scroll .ssv1-answer{
+    width:60px!important;
+    min-width:60px!important;
+    height:52px!important;
+    min-height:52px!important;
+  }
+}

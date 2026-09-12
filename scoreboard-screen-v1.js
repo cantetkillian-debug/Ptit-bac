@@ -110,6 +110,16 @@
       </div>
     `).join("");
 
+    const fixedPlayerRows=players.map(player=>`
+      <div class="ssv1-player ssv1-player-fixed">
+        <div class="ssv1-avatar">${playerAvatar(player)}</div>
+        <div class="ssv1-player-copy">
+          <strong>${esc(player.name || "Joueur")}</strong>
+          <small>${Number(player.score || 0)} pt${Number(player.score || 0) !== 1 ? "s" : ""}</small>
+        </div>
+      </div>
+    `).join("");
+
     const rows=players.map((player,index)=>{
       const cells=categories.map(category=>{
         const result=results.byPlayer?.[player.id]?.[category] || {
@@ -155,14 +165,7 @@
       }).join("");
 
       return `
-        <div class="ssv1-player-row">
-          <div class="ssv1-player">
-            <div class="ssv1-avatar">${playerAvatar(player)}</div>
-            <div class="ssv1-player-copy">
-              <strong>${esc(player.name || "Joueur")}</strong>
-              <small>${Number(player.score || 0)} pt${Number(player.score || 0) !== 1 ? "s" : ""}</small>
-            </div>
-          </div>
+        <div class="ssv1-player-row ssv1-player-row-scroll">
           ${cells}
         </div>
       `;
@@ -194,14 +197,21 @@
           <p>Voici toutes les réponses et leurs corrections !</p>
         </section>
 
-        <section class="ssv1-board-wrap">
-          <div class="ssv1-scroll-hint" aria-hidden="true">Glisse pour voir les autres catégories →</div>
-          <div class="ssv1-board" style="--ssv1-cols:${Math.max(1,categories.length)}">
-            <div class="ssv1-grid-head">
-              <div class="ssv1-player-title">Joueurs</div>
-              ${headerCells}
+        <section class="ssv1-board-shell">
+          <div class="ssv1-board-hint" aria-hidden="true">☝ Glisse pour voir les autres catégories →</div>
+
+          <div class="ssv1-board-fixed">
+            <div class="ssv1-player-title">Joueurs</div>
+            ${fixedPlayerRows}
+          </div>
+
+          <div class="ssv1-board-scroll">
+            <div class="ssv1-board-scroll-inner" style="--ssv1-cols:${Math.max(1,categories.length)}">
+              <div class="ssv1-grid-head ssv1-grid-head-scroll">
+                ${headerCells}
+              </div>
+              ${rows}
             </div>
-            ${rows}
           </div>
         </section>
 
@@ -220,10 +230,6 @@
             ${isLastRound ? "Classement final" : "Manche suivante"}
             <span>›</span>
           </button>
-          <button class="ssv1-lobby" id="ssv1Lobby" type="button">
-            <span class="ssv1-home-icon" aria-hidden="true">⌂</span>
-            Retour au salon
-          </button>
         ` : `
           <div class="ssv1-wait-host">
             <span class="ssv1-mini-spinner"></span>
@@ -241,10 +247,6 @@
 
     document.getElementById("ssv1Next")?.addEventListener("click",()=>{
       socket.emit("game:nextRound",{code:state.code,playerId:session.playerId});
-    });
-
-    document.getElementById("ssv1Lobby")?.addEventListener("click",()=>{
-      socket.emit("game:returnLobby",{code:state.code,playerId:session.playerId});
     });
 
     document.querySelectorAll(".ssv1-report:not(:disabled)").forEach(btn=>{
