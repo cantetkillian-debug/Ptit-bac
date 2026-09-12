@@ -124,8 +124,9 @@
             ? "duplicate"
             : "invalid";
 
-        const symbol=status==="valid" ? "✓" : status==="duplicate" ? "!" : "×";
-        const answer=result.answer ? esc(result.answer) : "—";
+        const hasAnswer=Boolean(result.answer);
+        const symbol=status==="valid" ? "✓" : status==="duplicate" ? "!" : (hasAnswer ? "×" : "");
+        const answer=hasAnswer ? esc(result.answer) : "—";
         const correction=status==="valid"
           ? ""
           : esc(result.correction || (status==="duplicate" ? "Doublon" : "Incorrect"));
@@ -191,6 +192,7 @@
         </section>
 
         <section class="ssv1-board-wrap">
+          <div class="ssv1-scroll-hint" aria-hidden="true">Glisse pour voir les autres catégories →</div>
           <div class="ssv1-board" style="--ssv1-cols:${Math.max(1,categories.length)}">
             <div class="ssv1-grid-head">
               <div class="ssv1-player-title">Joueurs</div>
@@ -207,7 +209,7 @@
             <strong>${winnerNames || "Aucun vainqueur"}</strong>
             <span>${winnerNames ? winnerPoints : "Aucun point marqué."}</span>
           </div>
-          <div class="ssv1-crown" aria-hidden="true">♛</div>
+          <div class="ssv1-crown" aria-hidden="true">✦</div>
         </section>
 
         ${user?.isHost ? `
@@ -215,7 +217,10 @@
             ${isLastRound ? "Classement final" : "Manche suivante"}
             <span>›</span>
           </button>
-          <button class="ssv1-lobby" id="ssv1Lobby" type="button">⌂ Retour au salon</button>
+          <button class="ssv1-lobby" id="ssv1Lobby" type="button">
+            <span class="ssv1-home-icon" aria-hidden="true">⌂</span>
+            Retour au salon
+          </button>
         ` : `
           <div class="ssv1-wait-host">
             <span class="ssv1-mini-spinner"></span>

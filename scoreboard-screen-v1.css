@@ -412,3 +412,207 @@ body:has(.ssv1-screen) .economy-hud{display:none!important}
   .ssv1-winner{grid-template-columns:60px 1fr 44px;padding-left:11px;padding-right:11px}
   .ssv1-trophy{width:56px;height:56px}
 }
+
+
+/* =========================================================
+   Résultats V2 — optimisation mobile / proportions
+   ========================================================= */
+
+/* Header légèrement plus compact */
+.ssv1-top{
+  width:258px !important;
+  gap:7px !important;
+}
+.ssv1-info{
+  height:57px !important;
+  border-radius:14px !important;
+}
+.ssv1-info small{
+  font-size:.49rem !important;
+}
+.ssv1-info strong{
+  margin-top:4px !important;
+  font-size:.88rem !important;
+}
+.ssv1-info .ssv1-letter{
+  font-size:1.16rem !important;
+}
+
+/* Titre un peu remonté */
+.ssv1-heading{
+  margin:18px 0 13px !important;
+}
+
+/* Tableau plus compact */
+.ssv1-board-wrap{
+  position:relative !important;
+  overflow-x:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+  scroll-snap-type:x proximity;
+  padding-bottom:7px !important;
+}
+
+/* Indice de scroll discret */
+.ssv1-scroll-hint{
+  position:sticky;
+  left:0;
+  z-index:5;
+  width:max-content;
+  margin:0 0 6px auto;
+  padding:4px 8px;
+  border:1px solid #4d4b9c;
+  border-radius:999px;
+  background:rgba(7,25,71,.86);
+  color:#998fc1;
+  font-size:.40rem;
+  font-weight:800;
+  pointer-events:none;
+}
+
+/* Petit fondu à droite pour montrer qu'il y a du contenu */
+.ssv1-board-wrap::after{
+  content:"";
+  position:absolute;
+  top:28px;
+  right:0;
+  width:26px;
+  bottom:8px;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(6,20,61,.88));
+}
+
+.ssv1-board{
+  min-width:calc(112px + (var(--ssv1-cols) * 88px)) !important;
+  padding:7px !important;
+}
+.ssv1-grid-head,
+.ssv1-player-row{
+  grid-template-columns:104px repeat(var(--ssv1-cols),80px) !important;
+  gap:5px !important;
+}
+
+.ssv1-player-title,
+.ssv1-cat-head{
+  min-height:62px !important;
+}
+.ssv1-player-title{
+  padding-left:8px !important;
+  font-size:.69rem !important;
+}
+.ssv1-cat-head{
+  padding:4px 2px !important;
+}
+.ssv1-cat-head span{
+  font-size:1.05rem !important;
+}
+.ssv1-cat-head small{
+  max-width:74px !important;
+  margin-top:4px !important;
+  font-size:.43rem !important;
+}
+
+/* Colonne joueurs sticky pour toujours savoir à qui appartient la ligne */
+.ssv1-player-title,
+.ssv1-player{
+  position:sticky !important;
+  left:7px;
+  z-index:4;
+}
+.ssv1-player-title{
+  z-index:6;
+}
+.ssv1-player{
+  min-height:68px !important;
+  grid-template-columns:42px 1fr !important;
+  gap:7px !important;
+  padding:6px !important;
+}
+.ssv1-avatar{
+  width:42px !important;
+  height:42px !important;
+}
+.ssv1-player>strong{
+  font-size:.60rem !important;
+}
+
+.ssv1-answer{
+  min-height:68px !important;
+  padding:6px 3px !important;
+  border-radius:12px !important;
+}
+.ssv1-answer strong{
+  max-width:72px !important;
+  font-size:.53rem !important;
+}
+.ssv1-answer>b{
+  margin-top:3px !important;
+  font-size:.78rem !important;
+}
+.ssv1-answer small{
+  max-width:72px !important;
+  margin-top:3px !important;
+  font-size:.35rem !important;
+}
+
+/* Gagnant légèrement plus compact et décor moins perdu */
+.ssv1-winner{
+  min-height:94px !important;
+  margin-top:12px !important;
+  grid-template-columns:60px 1fr 28px !important;
+  gap:10px !important;
+  padding:11px 13px !important;
+}
+.ssv1-trophy{
+  width:56px !important;
+  height:56px !important;
+  font-size:1.7rem !important;
+}
+.ssv1-winner-copy strong{
+  font-size:1.12rem !important;
+}
+.ssv1-crown{
+  font-size:1.5rem !important;
+  opacity:.6 !important;
+  color:#8d55e7 !important;
+}
+
+/* Boutons et bas de page plus resserrés */
+.ssv1-next{
+  min-height:54px !important;
+  margin-top:12px !important;
+}
+.ssv1-lobby{
+  min-height:43px !important;
+  margin-top:9px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:7px !important;
+}
+.ssv1-home-icon{
+  font-size:.82rem;
+  line-height:1;
+}
+.ssv1-footer{
+  margin-top:12px !important;
+}
+
+/* Écrans étroits */
+@media(max-width:370px){
+  .ssv1-top{width:230px !important}
+  .ssv1-info{height:54px !important}
+  .ssv1-board{
+    min-width:calc(104px + (var(--ssv1-cols) * 82px)) !important;
+  }
+  .ssv1-grid-head,
+  .ssv1-player-row{
+    grid-template-columns:96px repeat(var(--ssv1-cols),74px) !important;
+  }
+  .ssv1-player{
+    grid-template-columns:38px 1fr !important;
+  }
+  .ssv1-avatar{
+    width:38px !important;
+    height:38px !important;
+  }
+}
