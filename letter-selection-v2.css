@@ -1161,3 +1161,133 @@ body:has(.letter-v2-screen) .economy-hud {
     width:min(54%,180px) !important;
   }
 }
+
+
+/* =========================================================
+   P'tit Bac — Tirage lettre V5
+   Geste de rotation + proportions affinées
+   ========================================================= */
+
+/* Joueur choisi : beaucoup moins haut, légèrement plus large */
+.letter-v2-chooser {
+  width:min(52%,185px) !important;
+  min-height:24px !important;
+  padding:3px 8px !important;
+
+  grid-template-columns:22px minmax(0,1fr) !important;
+  gap:6px !important;
+
+  border-radius:10px !important;
+}
+
+.letter-v2-chooser-avatar {
+  width:20px !important;
+  height:20px !important;
+  border-radius:6px !important;
+}
+
+.letter-v2-chooser-copy small,
+.letter-v2-chooser-copy span {
+  font-size:.25rem !important;
+  line-height:1.05 !important;
+}
+
+.letter-v2-chooser-copy strong {
+  font-size:.52rem !important;
+  line-height:1 !important;
+}
+
+/* Un peu plus d'air avant la roue */
+.letter-v2-wheel-zone {
+  margin-top:30px !important;
+
+  user-select:none !important;
+  -webkit-user-select:none !important;
+  touch-action:none !important;
+}
+
+/* Le geste donne vraiment l'impression de saisir la roue */
+.letter-v2-wheel-zone.is-dragging {
+  cursor:grabbing !important;
+}
+
+.letter-v2-wheel-zone.is-dragging .letter-v2-wheel-shell {
+  box-shadow:
+    0 0 0 4px rgba(124,69,233,.84),
+    0 0 24px rgba(178,78,255,.72),
+    0 0 44px rgba(92,51,210,.34) !important;
+}
+
+.letter-v2-wheel-zone.is-dragging .letter-v2-pointer {
+  transform:translateX(-50%) scale(.96) !important;
+}
+
+/* Bloc lettre choisi encore deux fois moins long horizontalement */
+.letter-v2-selected {
+  min-width:34px !important;
+  width:34px !important;
+  min-height:24px !important;
+
+  padding:2px 4px !important;
+
+  border-radius:8px !important;
+}
+
+.letter-v2-selected strong {
+  font-size:.68rem !important;
+}
+
+/* Texte du bouton Valider plus gros tout en gardant le petit bouton */
+.letter-v2-confirm {
+  font-size:.58rem !important;
+  font-weight:900 !important;
+  letter-spacing:-.01em !important;
+}
+
+.letter-v2-confirm span {
+  font-size:.74rem !important;
+}
+
+/* Animation visuelle pendant la rotation */
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-wheel-shell,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-wheel-shell {
+  animation:letterV2SpinGlow .42s ease-in-out infinite alternate !important;
+}
+
+.letter-v2-wheel-zone.is-spinning-request .letter-v2-pointer,
+.letter-v2-wheel-zone.is-wheel-spinning .letter-v2-pointer {
+  animation:letterV2PointerClick .13s ease-in-out infinite alternate !important;
+}
+
+@keyframes letterV2SpinGlow {
+  from {
+    filter:brightness(1);
+    box-shadow:
+      0 0 0 4px rgba(116,63,224,.74),
+      0 0 18px rgba(152,69,255,.50),
+      0 0 34px rgba(92,51,210,.24);
+  }
+  to {
+    filter:brightness(1.12);
+    box-shadow:
+      0 0 0 4px rgba(151,86,255,.92),
+      0 0 28px rgba(199,91,255,.78),
+      0 0 54px rgba(99,58,235,.42);
+  }
+}
+
+@keyframes letterV2PointerClick {
+  from { transform:translateX(-50%) rotate(-2deg); }
+  to   { transform:translateX(-50%) rotate(2deg); }
+}
+
+@media(max-height:760px) {
+  .letter-v2-chooser {
+    width:min(50%,175px) !important;
+    min-height:22px !important;
+  }
+
+  .letter-v2-wheel-zone {
+    margin-top:26px !important;
+  }
+}

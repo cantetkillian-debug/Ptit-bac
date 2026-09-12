@@ -287,7 +287,20 @@
       if (zone?.classList.contains("is-spinning-request")) return;
 
       zone?.classList.add("is-spinning-request");
-      wheel?.classList.add("is-request-spinning");
+
+      if (wheel && typeof wheel.animate === "function") {
+        wheel.animate(
+          [
+            { transform: "rotate(0deg)" },
+            { transform: "rotate(1440deg)" }
+          ],
+          {
+            duration: 1500,
+            easing: "cubic-bezier(.08,.72,.12,1)",
+            fill: "forwards"
+          }
+        );
+      }
 
       socket.emit("game:spinLetter", {
         code: state.code,
@@ -298,7 +311,120 @@
     const tapZone = document.getElementById("letterV2WheelTapZone");
 
     if (tapZone && !selectedLetter) {
-      tapZone.addEventListener("click", triggerSpin);
+      let dragging = false;
+      let moved = false;
+      let startAngle = 0;
+      let previousAngle = 0;
+      let currentRotation = 0;
+      let lastTime = 0;
+      let angularVelocity = 0;
+
+      const pointAngle = event => {
+        const rect = tapZone.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        return Math.atan2(event.clientY - cy, event.clientX - cx) * 180 / Math.PI;
+      };
+
+      const normalizedDelta = (next, previous) => {
+        let delta = next - previous;
+        if (delta > 180) delta -= 360;
+        if (delta < -180) delta += 360;
+        return delta;
+      };
+
+      const beginDrag = event => {
+        if (tapZone.classList.contains("is-spinning-request")) return;
+
+        dragging = true;
+        moved = false;
+        startAngle = pointAngle(event);
+        previousAngle = startAngle;
+        lastTime = performance.now();
+        angularVelocity = 0;
+
+        tapZone.classList.add("is-dragging");
+        wheel?.classList.remove("is-request-spinning");
+        wheel?.getAnimations?.().forEach(animation => animation.cancel());
+
+        tapZone.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+      };
+
+      const moveDrag = event => {
+        if (!dragging) return;
+
+        const now = performance.now();
+        const nextAngle = pointAngle(event);
+        const delta = normalizedDelta(nextAngle, previousAngle);
+        const dt = Math.max(8, now - lastTime);
+
+        if (Math.abs(normalizedDelta(nextAngle, startAngle)) > 4 || Math.abs(currentRotation) > 5) {
+          moved = true;
+        }
+
+        currentRotation += delta;
+        angularVelocity = delta / dt * 16.67;
+
+        if (wheel) {
+          wheel.style.transform = `rotate(${currentRotation}deg)`;
+        }
+
+        previousAngle = nextAngle;
+        lastTime = now;
+        event.preventDefault();
+      };
+
+      const finishDrag = event => {
+        if (!dragging) return;
+
+        dragging = false;
+        tapZone.classList.remove("is-dragging");
+        tapZone.releasePointerCapture?.(event.pointerId);
+
+        const flick = Math.abs(angularVelocity);
+        const enoughGesture = moved || flick > 0.8;
+
+        if (!enoughGesture) {
+          triggerSpin();
+          return;
+        }
+
+        if (tapZone.classList.contains("is-spinning-request")) return;
+        tapZone.classList.add("is-spinning-request");
+
+        const direction = angularVelocity >= 0 ? 1 : -1;
+        const extraTurns = 4.5 + Math.min(4, flick * 0.9);
+        const inertialTarget = currentRotation + direction * extraTurns * 360;
+
+        if (wheel && typeof wheel.animate === "function") {
+          wheel.animate(
+            [
+              { transform: `rotate(${currentRotation}deg)` },
+              { transform: `rotate(${inertialTarget}deg)` }
+            ],
+            {
+              duration: 1700,
+              easing: "cubic-bezier(.08,.72,.12,1)",
+              fill: "forwards"
+            }
+          );
+        } else if (wheel) {
+          wheel.style.transition = "transform 1.7s cubic-bezier(.08,.72,.12,1)";
+          wheel.style.transform = `rotate(${inertialTarget}deg)`;
+        }
+
+        socket.emit("game:spinLetter", {
+          code: state.code,
+          playerId: session.playerId
+        });
+      };
+
+      tapZone.addEventListener("pointerdown", beginDrag);
+      tapZone.addEventListener("pointermove", moveDrag);
+      tapZone.addEventListener("pointerup", finishDrag);
+      tapZone.addEventListener("pointercancel", finishDrag);
+
       tapZone.addEventListener("keydown", event => {
         if (event.key !== "Enter" && event.key !== " ") return;
         event.preventDefault();
