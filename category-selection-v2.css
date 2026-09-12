@@ -788,3 +788,97 @@ body:has(.cat-v2) {
     max-height:100dvh !important;
   }
 }
+
+
+/* =========================================================
+   Sélection catégories V4 — correctif iPhone/Safari
+   Le position:fixed sur body + écran créait un décalage avec
+   le visual viewport lorsque la barre Safari était visible.
+   ========================================================= */
+
+/* On revient au flux normal du document : l'écran commence
+   réellement en haut de la zone visible du navigateur. */
+html:has(.cat-v2),
+body:has(.cat-v2),
+#app:has(.cat-v2) {
+  width:100% !important;
+  height:100% !important;
+  min-height:100% !important;
+  max-height:none !important;
+  overflow:hidden !important;
+}
+
+body:has(.cat-v2) {
+  position:static !important;
+  inset:auto !important;
+  margin:0 !important;
+}
+
+/* 100dvh suit la hauteur réellement visible sur Safari iOS,
+   contrairement au couple fixed + 100svh qui provoquait le décalage. */
+.cat-v2 {
+  position:relative !important;
+  inset:auto !important;
+  top:auto !important;
+  right:auto !important;
+  bottom:auto !important;
+  left:auto !important;
+
+  width:min(100%,430px) !important;
+  height:100dvh !important;
+  min-height:100dvh !important;
+  max-height:100dvh !important;
+  margin:0 auto !important;
+  box-sizing:border-box !important;
+
+  justify-content:flex-start !important;
+  align-content:flex-start !important;
+  overflow:hidden !important;
+
+  padding-top:max(10px,env(safe-area-inset-top)) !important;
+}
+
+/* Aucun élément du haut ne peut récupérer une marge automatique
+   qui le pousserait vers le centre de la page. */
+.cat-v2-top,
+.cat-v2-copy,
+.cat-v2-grid {
+  margin-top:0 !important;
+  align-self:stretch !important;
+}
+
+.cat-v2-top {
+  padding-top:0 !important;
+}
+
+/* Footer entièrement visible au lieu d'être coupé par la barre Safari. */
+.cat-v2-footer {
+  bottom:max(18px,calc(env(safe-area-inset-bottom) + 12px)) !important;
+}
+
+/* Sur les iPhone à faible hauteur utile, on compacte légèrement
+   sans déplacer tout le contenu vers le milieu. */
+@media (max-height:760px) {
+  .cat-v2 {
+    padding-top:max(7px,env(safe-area-inset-top)) !important;
+    gap:5px !important;
+  }
+
+  .cat-v2-top {
+    min-height:48px !important;
+  }
+
+  .cat-v2-logo {
+    width:70px !important;
+    max-height:48px !important;
+  }
+}
+
+/* Fallback ancien navigateur */
+@supports not (height:100dvh) {
+  .cat-v2 {
+    height:100vh !important;
+    min-height:100vh !important;
+    max-height:100vh !important;
+  }
+}
