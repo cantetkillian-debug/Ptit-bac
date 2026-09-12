@@ -54,11 +54,17 @@
   }
 
   function playerAvatar(player, index) {
-    try { return avatarMarkup(player, index, "wsv1-avatar"); }
-    catch {
-      const initial = esc(String(player?.name || "?").slice(0,1).toUpperCase());
-      return `<div class="wsv1-avatar-fallback">${initial}</div>`;
+    const raw = String(player?.avatar || "");
+    const isImage =
+      Boolean(window.PtitBacProfilePhoto?.isImageAvatar?.(raw)) ||
+      /^data:image\//i.test(raw);
+
+    if (isImage) {
+      return `<div class="wsv1-avatar"><img src="${raw}" alt="" draggable="false"></div>`;
     }
+
+    const content = raw || String(player?.name || "?").slice(0,1).toUpperCase();
+    return `<div class="wsv1-avatar"><span>${esc(content)}</span></div>`;
   }
 
   function renderWaitingV1() {

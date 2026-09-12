@@ -106,3 +106,64 @@ body:has(.wsv1-screen) .economy-hud{display:none!important}
  .wsv1-top{padding-left:46px}
  .wsv1-categories img{width:23px;height:23px}
 }
+
+
+/* Waiting V3 — header compact comme les autres écrans */
+.wsv1-top{
+  grid-template-columns:76px 82px 86px !important;
+  justify-content:center !important;
+  gap:10px !important;
+  padding-left:46px !important;
+}
+.wsv1-round,.wsv1-letter,.wsv1-categories{
+  height:58px !important;
+  min-height:58px !important;
+  border-radius:14px !important;
+}
+.wsv1-round,.wsv1-letter{padding:7px 8px !important}
+.wsv1-round small,.wsv1-letter small,.wsv1-categories small{
+  font-size:.43rem !important;
+}
+.wsv1-round strong{margin-top:5px !important;font-size:.82rem !important}
+.wsv1-letter strong{margin-top:3px !important;font-size:1.18rem !important}
+.wsv1-categories{gap:5px !important;padding:5px !important}
+.wsv1-categories img{width:22px !important;height:22px !important}
+.wsv1-categories strong{font-size:.78rem !important}
+
+/* Avatars identiques au salon : cadre carré violet + contenu centré */
+.wsv1-player{
+  grid-template-columns:50px 1fr auto !important;
+}
+.wsv1-player .wsv1-avatar,
+.wsv1-player .avatar,
+.wsv1-avatar-fallback{
+  width:50px !important;
+  height:50px !important;
+  min-width:50px !important;
+  border:1.4px solid #a24fff !important;
+  border-radius:10px !important;
+  overflow:hidden !important;
+  background:#081d52 !important;
+  box-shadow:0 0 9px rgba(155,72,255,.28) !important;
+  display:grid !important;
+  place-items:center !important;
+}
+.wsv1-player .wsv1-avatar img,
+.wsv1-player .avatar img,
+.wsv1-player .wsv1-avatar span,
+.wsv1-player .avatar span{
+  width:88% !important;
+  height:88% !important;
+  max-width:88% !important;
+  max-height:88% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  border-radius:6px !important;
+}
+@media(max-width:370px){
+ .wsv1-top{grid-template-columns:70px 76px 80px !important;gap:7px !important;padding-left:43px !important}
+ .wsv1-player{grid-template-columns:46px 1fr auto !important}
+ .wsv1-player .wsv1-avatar,.wsv1-player .avatar,.wsv1-avatar-fallback{
+   width:46px !important;height:46px !important;min-width:46px !important;
+ }
+}
