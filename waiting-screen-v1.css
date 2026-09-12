@@ -1,0 +1,66 @@
+/* P'tit Bac — Attente des réponses V1 */
+body:has(.wsv1-screen){background:#061642!important;overflow-x:hidden}
+body:has(.wsv1-screen) .economy-hud{display:none!important}
+.wsv1-screen,.wsv1-screen *{box-sizing:border-box}
+.wsv1-screen{
+ position:relative;isolation:isolate;width:min(100%,430px);min-height:100dvh;margin:auto;
+ padding:max(15px,env(safe-area-inset-top)) 15px max(112px,calc(env(safe-area-inset-bottom) + 98px));
+ color:#fff;font-family:"DM Sans",system-ui,sans-serif;
+ background:
+ radial-gradient(circle at 4% 4%,rgba(100,47,235,.28),transparent 25%),
+ radial-gradient(circle at 98% 68%,rgba(100,36,230,.16),transparent 25%),
+ linear-gradient(180deg,#06143d,#071d52 55%,#06143d);
+ display:flex;flex-direction:column;
+}
+.wsv1-top{display:grid;grid-template-columns:90px 100px 91px;justify-content:space-between;align-items:start;gap:10px}
+.wsv1-round,.wsv1-letter,.wsv1-wallet{
+ border:1px solid #3155a4;background:#081f55;box-shadow:0 0 14px rgba(112,54,255,.08)
+}
+.wsv1-round,.wsv1-letter{height:68px;border-radius:16px;padding:9px 11px}
+.wsv1-round small,.wsv1-letter small{display:block;color:#c8b7e4;font-size:.5rem;font-weight:800}
+.wsv1-round strong{display:block;margin-top:7px;font-size:1rem;font-weight:900}
+.wsv1-letter{text-align:center}.wsv1-letter strong{display:block;margin-top:4px;color:#c15cff;font-size:1.45rem;line-height:1;text-shadow:0 0 10px rgba(193,92,255,.55)}
+.wsv1-wallet{height:46px;border-radius:15px;display:flex;align-items:center;justify-content:center;gap:8px}
+.wsv1-wallet img{width:27px;height:27px;object-fit:contain}.wsv1-wallet strong{font-size:.95rem}
+
+.wsv1-main{margin:24px 0 18px;text-align:center}
+.wsv1-timer{
+ width:142px;height:142px;margin:0 auto;padding:8px;border-radius:50%;
+ background:conic-gradient(#b43cff 0 var(--wsv1-progress),#3f398c var(--wsv1-progress) 100%);
+ box-shadow:0 0 20px rgba(177,57,255,.18)
+}
+.wsv1-timer>div{width:100%;height:100%;border-radius:50%;background:#071a4b;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.wsv1-timer strong{font-size:2.35rem;line-height:1;font-weight:900}.wsv1-timer span{margin-top:4px;color:#d0c3e9;font-size:.58rem;font-weight:800}
+.wsv1-timer.is-danger{filter:drop-shadow(0 0 9px rgba(187,55,255,.42))}
+.wsv1-main h1{margin:17px 0 0;font-size:1.25rem;line-height:1.15;font-weight:900;letter-spacing:-.025em}
+.wsv1-main p{margin:7px 0 0;color:#a99ac9;font-size:.65rem;font-weight:700}
+
+.wsv1-players{border:1px solid #3155a4;border-radius:18px;background:#081f55;padding:12px}
+.wsv1-players-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 3px 10px}
+.wsv1-players-head h2{margin:0;font-size:1rem;font-weight:900}.wsv1-players-head h2 span{color:#ae5cff}
+.wsv1-players-head small{padding:5px 8px;border:1px solid #2e4c92;border-radius:9px;color:#9c8ac2;font-size:.48rem;font-weight:800}
+.wsv1-player-list{display:grid;gap:7px}
+.wsv1-player{
+ min-height:58px;padding:7px 11px;border:1px solid #2d50a0;border-radius:14px;background:#071b4e;
+ display:grid;grid-template-columns:43px 1fr auto;align-items:center;gap:10px
+}
+.wsv1-player .avatar,.wsv1-avatar-fallback{width:43px!important;height:43px!important;min-width:43px!important;border-radius:50%!important;font-size:1.25rem!important}
+.wsv1-avatar-fallback{display:grid;place-items:center;background:#322076;border:1px solid #8147e9;font-weight:900}
+.wsv1-player>strong{font-size:.76rem;font-weight:900}
+.wsv1-state{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:900;white-space:nowrap}
+.is-ready .wsv1-state{color:#42e2a9}.is-writing .wsv1-state{color:#a763ff}
+.wsv1-check{font-size:.9rem}
+.wsv1-spinner{width:12px;height:12px;border:2px dotted #9853ff;border-radius:50%;animation:wsv1spin .9s linear infinite}
+@keyframes wsv1spin{to{transform:rotate(360deg)}}
+
+.wsv1-footer{margin-top:auto!important;padding-top:24px!important}
+
+@media(max-width:370px){
+ .wsv1-screen{padding-left:11px;padding-right:11px}
+ .wsv1-top{grid-template-columns:82px 92px 82px;gap:7px}
+ .wsv1-round,.wsv1-letter{padding-left:8px;padding-right:8px}
+ .wsv1-timer{width:132px;height:132px}
+ .wsv1-main h1{font-size:1.12rem}
+ .wsv1-player{grid-template-columns:40px 1fr auto;padding-left:8px;padding-right:8px}
+ .wsv1-player .avatar,.wsv1-avatar-fallback{width:40px!important;height:40px!important;min-width:40px!important}
+}
