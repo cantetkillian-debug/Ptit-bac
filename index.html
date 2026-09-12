@@ -6,6 +6,12 @@
   <meta name="theme-color" content="#081747" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Évite que Safari conserve une ancienne version de l'interface -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <title>P'tit Bac</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,7 +34,9 @@
   <link rel="stylesheet" href="/admin-v1.css" />
   <link rel="stylesheet" href="/ui-fixes-v3.css" />
   <link rel="stylesheet" href="/lobby-polish-v1.css" />
-  <link rel="stylesheet" href="/letter-selection-v2.css" />
+
+  <!-- Cache-buster roue : force Safari/Render à charger le CSS actuel -->
+  <link rel="stylesheet" href="/letter-selection-v2.css?v=17-20260912" />
 </head>
 <body>
   <div id="app"></div>
@@ -50,6 +58,8 @@
   <script src="/admin-v1.js"></script>
   <script src="/ui-fixes-v3.js"></script>
   <script src="/lobby-polish-v1.js"></script>
-  <script src="/letter-selection-v2.js"></script>
+
+  <!-- Cache-buster roue : force Safari/Render à charger le JS actuel -->
+  <script src="/letter-selection-v2.js?v=17-20260912"></script>
 </body>
 </html>
