@@ -239,6 +239,56 @@ function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
 io.on("connection", socket => {`
   );
 
+  // ============================================================
+  // Compte à rebours synchronisé avant lancement de partie.
+  // L'hôte demande le countdown, le serveur le diffuse à tout le salon.
+  // Le vrai game:start reste déclenché ensuite par le client de l'hôte.
+  // ============================================================
+  source = source.replace(
+    '\nio.on("connection", socket => {',
+    `\nio.on("connection", socket => {
+  socket.on("lobby:startCountdown", (payload = {}, cb = () => {}) => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player) {
+      return cb({ ok: false, error: "Salon introuvable." });
+    }
+
+    if (!player.isHost) {
+      return cb({ ok: false, error: "Seul l’hôte peut lancer la partie." });
+    }
+
+    if (room.phase !== "lobby") {
+      return cb({ ok: false, error: "La partie a déjà commencé." });
+    }
+
+    if (room.players.length < 2) {
+      return cb({ ok: false, error: "Il faut au moins 2 joueurs." });
+    }
+
+    const now = Date.now();
+    if (room.ptbCountdownUntil && room.ptbCountdownUntil > now) {
+      return cb({ ok: false, error: "Le compte à rebours est déjà lancé." });
+    }
+
+    const durationMs = 3200;
+    room.ptbCountdownUntil = now + durationMs;
+
+    io.to(room.code).emit("lobby:countdown", {
+      code: room.code,
+      hostPlayerId: player.id,
+      startedAt: now,
+      durationMs
+    });
+
+    setTimeout(() => {
+      const current = rooms.get(room.code);
+      if (current) current.ptbCountdownUntil = 0;
+    }, durationMs + 1200);
+
+    cb({ ok: true, durationMs });
+  });`
+  );
+
   source = source.replace(
     `  socket.on("room:leave", payload => {
     const { room, player } = requireMember(socket, payload);
