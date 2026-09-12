@@ -1,89 +1,97 @@
 /* =========================================================
-   P'tit Bac — Footer commun V2
-   Footer collé au bas de l'écran sur toutes les pages
+   P'tit Bac — Footer commun V3
+   Correction : suppression de l'espace transparent sous le PNG
+   + ancrage strict au bord inférieur visible
    ========================================================= */
 
 .ptb-shared-footer {
   position: fixed !important;
   left: 0 !important;
   right: 0 !important;
-  bottom: 0 !important;
-  z-index: 30 !important;
+  bottom: -1px !important;
+  z-index: 40 !important;
 
-  width: 100% !important;
+  width: 100vw !important;
   height: auto !important;
   margin: 0 !important;
   padding: 0 !important;
-  box-sizing: border-box !important;
 
   display: block !important;
+  line-height: 0 !important;
   pointer-events: none !important;
-  overflow: visible !important;
+  overflow: hidden !important;
 
-  transform: translateZ(0) !important;
-  -webkit-transform: translateZ(0) !important;
+  transform: none !important;
+  -webkit-transform: none !important;
 }
 
 .ptb-shared-footer > img {
   display: block !important;
-  width: 100% !important;
+  width: 100vw !important;
   height: auto !important;
   max-width: none !important;
+
   margin: 0 !important;
+  padding: 0 !important;
+
   object-fit: contain !important;
   object-position: center bottom !important;
+  vertical-align: bottom !important;
+
+  transform: translateY(1px) !important;
+  -webkit-transform: translateY(1px) !important;
+
   user-select: none !important;
   -webkit-user-drag: none !important;
 }
 
-/* Réserve basse pour éviter tout chevauchement */
+/* Réserve basse pour que le footer ne recouvre pas le contenu. */
 .profile-v2-final {
-  padding-bottom: max(132px, calc(env(safe-area-inset-bottom) + 122px)) !important;
+  padding-bottom: max(118px, calc(env(safe-area-inset-bottom) + 108px)) !important;
 }
 
 .friends-v2 {
-  padding-bottom: max(138px, calc(env(safe-area-inset-bottom) + 128px)) !important;
+  padding-bottom: max(124px, calc(env(safe-area-inset-bottom) + 114px)) !important;
 }
 
 .chat-list-v1 {
-  padding-bottom: max(136px, calc(env(safe-area-inset-bottom) + 126px)) !important;
+  padding-bottom: max(122px, calc(env(safe-area-inset-bottom) + 112px)) !important;
 }
 
 .lobby-v4 {
-  padding-bottom: max(146px, calc(env(safe-area-inset-bottom) + 134px)) !important;
+  padding-bottom: max(132px, calc(env(safe-area-inset-bottom) + 120px)) !important;
 }
 
-/* Catégories : boutons toujours au-dessus du footer */
 .cat-v2 .cat-v2-actions {
-  bottom: max(156px, calc(env(safe-area-inset-bottom) + 146px)) !important;
+  bottom: max(139px, calc(env(safe-area-inset-bottom) + 129px)) !important;
 }
 
 .cat-v2 .cat-v2-wait {
-  bottom: max(160px, calc(env(safe-area-inset-bottom) + 150px)) !important;
+  bottom: max(143px, calc(env(safe-area-inset-bottom) + 133px)) !important;
 }
 
 @media (max-height: 720px) {
   .profile-v2-final {
-    padding-bottom: max(112px, calc(env(safe-area-inset-bottom) + 102px)) !important;
+    padding-bottom: max(102px, calc(env(safe-area-inset-bottom) + 92px)) !important;
   }
 
   .friends-v2 {
-    padding-bottom: max(116px, calc(env(safe-area-inset-bottom) + 106px)) !important;
+    padding-bottom: max(106px, calc(env(safe-area-inset-bottom) + 96px)) !important;
   }
 
   .chat-list-v1 {
-    padding-bottom: max(114px, calc(env(safe-area-inset-bottom) + 104px)) !important;
+    padding-bottom: max(104px, calc(env(safe-area-inset-bottom) + 94px)) !important;
   }
 
   .lobby-v4 {
-    padding-bottom: max(122px, calc(env(safe-area-inset-bottom) + 112px)) !important;
+    padding-bottom: max(112px, calc(env(safe-area-inset-bottom) + 102px)) !important;
   }
 
   .cat-v2 .cat-v2-actions {
-    bottom: max(132px, calc(env(safe-area-inset-bottom) + 122px)) !important;
+    bottom: max(118px, calc(env(safe-area-inset-bottom) + 108px)) !important;
   }
 
   .cat-v2 .cat-v2-wait {
-    bottom: max(136px, calc(env(safe-area-inset-bottom) + 126px)) !important;
+    bottom: max(122px, calc(env(safe-area-inset-bottom) + 112px)) !important;
   }
 }
