@@ -169,3 +169,82 @@ body:has(.asv1-screen) .economy-hud{display:none!important}
     font-size:1.95rem !important;
   }
 }
+
+
+/* =========================================================
+   Page réponses V3 — ajustements haut de page
+   ========================================================= */
+
+/* Textes plus lisibles */
+.asv1-letter-card small{
+  font-size:.58rem !important;
+  font-weight:800 !important;
+}
+.asv1-timer span{
+  font-size:.58rem !important;
+  font-weight:800 !important;
+}
+
+/* Cadre Lettre plus petit, lettre toujours sans cadre intérieur */
+.asv1-hero{
+  grid-template-columns:78px 112px 96px !important;
+  justify-content:center !important;
+  gap:14px !important;
+}
+.asv1-letter-card{
+  width:78px !important;
+  height:78px !important;
+  min-height:78px !important;
+  padding:9px 3px 5px !important;
+  border-radius:14px !important;
+}
+.asv1-letter-card > strong,
+.asv1-letter-plain{
+  margin-top:5px !important;
+  font-size:1.9rem !important;
+}
+
+/* Bloc conseil plus petit */
+.asv1-tip{
+  width:96px !important;
+  height:78px !important;
+  min-height:78px !important;
+  padding:7px 6px !important;
+  border-radius:14px !important;
+  gap:4px !important;
+}
+.asv1-tip img{
+  width:21px !important;
+  height:31px !important;
+}
+.asv1-tip p{
+  font-size:.47rem !important;
+  line-height:1.28 !important;
+}
+
+/* Timer légèrement recentré entre les deux petits cadres */
+.asv1-timer{
+  width:112px !important;
+  height:112px !important;
+}
+
+@media(max-width:390px){
+  .asv1-hero{
+    grid-template-columns:74px 105px 91px !important;
+    gap:10px !important;
+  }
+  .asv1-letter-card{
+    width:74px !important;
+    height:76px !important;
+    min-height:76px !important;
+  }
+  .asv1-tip{
+    width:91px !important;
+    height:76px !important;
+    min-height:76px !important;
+  }
+  .asv1-timer{
+    width:105px !important;
+    height:105px !important;
+  }
+}
