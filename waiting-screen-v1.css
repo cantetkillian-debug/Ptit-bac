@@ -167,3 +167,65 @@ body:has(.wsv1-screen) .economy-hud{display:none!important}
    width:46px !important;height:46px !important;min-width:46px !important;
  }
 }
+
+
+/* Waiting V4 — centrage des 3 informations */
+.wsv1-round,
+.wsv1-letter,
+.wsv1-categories{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  padding:5px !important;
+}
+
+.wsv1-round small,
+.wsv1-letter small,
+.wsv1-categories small{
+  display:block !important;
+  margin:0 !important;
+  font-size:.55rem !important;
+  line-height:1.05 !important;
+  font-weight:800 !important;
+  text-align:center !important;
+}
+
+.wsv1-round strong{
+  display:block !important;
+  margin:6px 0 0 !important;
+  font-size:.92rem !important;
+  line-height:1 !important;
+  text-align:center !important;
+}
+
+.wsv1-letter strong{
+  display:block !important;
+  margin:5px 0 0 !important;
+  font-size:1.2rem !important;
+  line-height:1 !important;
+  text-align:center !important;
+}
+
+.wsv1-categories{
+  gap:0 !important;
+}
+.wsv1-categories img{
+  display:none !important;
+}
+.wsv1-categories div{
+  width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+.wsv1-categories strong{
+  display:block !important;
+  margin:6px 0 0 !important;
+  font-size:.92rem !important;
+  line-height:1 !important;
+  text-align:center !important;
+}

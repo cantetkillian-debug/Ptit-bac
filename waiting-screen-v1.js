@@ -96,7 +96,6 @@
           </div>
 
           <div class="wsv1-categories">
-            <img src="/lobby-categories.png" alt="">
             <div><small>Catégories</small><strong>${Array.isArray(state.categories) ? state.categories.length : 0}</strong></div>
           </div>
         </header>
