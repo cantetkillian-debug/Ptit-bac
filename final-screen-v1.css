@@ -964,3 +964,19 @@ body:has(.fsv1-screen) .economy-hud{display:none!important}
     column-gap:4px !important;
   }
 }
+
+
+/* =========================================================
+   Fin de partie V7 — ajustements demandés
+   ========================================================= */
+
+/* Remonte uniquement le titre, tout en gardant le portefeuille dégagé */
+.fsv1-heading{
+  transform: translateY(-34px) !important;
+  margin-bottom:-22px !important;
+}
+
+/* Remonte le libellé Retour à l'accueil au centre visuel du bouton */
+.fsv1-home span{
+  transform: translateY(-5px) !important;
+}
