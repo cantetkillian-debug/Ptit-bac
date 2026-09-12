@@ -654,3 +654,117 @@ body:has(.ssv1-screen) .economy-hud{display:none!important}
     font-size:1.32rem !important;
   }
 }
+
+
+/* =========================================================
+   Résultats V4 — tableau corrigé
+   ========================================================= */
+
+/* Le conteneur devient la vraie fenêtre de scroll */
+.ssv1-board-wrap{
+  position:relative !important;
+  width:100% !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-x:contain !important;
+  isolation:isolate !important;
+  border-radius:18px !important;
+}
+
+/* Coupe proprement tout ce qui tente de revenir sous la colonne fixe */
+.ssv1-board-wrap::before{
+  content:"";
+  position:sticky;
+  left:0;
+  top:0;
+  display:block;
+  width:112px;
+  height:0;
+  z-index:20;
+  pointer-events:none;
+}
+
+/* Board sans débordement parasite */
+.ssv1-board{
+  position:relative !important;
+  overflow:visible !important;
+  border-radius:18px !important;
+}
+
+/* Première colonne vraiment fixe et opaque */
+.ssv1-player-title,
+.ssv1-player{
+  position:sticky !important;
+  left:7px !important;
+  z-index:15 !important;
+  background:#071b4e !important;
+  box-shadow:
+    10px 0 14px -12px rgba(2,8,31,.95),
+    1px 0 0 #3559a8 !important;
+}
+
+/* Titre Joueurs au-dessus de tout */
+.ssv1-player-title{
+  z-index:18 !important;
+  background:#0a2054 !important;
+}
+
+/* Les cellules de catégories passent derrière, jamais au-dessus */
+.ssv1-cat-head,
+.ssv1-answer{
+  position:relative !important;
+  z-index:1 !important;
+}
+
+/* Cache le contenu qui passe derrière la colonne joueurs */
+.ssv1-player-title::after,
+.ssv1-player::after{
+  content:"";
+  position:absolute;
+  top:-1px;
+  right:-9px;
+  width:9px;
+  height:calc(100% + 2px);
+  background:linear-gradient(90deg,rgba(7,27,78,.95),rgba(7,27,78,0));
+  pointer-events:none;
+}
+
+/* séparation verticale plus propre */
+.ssv1-player-title,
+.ssv1-player{
+  border-right:1px solid #3b61b4 !important;
+}
+
+/* L'indice de scroll reste lisible, sans gêner le tableau */
+.ssv1-scroll-hint{
+  position:sticky !important;
+  left:calc(100% - 175px) !important;
+  z-index:25 !important;
+  margin:0 0 6px 0 !important;
+}
+
+/* évite qu'un morceau de cellule apparaisse à gauche lors d'un swipe rapide */
+.ssv1-board-wrap{
+  clip-path:inset(0 round 18px) !important;
+}
+
+/* Bas de page resserré après suppression du bouton Retour au salon */
+.ssv1-next{
+  margin-bottom:0 !important;
+}
+.ssv1-footer{
+  margin-top:16px !important;
+}
+
+/* Ancien bouton masqué défensivement si du vieux HTML réapparaît */
+.ssv1-lobby{
+  display:none !important;
+}
+
+@media(max-width:370px){
+  .ssv1-player-title,
+  .ssv1-player{
+    left:7px !important;
+  }
+}
