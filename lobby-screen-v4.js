@@ -31,7 +31,7 @@
 
   function difficultyInfo(value) {
     if (value === "hard") return { label: "Difficile", icon: DIFFICULTY_ICON_URLS.hard };
-    if (value === "medium") return { label: "Normal", icon: DIFFICULTY_ICON_URLS.medium };
+    if (value === "medium") return { label: "Moyen", icon: DIFFICULTY_ICON_URLS.medium };
     return { label: "Facile", icon: DIFFICULTY_ICON_URLS.beginner };
   }
 
@@ -323,7 +323,7 @@
     const players = state.players.map((p, index) => playerRow(p, index, user)).join("");
     const emptySlots =
       playerCount < LOBBY_MAX_PLAYERS
-        ? emptyPlayerRow(!!user?.isHost, 0)
+        ? emptyPlayerRow(!!user?.isHost && state.mode !== "quick", 0)
         : "";
 
     setScreen(`

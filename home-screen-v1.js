@@ -177,9 +177,9 @@
 
       socket.emit("room:create", {
         name: p.name.trim(),
-        rounds: 5,
+        rounds: 1,
         categoryCount: 6,
-        categoryDifficulty: "beginner",
+        categoryDifficulty: "medium",
         duration: 60,
         avatar: p.icon,
         friendCode: String(localStorage.getItem("petitbac_friendCode") || "").trim(),

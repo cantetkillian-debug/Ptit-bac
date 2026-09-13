@@ -2414,7 +2414,7 @@ function hasActiveRoom(token) {
   return [...rooms.values()].some(room => room.phase !== "finished" && room.players.some(p => p.walletToken === token));
 }
 
-function createGameRoom(socket, { name, rounds = 1, duration = 60, categoryCount = 6, categoryDifficulty = "beginner", avatar, friendCode, walletToken }, cb = () => {}, mode = "private") {
+function createGameRoom(socket, { name, rounds = 1, duration = 60, categoryCount = 6, categoryDifficulty = "medium", avatar, friendCode, walletToken }, cb = () => {}, mode = "private") {
     const safeName = cleanName(name);
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
     const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : 60;
@@ -2610,21 +2610,31 @@ const quickMatch = require("./quick-match.js")({
     if (state.lives < 1) throw new Error("Tu n’as plus de vie pour une partie rapide.");
     return {...profile,walletToken:result.token};
   },
+  admit(entry, peers) {
+    let result;
+    const reply = value => { result = value; };
+    if (!peers.length) createGameRoom(entry.socket, {...entry.profile, rounds:1, duration:60, categoryCount:6, categoryDifficulty:"beginner"}, reply, "quick");
+    else {
+      const room = getRoom(peers[0].code);
+      const base = cleanName(entry.profile.name).slice(0, 16);
+      let name = base, suffix = 2;
+      while (room.players.some(p => p.name.toLowerCase() === name.toLowerCase())) name = base + " " + suffix++;
+      joinGameRoom(entry.socket, {...entry.profile, name, code:room.code}, reply, true);
+    }
+    if (!result?.ok) throw new Error(result?.error || "Recherche interrompue.");
+    entry.code = result.code;
+    entry.playerId = result.playerId;
+    return result;
+  },
+  leave(entry) {
+    ptitBacHandleExplicitLeave(entry.socket, {code:entry.code, playerId:entry.playerId});
+  },
   async match(entries) {
-    let room;
+    const room = getRoom(entries[0].code);
     try {
-      for (const [index, entry] of entries.entries()) {
-        if (!entry.socket.connected) throw new Error("Un joueur s’est déconnecté avant le lancement.");
-        let result;
-        const reply = value => {result=value;};
-        if (index === 0) createGameRoom(entry.socket, {...entry.profile,rounds:5,duration:60,categoryCount:6,categoryDifficulty:"beginner"}, reply, "quick");
-        else joinGameRoom(entry.socket, {...entry.profile,code:room.code}, reply, true);
-        if (!result?.ok) throw new Error(result?.error || "Recherche interrompue.");
-        room = getRoom(result.code);
-        entry.socket.emit("quick:matched", result);
-      }
+      if (!room || entries.some(e => !e.socket.connected)) throw new Error("Un joueur s’est déconnecté avant le lancement.");
       const host = room.players[0];
-      if (!await startGame(entries[0].socket,{code:room.code,playerId:host.id},true)) {
+      if (!await startGame(io.sockets.sockets.get(host.socketId),{code:room.code,playerId:host.id},true)) {
         throw new Error("La partie n’a pas pu démarrer. Aucune vie consommée si le lancement a été annulé.");
       }
     } catch (err) {
@@ -2789,10 +2799,20 @@ io.on("connection", socket => {
 
 
   socket.on("room:leave", (payload, cb = () => {}) => {
+    const {room} = requireMember(socket, payload);
+    if (room?.mode === "quick" && room.phase === "lobby") {
+      if (!quickMatch.cancel(socket)) return cb({ok:false,error:"La partie se prépare déjà."});
+      if (!getRoom(payload.code)?.players.some(p => p.id === payload.playerId)) return cb({ok:true});
+    }
     ptitBacHandleExplicitLeave(socket, payload, cb);
   });
 
   socket.on("game:leave", (payload, cb = () => {}) => {
+    const {room} = requireMember(socket, payload);
+    if (room?.mode === "quick" && room.phase === "lobby") {
+      if (!quickMatch.cancel(socket)) return cb({ok:false,error:"La partie se prépare déjà."});
+      if (!getRoom(payload.code)?.players.some(p => p.id === payload.playerId)) return cb({ok:true});
+    }
     ptitBacHandleExplicitLeave(socket, payload, cb);
   });
 

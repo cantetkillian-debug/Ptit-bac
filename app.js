@@ -259,7 +259,7 @@ function renderHome() {
   };
   document.getElementById("createBtn").onclick = () => {
     const p = ensureProfile(); if (!p) return;
-    socket.emit("room:create", { name:p.name.trim(), rounds:1, categoryCount:6, categoryDifficulty:"beginner", duration:60, avatar:p.icon, walletToken:session.walletToken }, res => {
+    socket.emit("room:create", { name:p.name.trim(), rounds:1, categoryCount:6, categoryDifficulty:"medium", duration:60, avatar:p.icon, walletToken:session.walletToken }, res => {
       if (!res?.ok) return toast(res?.error || "Impossible de créer le salon.");
       if (res.walletToken) setWalletState(res.walletToken, res.balance);
       saveSession(res.code, res.playerId); session.state=res.state; render();

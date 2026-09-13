@@ -8,36 +8,33 @@
     overlay.innerHTML=`<section class="wallet-panel" role="dialog" aria-modal="true" aria-labelledby="walletPanelTitle"><h2 id="walletPanelTitle">${title}</h2>${html}</section>`;
     document.body.appendChild(overlay);return overlay;
   }
+  let joining=false, queueState=null;
   window.startQuickPlay=profile=>{
+    if(joining)return;
     if(!socket.connected||!session.walletToken)return toast("Attends la connexion au serveur puis réessaie.");
-    const el=panel("Partie rapide",`<p id="quickStatus" role="status">Vérification de ton profil…</p><p>5 manches · 6 catégories · 60 secondes</p><p>1 vie au démarrage. Gains : 60 / 40 / 25 / 10 pièces selon le classement. Même rang, même gain en cas d’égalité.</p><button id="quickCancel" type="button">Annuler la recherche</button>`);
-    el.querySelector("#quickCancel").onclick=()=>{
-      socket.timeout(5000).emit("quick:cancel",{},(err,res)=>{
-        if(err)return toast("Connexion interrompue. Réessaie.");
-        if(!res?.ok)return toast("La partie se prépare déjà.");
-        closePanel();
-      });
-    };
+    joining=true;
     socket.timeout(15000).emit("quick:join",{name:profile.name,avatar:profile.icon,walletToken:session.walletToken},(err,res)=>{
-      if(!el.isConnected)return;
-      if(err||!res?.ok){socket.emit("quick:cancel",{});closePanel();if(!res?.cancelled)toast(res?.error||"La recherche n’a pas répondu. Réessaie.");}
+      joining=false;
+      if(err||!res?.ok){socket.emit("quick:cancel",{});if(!res?.cancelled)toast(res?.error||"La recherche n’a pas répondu. Réessaie.");}
     });
   };
   socket.on("quick:queued",state=>{
+    queueState=state;
     clearInterval(queueTimer);
     const update=()=>{
-      const status=document.getElementById("quickStatus");if(!status)return;
+      const status=document.getElementById("quickStatus");if(!status){clearInterval(queueTimer);return;}
       status.textContent=state.deadline
         ? `${state.count} joueurs · préparation dans ${Math.max(0,Math.ceil((state.deadline-Date.now())/1000))} s`
         : "Recherche d’autres joueurs… Tu peux annuler sans perdre de vie.";
     };update();queueTimer=setInterval(update,500);
   });
   socket.on("quick:matched",res=>{
-    closePanel();setWalletState(res.walletToken,res.balance);saveSession(res.code,res.playerId);session.state=res.state;render();
+    queueState=null;closePanel();setWalletState(res.walletToken,res.balance);saveSession(res.code,res.playerId);session.state=res.state;render();
   });
   socket.on("quick:error",res=>{closePanel();toast(res?.error||"Recherche interrompue.");});
   socket.on("disconnect",()=>{
-    if(document.getElementById("quickStatus")){closePanel();toast("Recherche annulée après la perte de connexion.");}
+    joining=false;
+    if(document.getElementById("quickStatus")){closePanel();clearSession();renderHome();toast("Recherche annulée après la perte de connexion.");}
   });
   socket.on("room:closed",res=>{
     if(res?.reason!=="match_cancelled")return;
@@ -60,10 +57,14 @@
     originalScreen(html);
     const quick=session.state?.mode==="quick";
     document.documentElement.classList.toggle("ptb-quick-game",quick);
-    if(session.state?.phase==="lobby"){
-      const note=document.createElement("p");note.className="wallet-mode-note";
-      note.textContent=quick?"Partie rapide · préparation automatique · 1 vie au lancement":"Salon privé · aucune vie consommée · aucun gain de pièces";
-      app.prepend(note);
+    if(quick && session.state?.phase==="lobby"){
+      const note=document.createElement("p");note.className="wallet-mode-note";note.id="quickStatus";note.setAttribute("role","status");
+      note.textContent=queueState?.deadline
+        ? queueState.count+" joueurs · préparation dans "+Math.max(0,Math.ceil((queueState.deadline-Date.now())/1000))+" s"
+        : "Recherche d’autres joueurs… Tu peux quitter sans perdre de vie.";
+      const players=app.querySelector(".lobby-v5-actions");
+      (players||app).append(note);
     }
+
   };
 })();
