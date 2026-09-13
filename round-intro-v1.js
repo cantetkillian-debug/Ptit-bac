@@ -14,7 +14,7 @@
   }
 
   function roundKey(state) {
-    return `${state?.code || "room"}:${Number(state?.roundIndex ?? -1)}`;
+    return `${state?.code || "room"}:${state?.roundEndsAt || ""}:${Number(state?.roundIndex ?? -1)}`;
   }
 
   function getIntroState(state) {
@@ -22,9 +22,12 @@
     let entry = introByRound.get(key);
 
     if (!entry) {
+      for (const old of introByRound.values()) clearTimeout(old.timeoutId);
+      introByRound.clear();
+      const endsAt = Number(state.roundStartsAt) || (Number(state.roundEndsAt) - Number(state.duration) * 1000);
       entry = {
         startedAt: Date.now(),
-        endsAt: Date.now() + INTRO_MS,
+        endsAt: Number.isFinite(endsAt) ? endsAt : Date.now(),
         finished: false,
         timeoutId: null
       };
@@ -37,7 +40,7 @@
         if (!live || live.phase !== "round" || roundKey(live) !== key) return;
 
         originalRenderRound();
-      }, INTRO_MS);
+      }, Math.max(0, entry.endsAt - Date.now()));
 
       introByRound.set(key, entry);
     }

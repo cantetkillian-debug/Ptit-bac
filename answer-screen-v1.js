@@ -40,7 +40,8 @@
           </div>
           <div class="asv1-input-wrap">
             <input class="answer-input asv1-input" data-category="${esc(category)}"
-              maxlength="60" autocomplete="off" autocapitalize="words"
+              maxlength="60" autocomplete="off" autocapitalize="words" enterkeyhint="next"
+              aria-label="${esc(category)}"
               placeholder="Ta réponse..." value="${esc(value)}">
             <button type="button" class="asv1-clear" data-clear-category="${esc(category)}" aria-label="Effacer">×</button>
           </div>
@@ -117,6 +118,7 @@
     };
 
     document.getElementById("submitRound").onclick=()=>{
+      if (!socket.connected) return toast("Connexion interrompue. Attends la reconnexion.");
       document.getElementById("submitRound").disabled=true;
       socket.emit("round:submit",{code:state.code,playerId:session.playerId});
     };
@@ -133,7 +135,7 @@
         ring.style.setProperty("--progress",`${progress}%`);
         ring.classList.toggle("danger",seconds<=10);
       }
-      if(seconds<=0) document.querySelectorAll(".asv1-screen input,.asv1-screen button").forEach(el=>el.disabled=true);
+      if(seconds<=0) document.querySelectorAll(".asv1-input,.asv1-clear,#submitRound").forEach(el=>el.disabled=true);
     };
     tick();
     session.timerHandle=setInterval(tick,100);

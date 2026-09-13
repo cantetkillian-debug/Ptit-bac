@@ -28,7 +28,7 @@
 
   function difficultyInfo(value) {
     if (value === "hard") return { label: "Difficile", icon: "/difficulty-hard.png" };
-    if (value === "medium") return { label: "Normal", icon: "/difficulty-normal.png" };
+    if (value === "medium") return { label: "Moyen", icon: "/difficulty-normal.png" };
     return { label: "Facile", icon: "/difficulty-easy.png" };
   }
 
@@ -64,7 +64,7 @@
         ? [top3[1], top3[0]]
         : top3;
 
-    const placeOf = player => ranked.findIndex(p=>p.id===player.id)+1;
+    const placeOf = player => ranked.findIndex(p=>Number(p.score||0) === Number(player.score||0))+1;
 
     const podium=podiumOrder.map(player=>{
       const place=placeOf(player);
@@ -83,7 +83,7 @@
     }).join("");
 
     const rows=ranked.map((player,index)=>{
-      const place=index+1;
+      const place=placeOf(player);
       const isMe=player.id===session.playerId;
       return `
         <div class="fsv1-row ${isMe?"is-me":""} rank-${Math.min(place,4)}">

@@ -52,7 +52,7 @@
           </div>
         </header>
 
-        <section class="vsv1-card ${unavailable ? "is-unavailable" : ""}">
+        <section class="vsv1-card ${unavailable ? "is-unavailable" : ""}" role="status" aria-live="polite">
           <div class="vsv1-spinner ${complete ? "is-complete" : unavailable ? "is-error" : ""}">
             ${complete ? "✓" : unavailable ? "!" : ""}
           </div>
@@ -72,6 +72,10 @@
                 ? "La vérification est temporairement indisponible."
                 : `L’IA analyse les réponses de tous les joueurs pour la lettre ${letter}.`}
           </p>
+
+          ${!unavailable && Number(validation.total)>0
+            ? `<p class="flow-validation-progress">${Math.min(Number(validation.total),Math.max(0,Number(validation.checked)||0))} / ${Number(validation.total)} réponses vérifiées</p>`
+            : ""}
 
           ${unavailable && user?.isHost
             ? `<button class="vsv1-retry" id="vsv1Retry" type="button">↻ Réessayer</button>`

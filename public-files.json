@@ -73,5 +73,6 @@
   "/waiting-screen-v1.css",
   "/waiting-screen-v1.js",
   "/wallet-client.js",
-  "/wallet.css"
+  "/wallet.css",
+  "/gameplay-flow.css"
 ]

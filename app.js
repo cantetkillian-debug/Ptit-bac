@@ -76,7 +76,12 @@ socket.on("room:kicked", () => {
   renderHome();
 });
 socket.on("room:state", state => {
+  const previous = session.state;
   session.state = state;
+  // Keep the actual input nodes (and the mobile keyboard) during peer updates.
+  if (state.phase === "round" && previous?.phase === "round" &&
+      state.code === previous.code && state.roundEndsAt === previous.roundEndsAt &&
+      !me()?.submitted && document.querySelector(".asv1-input")) return;
   render();
 });
 
@@ -169,8 +174,19 @@ function avatarMarkup(player, index = 0, extra = "") {
   }
 
 function setScreen(html) {
+  const old = app.querySelector("main");
+  const previousScreen = old?.className.replace(" flow-enter", "");
+  const previousScroll = window.scrollY;
   app.innerHTML = html;
-  window.scrollTo({ top: 0, behavior: "instant" });
+  const screen = app.querySelector("main");
+  const gameplay = !!screen?.matches(".cat-v2,.pbw1-screen,.pri-screen,.asv1-screen,.wsv1-screen,.vsv1-screen,.ssv1-screen,.fsv1-screen");
+  document.documentElement.classList.toggle("gameplay-flow", gameplay);
+  if (gameplay) {
+    screen.classList.add("flow-screen");
+    screen.dataset.mode = session.state?.mode || "private";
+    if (previousScreen !== screen.className) screen.classList.add("flow-enter");
+  }
+  window.scrollTo({ top: previousScreen === screen?.className.replace(" flow-enter", "") ? previousScroll : 0, behavior: "instant" });
 }
 
 
@@ -1042,7 +1058,7 @@ function openLobbySettingPopover(setting, anchor) {
 }
 
 function difficultyLabel(value) {
-  return value === "hard" ? "Difficile" : value === "medium" ? "Normal" : "Facile";
+  return value === "hard" ? "Difficile" : value === "medium" ? "Moyen" : "Facile";
 }
 
 function renderCategorySelection() {

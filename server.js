@@ -935,6 +935,7 @@ function publicRoom(room, viewerPlayerId = null) {
     letterRerollCost: LETTER_REROLL_COST,
     categoryRerollCost: CATEGORY_REROLL_COST,
     roundEndsAt: room.roundEndsAt,
+    roundStartsAt: room.roundStartsAt || null,
     validation: room.validation
       ? {
           status: room.validation.status || "checking",
@@ -2012,7 +2013,8 @@ function endRound(room) {
 function startRound(room) {
   room.roundIndex += 1;
   room.phase = "round";
-  room.roundEndsAt = Date.now() + room.duration * 1000;
+  room.roundStartsAt = Date.now() + 5000;
+  room.roundEndsAt = room.roundStartsAt + room.duration * 1000;
   room.validation = null;
   room.lastRoundScores = {};
   room.players.forEach(p => {
@@ -2020,7 +2022,10 @@ function startRound(room) {
     if (!p.answers[room.roundIndex]) p.answers[room.roundIndex] = {};
   });
   emitRoom(room);
-  playBots(room);
+  const scheduledRound = room.roundIndex;
+  setTimeout(() => {
+    if (rooms.get(room.code) === room && room.phase === "round" && room.roundIndex === scheduledRound) playBots(room);
+  }, 5000);
 
   const thisRound = room.roundIndex;
   setTimeout(() => {
@@ -2028,7 +2033,7 @@ function startRound(room) {
     if (current && current.phase === "round" && current.roundIndex === thisRound) {
       endRound(current);
     }
-  }, room.duration * 1000 + 300);
+  }, 5000 + room.duration * 1000 + 300);
 }
 
 
@@ -2964,6 +2969,7 @@ io.on("connection", socket => {
   socket.on("answer:update", ({ code, playerId, category, value }) => {
     const { room, player } = requireMember(socket, { code, playerId });
     if (!room || !player || room.phase !== "round" || player.submitted) return;
+    if (Date.now() < (room.roundStartsAt || 0) || Date.now() > room.roundEndsAt) return;
     if (!room.categories.includes(category)) return;
 
     if (!player.answers[room.roundIndex]) player.answers[room.roundIndex] = {};
@@ -2973,6 +2979,7 @@ io.on("connection", socket => {
   socket.on("round:submit", payload => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player || room.phase !== "round") return;
+    if (Date.now() < (room.roundStartsAt || 0)) return;
     player.submitted = true;
     emitRoom(room);
 

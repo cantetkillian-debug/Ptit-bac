@@ -1,0 +1,107 @@
+/* Shared gameplay foundations, loaded after the screen-specific styles. */
+html.gameplay-flow,html.gameplay-flow body{
+  overflow-x:hidden!important;overflow-y:auto!important;height:auto!important;
+  background:#08153f!important;
+}
+.gameplay-flow .flow-screen{
+  --flow-muted:#bcb5df;
+  box-sizing:border-box!important;
+  width:min(100%,480px)!important;max-width:480px!important;
+  height:auto!important;min-height:100svh!important;max-height:none!important;
+  overflow:visible!important;margin:0 auto!important;
+  padding: max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))!important;
+  background:radial-gradient(ellipse at 0 0,#502abe40,transparent 48%),#08153f!important;
+  color:#fff;font-family:"DM Sans",system-ui,sans-serif;
+}
+.flow-screen *{box-sizing:border-box}
+.flow-screen h1{font-size:clamp(25px,6.8vw,34px)!important;line-height:1.15!important;letter-spacing:-.6px!important}
+.flow-screen button{touch-action:manipulation}
+.flow-screen button:focus-visible,.flow-screen input:focus-visible{outline:3px solid #d6aeff!important;outline-offset:3px}
+.flow-screen :is(.cat-v2-back,.pbw1-exit,.pri-exit,.asv1-quit,.wsv1-exit,.vsv1-exit,.ssv1-exit){width:44px!important;height:44px!important;flex-shrink:0}
+.flow-screen :is(.cat-v2-balance,.pbw1-wallet,.fsv1-wallet){
+  display:flex!important;align-items:center!important;gap:8px!important;
+  width:auto!important;min-width:0!important;height:44px!important;
+  padding:6px 12px!important;border:1px solid #8650d9!important;border-radius:24px!important;
+  font-size:17px!important;font-variant-numeric:tabular-nums;background:#101d4d!important;
+}
+.flow-screen :is(.cat-v2-balance,.pbw1-wallet,.fsv1-wallet) img{position:static!important;width:28px!important;height:28px!important;transform:none!important;object-fit:contain}
+.flow-screen :is(.cat-v2-balance,.pbw1-wallet,.fsv1-wallet) :is(strong,b){font-size:17px!important}
+.flow-screen :is(.cat-v2-continue,.pbw1-confirm,.asv1-submit,.ssv1-next,.fsv1-restart,.fsv1-home){
+  min-height:52px!important;height:auto!important;padding:14px 18px!important;
+  border-radius:18px!important;font-size:16px!important;line-height:1.3!important;
+}
+.gameplay-flow .flow-screen :is(.ptb-shared-footer,.fsv1-footer){
+  position:relative!important;inset:auto!important;flex-shrink:0;
+  width:calc(100% + 32px)!important;height:auto!important;
+  margin:28px -16px -24px!important;z-index:0!important;
+}
+.gameplay-flow .flow-screen :is(.ptb-shared-footer,.fsv1-footer)>img{
+  width:100%!important;height:auto!important;max-width:100%!important;display:block!important;
+}
+.flow-screen.cat-v2{gap:20px!important}
+.gameplay-flow .flow-screen .cat-v2-top{position:relative!important;inset:auto!important;width:100%!important;min-height:44px!important}
+.gameplay-flow .flow-screen .cat-v2-balance{position:static!important;transform:none!important;margin-left:auto!important}
+.gameplay-flow .flow-screen .cat-v2-copy{position:relative!important;inset:auto!important;transform:none!important;margin:6px 0 0!important;width:100%!important}
+.gameplay-flow .flow-screen .cat-v2-grid{
+  position:relative!important;inset:auto!important;transform:none!important;
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;gap:10px!important;margin:8px 0!important;flex:none!important;
+}
+.gameplay-flow .flow-screen .cat-v2-card{
+  min-height:88px!important;height:auto!important;min-width:0!important;
+  padding:12px!important;gap:10px!important;border-radius:18px!important;
+}
+.flow-screen .cat-v2-card strong{font-size:13px!important;line-height:1.25!important;overflow-wrap:anywhere}
+.flow-screen .cat-v2-icon{width:36px!important;height:36px!important;font-size:24px!important;flex-shrink:0}
+.flow-screen .cat-v2-actions{position:relative!important;inset:auto!important;transform:none!important;margin-top:auto!important;width:100%!important}
+.gameplay-flow .flow-screen .cat-v2-wait{position:relative!important;inset:auto!important;transform:none!important;width:100%!important;margin:18px 0!important}
+.flow-screen .pbw1-wheel-zone{width:min(100%,340px)!important;margin:20px auto!important}
+.flow-screen .pbw1-chooser{margin:18px auto 0!important}
+.flow-screen .pri-hero{margin:10px 0 16px!important}
+.flow-screen .pri-flag{width:56px!important;height:56px!important;margin:0 auto 8px!important}
+.flow-screen .pri-stats{gap:8px!important}
+.flow-screen .pri-stat-card{min-height:100px!important;padding:12px 8px!important;border-radius:18px!important}
+.flow-screen .pri-categories{margin-top:14px!important}
+.flow-screen .pri-category{min-height:48px!important;border-radius:14px!important}
+.flow-screen .pri-countdown-ring{width:76px!important;height:76px!important}
+.flow-screen .pri-countdown-ring strong{font-size:34px!important}
+.flow-screen.asv1-screen{padding-top:max(12px,env(safe-area-inset-top))!important}
+.flow-screen .asv1-hero{grid-template-columns:90px 100px!important;justify-content:center!important;gap:20px!important;margin:8px 0 18px!important}
+.flow-screen .asv1-timer{width:100px!important;height:100px!important;flex-shrink:0}
+.flow-screen .asv1-timer strong{font-size:32px!important}
+.flow-screen .asv1-letter-card{min-height:80px!important;padding:8px!important}
+.flow-screen .asv1-tip{display:none!important}
+.flow-screen .asv1-list{gap:10px!important}
+.flow-screen .asv1-row{padding:10px!important;border-radius:18px!important;gap:10px!important}
+.flow-screen .asv1-category strong{font-size:13px!important;line-height:1.25!important}
+.flow-screen .asv1-category>span{width:34px!important;height:34px!important;font-size:25px!important}
+.flow-screen .asv1-input{font-size:16px!important;min-width:0;scroll-margin:100px 0}
+.flow-screen .asv1-input-wrap{min-height:48px!important}
+.flow-screen .asv1-clear{min-width:40px!important}
+.flow-screen .asv1-rule{padding:12px!important;border-radius:18px!important}
+.flow-screen .asv1-rule p{font-size:12px!important;line-height:1.5!important}
+.flow-screen .vsv1-card{margin:36px 0!important;padding:32px 18px!important;min-height:260px!important;border-radius:24px!important}
+.flow-screen .vsv1-spinner{width:66px!important;height:66px!important;margin:0 auto 24px!important}
+.flow-screen .vsv1-card h1{font-size:25px!important}
+.flow-screen .vsv1-card p{font-size:14px!important;line-height:1.55!important}
+.flow-screen :is(.vsv1-info,.wsv1-round,.wsv1-letter,.wsv1-categories){border-radius:16px!important}
+.flow-screen .ssv1-heading{padding-top:40px!important}
+.flow-screen .ssv1-board-scroll{overscroll-behavior-x:contain;scrollbar-width:thin}
+.flow-screen .ssv1-answer{font-size:13px!important;overflow-wrap:anywhere}
+.flow-screen .ssv1-winner{padding:16px!important;border-radius:22px!important;min-height:110px!important}
+.flow-screen .fsv1-podium-card{padding:26px 8px 14px!important;border-radius:20px!important;min-width:0}
+.flow-screen .fsv1-podium-card h3{overflow-wrap:anywhere}
+.flow-screen[data-mode="private"] :is(.fsv1-podium-reward,.fsv1-row-reward,.fsv1-ranking-head>span:last-child,.fsv1-gain){display:none!important}
+.flow-screen[data-mode="private"] :is(.fsv1-row,.fsv1-ranking-head){grid-template-columns:32px minmax(0,1fr) 50px!important}
+.flow-screen .fsv1-actions{gap:10px!important}
+.flow-enter{animation:flow-appear .18s ease-out}
+@keyframes flow-appear{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(max-width:360px){
+  .flow-screen .asv1-row{grid-template-columns:1fr!important}
+  .flow-screen .asv1-category{flex-direction:row!important}
+  .flow-screen .fsv1-actions{grid-template-columns:1fr!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .flow-screen,.flow-screen .flow-enter{animation:none!important;scroll-behavior:auto!important}
+  .flow-screen .fsv1-confetti{display:none!important}
+}
