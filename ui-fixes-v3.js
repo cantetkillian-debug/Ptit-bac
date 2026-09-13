@@ -30,6 +30,7 @@
   }
 
   function refreshAdminState() {
+    if (document.hidden || !socket.connected) return;
     const token = walletToken();
 
     if (!token || typeof socket === "undefined") {
@@ -118,7 +119,7 @@
   }
 
   setTimeout(refreshAdminState, 250);
-  setInterval(refreshAdminState, 5000);
+  setInterval(refreshAdminState, 30000);
 
   cleanupCurrentScreen();
 })();

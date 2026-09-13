@@ -2,7 +2,6 @@
 
 const crypto = require("crypto");
 const { Pool } = require("pg");
-const socketIo = require("socket.io");
 
 const ADMIN_CODE = String(process.env.PTITBAC_ADMIN_CODE || "").trim();
 const DATABASE_URL = String(process.env.DATABASE_URL || "").trim();
@@ -82,13 +81,9 @@ async function applyFlags(token) {
   return s;
 }
 
-// Les adaptations de wallet sont appliquées par room-limit-hook.js,
-// afin de préserver la chaîne complète economy -> salon -> admin.
+// Wallet integrations live in server.js.
 
-const OriginalServer = socketIo.Server;
-class PtitBacAdminServer extends OriginalServer {
-  constructor(...args) {
-    super(...args);
+function installAdmin(io) {
 
     // Maintient les vies à 5 pour l'admin si le mode infini est actif.
     const timer = setInterval(async () => {
@@ -99,7 +94,7 @@ class PtitBacAdminServer extends OriginalServer {
     }, 1200);
     timer.unref?.();
 
-    this.on("connection", socket => {
+    io.on("connection", socket => {
       socket.on("admin:status", async (payload={}, cb=()=>{}) => {
         try {
           const token = walletToken(payload.walletToken);
@@ -220,9 +215,8 @@ class PtitBacAdminServer extends OriginalServer {
         } catch { cb({ok:false,error:"Impossible de charger les reports."}); }
       });
     });
-  }
 }
-socketIo.Server = PtitBacAdminServer;
+module.exports = installAdmin;
 
 schema().then(async()=>{
   const owner = await ownerToken();

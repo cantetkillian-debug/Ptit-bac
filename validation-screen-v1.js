@@ -11,43 +11,7 @@
     }
   }
 
-  function exitModal(state, user) {
-    document.querySelector(".vsv1-modal-backdrop")?.remove();
 
-    const overlay=document.createElement("div");
-    overlay.className="vsv1-modal-backdrop";
-    overlay.innerHTML=`
-      <section class="vsv1-modal" role="dialog" aria-modal="true">
-        <h2>Quitter la partie ?</h2>
-        <div class="vsv1-modal-actions">
-          <button type="button" data-action="cancel">Non</button>
-          ${user?.isHost ? '<button type="button" data-action="lobby">Revenir au salon</button>' : ""}
-          <button type="button" class="danger" data-action="home">Revenir à l’accueil</button>
-        </div>
-      </section>
-    `;
-
-    overlay.addEventListener("click",e=>{
-      const action=e.target?.dataset?.action;
-      if(e.target===overlay || action==="cancel"){
-        overlay.remove();
-        return;
-      }
-      if(action==="lobby"){
-        socket.emit("game:returnLobby",{code:state.code,playerId:session.playerId});
-        overlay.remove();
-        return;
-      }
-      if(action==="home"){
-        socket.emit("room:leave",{code:state.code,playerId:session.playerId});
-        clearSession();
-        overlay.remove();
-        renderHome();
-      }
-    });
-
-    document.body.appendChild(overlay);
-  }
 
   function renderValidationV1() {
     clearInterval(session.timerHandle);
@@ -120,7 +84,7 @@
       </main>
     `);
 
-    document.getElementById("vsv1Exit")?.addEventListener("click",()=>exitModal(state,user));
+    document.getElementById("vsv1Exit")?.addEventListener("click",()=>gameExitModal(state, user, "vsv1"));
 
     document.getElementById("vsv1Retry")?.addEventListener("click",()=>{
       const btn=document.getElementById("vsv1Retry");

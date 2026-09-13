@@ -1,15 +1,8 @@
-/**
- * P'tit Bac — Amis V1
- * Extension serveur chargée AVANT server.js via:
- *   node -r ./friends-hook.js server.js
- *
- * Avantage: aucune modification du server.js principal.
- */
+/** Friends socket handlers, explicitly installed by server.js. */
 "use strict";
 
 const crypto = require("crypto");
 const { Pool } = require("pg");
-const socketIo = require("socket.io");
 
 const DATABASE_URL = String(process.env.DATABASE_URL || "").trim();
 const DEFAULT_COINS = 50;
@@ -550,21 +543,7 @@ function installFriends(io) {
   });
 }
 
-/*
- * Préchargé avant server.js: on remplace uniquement le constructeur Server
- * par une sous-classe qui installe les événements d'amis, puis server.js
- * continue normalement avec son propre système Socket.IO.
- */
-const OriginalServer = socketIo.Server;
-
-class PtitBacFriendsServer extends OriginalServer {
-  constructor(...args) {
-    super(...args);
-    installFriends(this);
-  }
-}
-
-socketIo.Server = PtitBacFriendsServer;
+module.exports = installFriends;
 
 process.on("SIGTERM", () => {
   pool?.end().catch(() => {});

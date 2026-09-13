@@ -1,3 +1,6 @@
+"use strict";
+require("./ai-runtime-fix.js");
+require("./friend-code-v2-hook.js");
 const express = require("express");
 const http = require("http");
 const path = require("path");
@@ -13,22 +16,58 @@ const io = new Server(server, SOCKET_CORS_ORIGIN
   ? { cors: { origin: SOCKET_CORS_ORIGIN.split(",").map(v => v.trim()).filter(Boolean) } }
   : {});
 
-const PORT = process.env.PORT || 3000;
-const BUILD_VERSION = "1.42";
-app.use(express.static(__dirname, {
-  setHeaders(res, filePath) {
-    if (/\.(?:html|js|css)$/i.test(filePath)) {
-      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-      res.setHeader("Pragma", "no-cache");
-      res.setHeader("Expires", "0");
+// Validate application packets before any feature handler receives them.
+io.use((socket, next) => {
+  socket.use((packet, dispatch) => {
+    if (packet.length === 1 || typeof packet[1] === "function") packet.splice(1, 0, {});
+    const payload = packet[1];
+    if (!payload || typeof payload !== "object" || Array.isArray(payload) ||
+        (packet.length > 2 && typeof packet[2] !== "function") || packet.length > 3) {
+      const callback = packet[packet.length - 1];
+      if (typeof callback === "function") callback({ ok: false, error: "Requête invalide." });
+      return;
     }
-  }
-}));
+    dispatch();
+  });
+  next();
+});
 
-const GAME_COST = 5;
+require("./friends-hook.js")(io);
+require("./chat-hook.js")(io);
+require("./player-report-hook.js")(io);
+require("./admin-hook.js")(io);
+
+const PORT = process.env.PORT || 3000;
+const BUILD_VERSION = require("./package.json").version;
+app.get("/health", (req, res) => res.status(200).json({ ok: true, version: BUILD_VERSION }));
+// Only explicitly public files may be downloaded. Never expose server data.
+const PUBLIC_FILES = new Set(require("./public-files.json"));
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  next();
+});
+app.get("/health", (req, res) => res.json({ ok: true, version: BUILD_VERSION }));
+const servePublicFile = express.static(__dirname, {
+  dotfiles: "deny",
+  index: false,
+  redirect: false,
+  setHeaders(res, filePath) {
+    res.setHeader("Cache-Control", /\.(?:png|wav)$/i.test(filePath)
+      ? "public, max-age=86400" : "public, max-age=0, must-revalidate");
+  }
+});
+app.use((req, res, next) => {
+  let pathname;
+  try { pathname = decodeURIComponent(req.path); }
+  catch { return res.sendStatus(400); }
+  if (!PUBLIC_FILES.has(pathname)) return next();
+  return servePublicFile(req, res, next);
+});
+
+const GAME_COST = 0; // Economie V2.5: entree payee en vies
 const LETTER_REROLL_COST = 10;
 const CATEGORY_REROLL_COST = 10;
-const DEFAULT_COINS = 25;
+const DEFAULT_COINS = 50;
 const ADMIN_COIN_CODE = String(process.env.PTITBAC_ADMIN_CODE || "").trim();
 const WALLET_FILE = process.env.PTITBAC_WALLET_FILE
   ? path.resolve(process.env.PTITBAC_WALLET_FILE)
@@ -183,8 +222,18 @@ function ensureWallet(token) {
 }
 
 function walletBalance(token) {
+  if (global.__ptbInfiniteCoins?.has(token)) return 999999;
   return wallets.get(token)?.coins ?? 0;
 }
+
+global.__ptbAdminSetCoins = (token, value) => {
+  const ensured = ensureWallet(token);
+  const target = Math.max(0, Math.min(999999, Math.floor(Number(value) || 0)));
+  ensured.wallet.coins = target;
+  ensured.wallet.updatedAt = Date.now();
+  persistWallet(ensured.token);
+  return target;
+};
 
 function walletTransaction(token, delta, type, details = {}, idempotencyKey = "") {
   const wallet = wallets.get(token);
@@ -196,6 +245,9 @@ function walletTransaction(token, delta, type, details = {}, idempotencyKey = ""
   }
 
   const safeDelta = Math.trunc(Number(delta) || 0);
+  if (safeDelta < 0 && global.__ptbInfiniteCoins?.has(token)) {
+    return { balance: 999999, transaction: { type: "admin_infinite", delta: 0, before: 999999, after: 999999, at: Date.now() }, duplicate: false };
+  }
   const before = wallet.coins;
   const after = Math.max(0, Math.min(999999, before + safeDelta));
   const appliedDelta = after - before;
@@ -214,6 +266,7 @@ function walletTransaction(token, delta, type, details = {}, idempotencyKey = ""
   wallet.updatedAt = transaction.at;
   wallet.history = [...(wallet.history || []), transaction].slice(-100);
   persistWallet(token);
+  syncEconomyCoins(token, after, transaction.type, appliedDelta, details, transaction.idempotencyKey);
   return { balance: after, transaction, duplicate: false };
 }
 
@@ -234,6 +287,367 @@ function emitWallet(player) {
   if (!player || player.isBot || !player.walletToken || !player.socketId) return;
   io.to(player.socketId).emit("wallet:update", { balance: walletBalance(player.walletToken) });
 }
+
+const ECONOMY_MAX_LIVES = 5;
+const ECONOMY_LIFE_MS = 30 * 60 * 1000;
+const ECONOMY_AD_REWARD = 80;
+const ECONOMY_REWARD_VARIANCE = 0.20;
+let economySchemaReady = false;
+let economySchemaPromise = null;
+
+async function ensureEconomySchema() {
+  if (!pgPool) throw new Error("PostgreSQL indisponible");
+  if (economySchemaReady) return;
+  if (economySchemaPromise) return economySchemaPromise;
+
+  economySchemaPromise = (async () => {
+    await pgPool.query('CREATE EXTENSION IF NOT EXISTS "pgcrypto"');
+
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS public.users (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        friend_code text UNIQUE NOT NULL,
+        username text NOT NULL,
+        avatar text DEFAULT '🐼',
+        coins integer NOT NULL DEFAULT 50 CHECK (coins >= 0),
+        wallet_token text UNIQUE,
+        lives integer NOT NULL DEFAULT 5 CHECK (lives >= 0 AND lives <= 5),
+        life_updated_at timestamptz NOT NULL DEFAULT now(),
+        created_at timestamptz NOT NULL DEFAULT now(),
+        last_seen timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now()
+      )
+    `);
+
+    await pgPool.query('ALTER TABLE public.users ADD COLUMN IF NOT EXISTS wallet_token text UNIQUE');
+    await pgPool.query('ALTER TABLE public.users ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now()');
+    await pgPool.query('ALTER TABLE public.users ADD COLUMN IF NOT EXISTS lives integer NOT NULL DEFAULT 5 CHECK (lives >= 0 AND lives <= 5)');
+    await pgPool.query('ALTER TABLE public.users ADD COLUMN IF NOT EXISTS life_updated_at timestamptz NOT NULL DEFAULT now()');
+    await pgPool.query('ALTER TABLE public.users ALTER COLUMN coins SET DEFAULT 50');
+
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS public.economy_transactions (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id uuid REFERENCES public.users(id) ON DELETE CASCADE,
+        wallet_token text,
+        kind text NOT NULL,
+        coins_delta integer NOT NULL DEFAULT 0,
+        lives_delta integer NOT NULL DEFAULT 0,
+        room_code text,
+        note text,
+        idempotency_key text UNIQUE,
+        created_at timestamptz NOT NULL DEFAULT now()
+      )
+    `);
+
+    await pgPool.query('CREATE INDEX IF NOT EXISTS users_wallet_token_idx ON public.users(wallet_token)');
+    await pgPool.query('CREATE INDEX IF NOT EXISTS economy_transactions_user_idx ON public.economy_transactions(user_id, created_at DESC)');
+    await pgPool.query('CREATE INDEX IF NOT EXISTS economy_transactions_wallet_idx ON public.economy_transactions(wallet_token, created_at DESC)');
+
+    economySchemaReady = true;
+    console.log("Economie V2.5 active: 50 pieces, 5 vies, recharge 30 min.");
+  })().catch(err => {
+    economySchemaPromise = null;
+    throw err;
+  });
+
+  return economySchemaPromise;
+}
+
+function economyFriendCode() {
+  return "PLAYER#" + crypto.randomInt(0, 10000).toString().padStart(4, "0");
+}
+
+async function ensureEconomyUser(walletToken, name = "Joueur", avatar = "🐼") {
+  if (!pgPool || !walletToken) return null;
+  await ensureEconomySchema();
+
+  let found = await pgPool.query(
+    "SELECT id,wallet_token,username,avatar,coins,lives,life_updated_at FROM public.users WHERE wallet_token=$1 LIMIT 1",
+    [walletToken]
+  );
+  if (found.rowCount) return found.rows[0];
+
+  for (let i = 0; i < 30; i++) {
+    try {
+      const created = await pgPool.query(
+        `INSERT INTO public.users
+          (friend_code,username,avatar,coins,wallet_token,lives,life_updated_at,last_seen,updated_at)
+         VALUES($1,$2,$3,$4,$5,5,now(),now(),now())
+         RETURNING id,wallet_token,username,avatar,coins,lives,life_updated_at`,
+        [
+          economyFriendCode(),
+          String(name || "Joueur").slice(0,24),
+          String(avatar || "🐼").slice(0,16),
+          walletBalance(walletToken),
+          walletToken
+        ]
+      );
+      return created.rows[0];
+    } catch (err) {
+      if (err?.code !== "23505") throw err;
+      found = await pgPool.query(
+        "SELECT id,wallet_token,username,avatar,coins,lives,life_updated_at FROM public.users WHERE wallet_token=$1 LIMIT 1",
+        [walletToken]
+      );
+      if (found.rowCount) return found.rows[0];
+    }
+  }
+  throw new Error("Impossible de creer le profil economie.");
+}
+
+function computedLives(row, nowMs = Date.now()) {
+  let lives = Math.max(0, Math.min(ECONOMY_MAX_LIVES, Number(row?.lives) || 0));
+  let updated = new Date(row?.life_updated_at || nowMs).getTime();
+  if (!Number.isFinite(updated)) updated = nowMs;
+
+  if (lives >= ECONOMY_MAX_LIVES) {
+    return { lives:ECONOMY_MAX_LIVES, updated:nowMs, nextLifeAt:null, secondsToNext:0 };
+  }
+
+  const elapsed = Math.max(0, nowMs - updated);
+  const gained = Math.floor(elapsed / ECONOMY_LIFE_MS);
+
+  if (gained > 0) {
+    lives = Math.min(ECONOMY_MAX_LIVES, lives + gained);
+    updated = lives >= ECONOMY_MAX_LIVES
+      ? nowMs
+      : updated + gained * ECONOMY_LIFE_MS;
+  }
+
+  const nextLifeAt = lives >= ECONOMY_MAX_LIVES ? null : updated + ECONOMY_LIFE_MS;
+
+  return {
+    lives,
+    updated,
+    nextLifeAt,
+    secondsToNext: nextLifeAt
+      ? Math.max(0, Math.ceil((nextLifeAt - nowMs) / 1000))
+      : 0
+  };
+}
+
+async function economyState(walletToken) {
+  const user = await ensureEconomyUser(walletToken);
+  if (!user) return null;
+
+  const life = computedLives(user);
+  const coins = walletBalance(walletToken);
+
+  await pgPool.query(
+    `UPDATE public.users
+        SET lives=$2,
+            life_updated_at=to_timestamp($3/1000.0),
+            coins=$4,
+            last_seen=now(),
+            updated_at=now()
+      WHERE id=$1`,
+    [user.id, life.lives, life.updated, coins]
+  );
+
+  return {
+    userId:user.id,
+    coins,
+    lives:life.lives,
+    maxLives:ECONOMY_MAX_LIVES,
+    nextLifeAt:life.nextLifeAt,
+    secondsToNext:life.secondsToNext,
+    rechargeSeconds:ECONOMY_LIFE_MS / 1000,
+    rewardedAdCoins:ECONOMY_AD_REWARD
+  };
+}
+
+async function consumeLivesForRoom(players, roomCode, sessionId) {
+  if (!pgPool) return {ok:false,error:"Base de donnees indisponible."};
+
+  const humans = players.filter(p => !p.isBot && p.walletToken);
+  for (const p of humans) await ensureEconomyUser(p.walletToken, p.name, p.avatar || "🐼");
+
+  const client = await pgPool.connect();
+
+  try {
+    await client.query("BEGIN");
+    const prepared = [];
+
+    for (const p of humans) {
+      const key = "life-entry:" + roomCode + ":" + sessionId + ":" + p.id;
+
+      const already = await client.query(
+        "SELECT 1 FROM public.economy_transactions WHERE idempotency_key=$1 LIMIT 1",
+        [key]
+      );
+      if (already.rowCount) continue;
+
+      const q = await client.query(
+        "SELECT id,wallet_token,lives,life_updated_at FROM public.users WHERE wallet_token=$1 FOR UPDATE",
+        [p.walletToken]
+      );
+
+      if (!q.rowCount) {
+        await client.query("ROLLBACK");
+        return {ok:false,player:p,error:"Profil joueur introuvable."};
+      }
+
+      const row = q.rows[0];
+      const life = computedLives(row);
+
+      if (life.lives < 1) {
+        await client.query("ROLLBACK");
+        return {ok:false,player:p,error:p.name + " n'a plus de vie."};
+      }
+
+      prepared.push({p,row,life,key});
+    }
+
+    for (const item of prepared) {
+      const afterLives = item.life.lives - 1;
+      const updated = item.life.lives >= ECONOMY_MAX_LIVES
+        ? Date.now()
+        : item.life.updated;
+
+      await client.query(
+        `UPDATE public.users
+            SET lives=$2,
+                life_updated_at=to_timestamp($3/1000.0),
+                last_seen=now(),
+                updated_at=now()
+          WHERE id=$1`,
+        [item.row.id, afterLives, updated]
+      );
+
+      await client.query(
+        `INSERT INTO public.economy_transactions
+          (user_id,wallet_token,kind,coins_delta,lives_delta,room_code,note,idempotency_key)
+         VALUES($1,$2,'GAME_LIFE_ENTRY',0,-1,$3,'Partie multijoueur (-1 vie)',$4)
+         ON CONFLICT(idempotency_key) DO NOTHING`,
+        [item.row.id,item.p.walletToken,roomCode,item.key]
+      );
+    }
+
+    await client.query("COMMIT");
+    return {ok:true};
+  } catch (err) {
+    try { await client.query("ROLLBACK"); } catch {}
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+async function refundLivesSnapshot(snapshot) {
+  if (!pgPool || !snapshot?.sessionId) return;
+  await ensureEconomySchema();
+
+  for (const p of snapshot.players || []) {
+    if (!p.walletToken) continue;
+
+    const user = await ensureEconomyUser(p.walletToken, p.name, p.avatar || "🐼");
+    if (!user) continue;
+
+    const chargeKey = "life-entry:" + snapshot.roomCode + ":" + snapshot.sessionId + ":" + p.id;
+    const refundKey = "life-refund:" + snapshot.roomCode + ":" + snapshot.sessionId + ":" + p.id;
+
+    const client = await pgPool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const charged = await client.query(
+        "SELECT 1 FROM public.economy_transactions WHERE idempotency_key=$1 LIMIT 1",
+        [chargeKey]
+      );
+      if (!charged.rowCount) {
+        await client.query("ROLLBACK");
+        continue;
+      }
+
+      const priorRefund = await client.query(
+        "SELECT 1 FROM public.economy_transactions WHERE idempotency_key=$1 LIMIT 1",
+        [refundKey]
+      );
+      if (priorRefund.rowCount) {
+        await client.query("ROLLBACK");
+        continue;
+      }
+
+      const locked = await client.query(
+        "SELECT lives,life_updated_at FROM public.users WHERE id=$1 FOR UPDATE",
+        [user.id]
+      );
+      if (!locked.rowCount) {
+        await client.query("ROLLBACK");
+        continue;
+      }
+
+      const life = computedLives(locked.rows[0]);
+      const nextLives = Math.min(ECONOMY_MAX_LIVES, life.lives + 1);
+      const nextUpdated = nextLives >= ECONOMY_MAX_LIVES ? Date.now() : life.updated;
+
+      await client.query(
+        `UPDATE public.users
+            SET lives=$2,
+                life_updated_at=to_timestamp($3/1000.0),
+                updated_at=now()
+          WHERE id=$1`,
+        [user.id,nextLives,nextUpdated]
+      );
+
+      await client.query(
+        `INSERT INTO public.economy_transactions
+          (user_id,wallet_token,kind,coins_delta,lives_delta,room_code,note,idempotency_key)
+         VALUES($1,$2,'GAME_LIFE_REFUND',0,1,$3,'Retour au salon (+1 vie)',$4)`,
+        [user.id,p.walletToken,snapshot.roomCode,refundKey]
+      );
+
+      await client.query("COMMIT");
+    } catch (err) {
+      try { await client.query("ROLLBACK"); } catch {}
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+}
+
+function variedReward(base) {
+  const min = Math.round(base * (1 - ECONOMY_REWARD_VARIANCE));
+  const max = Math.round(base * (1 + ECONOMY_REWARD_VARIANCE));
+  return crypto.randomInt(min, max + 1);
+}
+
+async function syncEconomyCoins(walletToken, coins, kind, delta, details, idempotencyKey) {
+  if (!pgPool || !walletToken) return;
+
+  try {
+    const user = await ensureEconomyUser(walletToken);
+    if (!user) return;
+
+    await pgPool.query(
+      "UPDATE public.users SET coins=$2,updated_at=now() WHERE id=$1",
+      [user.id,Math.max(0,Math.floor(Number(coins)||0))]
+    );
+
+    if (delta !== 0) {
+      await pgPool.query(
+        `INSERT INTO public.economy_transactions
+          (user_id,wallet_token,kind,coins_delta,lives_delta,room_code,note,idempotency_key)
+         VALUES($1,$2,$3,$4,0,$5,$6,$7)
+         ON CONFLICT(idempotency_key) DO NOTHING`,
+        [
+          user.id,
+          walletToken,
+          String(kind || "COIN_CHANGE").slice(0,40),
+          Math.trunc(Number(delta)||0),
+          details?.roomCode ? String(details.roomCode).slice(0,8) : null,
+          details?.note ? String(details.note).slice(0,100) : null,
+          idempotencyKey || null
+        ]
+      );
+    }
+  } catch (err) {
+    console.warn("Economie sync:", err.message);
+  }
+}
+
 
 
 
@@ -338,6 +752,9 @@ loadValidationCache();
 app.get("/api/validation-health", async (req, res) => {
   let liveCheck = null;
   if (String(req.query.live || "") === "1") {
+    if (!ADMIN_COIN_CODE || req.get("Authorization") !== `Bearer ${ADMIN_COIN_CODE}`) {
+      return res.status(403).json({ ok: false, error: "Diagnostic réservé à l’administrateur." });
+    }
     liveCheck = await testOpenAIConnection();
   }
   res.json({
@@ -502,7 +919,8 @@ function publicPlayer(p) {
     isHost: p.isHost,
     isBot: !!p.isBot,
     submitted: p.submitted,
-    avatar: p.avatar || ""
+    avatar: p.avatar || "",
+    friendCode: p.friendCode || ""
   };
 }
 
@@ -567,11 +985,19 @@ function getPlayer(room, playerId) {
 function requireMember(socket, payload) {
   const room = getRoom(payload?.code);
   const player = getPlayer(room, payload?.playerId);
-  if (!room || !player) return {};
+  if (!room || !player || player.isBot || player.socketId !== socket.id) return {};
   return { room, player };
 }
 
 function setPlayerSocket(room, player, socket) {
+  if (player.socketId && player.socketId !== socket.id) {
+    const previousSocket = io.sockets.sockets.get(player.socketId);
+    if (previousSocket) {
+      previousSocket.leave(room.code);
+      delete previousSocket.data.code;
+      delete previousSocket.data.playerId;
+    }
+  }
   player.socketId = socket.id;
   player.connected = true;
   socket.join(room.code);
@@ -1411,15 +1837,35 @@ function queueAnswerReport(report) {
 
 function refundPreGameEntry(room) {
   if (!room.entryDebited || !room.gameSessionId) return;
+
   const paid = new Set(room.paidPlayerIds || []);
-  room.players.forEach(player => {
-    if (player.isBot || !player.walletToken || !paid.has(player.id)) return;
-    walletTransaction(player.walletToken, GAME_COST, "GAME_ENTRY_REFUND",
-      { roomCode: room.code, note: `Retour au salon (+${GAME_COST})` },
-      `entry-refund:${room.code}:${room.gameSessionId}:${player.id}`);
-    emitWallet(player);
-  });
-  room.entryDebited = false; room.paidPlayerIds = []; room.pot = 0; room.gameSessionId = null;
+  const snapshot = {
+    roomCode: room.code,
+    sessionId: room.gameSessionId,
+    players: room.players
+      .filter(p => !p.isBot && p.walletToken && paid.has(p.id))
+      .map(p => ({
+        id:p.id,
+        name:p.name,
+        avatar:p.avatar,
+        walletToken:p.walletToken,
+        socketId:p.socketId
+      }))
+  };
+
+  room.entryDebited = false;
+  room.paidPlayerIds = [];
+  room.pot = 0;
+  room.gameSessionId = null;
+
+  refundLivesSnapshot(snapshot)
+    .then(async () => {
+      for (const p of snapshot.players) {
+        const eco = await economyState(p.walletToken).catch(() => null);
+        if (eco && p.socketId) io.to(p.socketId).emit("economy:update", eco);
+      }
+    })
+    .catch(err => console.warn("Remboursement vie:", err.message));
 }
 
 function rewardSharesForCount(count) {
@@ -1442,53 +1888,35 @@ function shuffled(arr) {
 function calculateRewards(room) {
   const humans = room.players
     .filter(p => !p.isBot && p.walletToken)
-    .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-  const pot = Math.max(0, Math.floor(room.pot || 0));
-  const rewards = Object.fromEntries(room.players.map(p => [p.id, 0]));
-  if (!humans.length || pot <= 0) return rewards;
+    .sort((a,b) => b.score - a.score || a.name.localeCompare(b.name));
 
-  const baseShares = rewardSharesForCount(humans.length);
-  const groups = [];
+  const rewards = Object.fromEntries(room.players.map(p => [p.id,0]));
+  if (!humans.length) return rewards;
+
   let start = 0;
+  let rank = 1;
+
   while (start < humans.length) {
     let end = start + 1;
-    while (end < humans.length && humans[end].score === humans[start].score) end += 1;
-    const members = humans.slice(start, end);
-    let baseWeight = 0;
-    for (let pos = start; pos < end; pos++) baseWeight += baseShares[pos] || 0;
-    if (baseWeight > 0) {
-      const factor = 0.8 + Math.random() * 0.4;
-      groups.push({ members, adjustedWeight: baseWeight * factor, exact: 0, amount: 0 });
+    while (end < humans.length && humans[end].score === humans[start].score) {
+      end += 1;
     }
+
+    const base =
+      rank === 1 ? 60 :
+      rank === 2 ? 40 :
+      rank === 3 ? 25 :
+      10;
+
+    const reward = variedReward(base);
+
+    for (let i = start; i < end; i++) {
+      rewards[humans[i].id] = reward;
+    }
+
+    rank += (end - start);
     start = end;
   }
-
-  // Cas défensif : si aucune place n'a de poids, rembourser équitablement tous les humains.
-  if (!groups.length) groups.push({ members: humans, adjustedWeight: 1, exact: pot, amount: pot });
-
-  const totalWeight = groups.reduce((sum, g) => sum + g.adjustedWeight, 0) || 1;
-  let allocated = 0;
-  groups.forEach(g => {
-    g.exact = pot * (g.adjustedWeight / totalWeight);
-    g.amount = Math.floor(g.exact);
-    allocated += g.amount;
-  });
-
-  let remaining = pot - allocated;
-  const byRemainder = [...groups].sort((a, b) => (b.exact - b.amount) - (a.exact - a.amount));
-  for (let i = 0; i < remaining; i++) byRemainder[i % byRemainder.length].amount += 1;
-
-  // Partage équitable à l'intérieur de chaque groupe d'égalité.
-  groups.forEach(g => {
-    const each = Math.floor(g.amount / g.members.length);
-    let leftovers = g.amount - each * g.members.length;
-    g.members.forEach(m => { rewards[m.id] = each; });
-    for (const m of shuffled(g.members)) {
-      if (leftovers <= 0) break;
-      rewards[m.id] += 1;
-      leftovers -= 1;
-    }
-  });
 
   return rewards;
 }
@@ -1899,7 +2327,250 @@ function playBots(room) {
   });
 }
 
+function ptitBacTransferHost(room) {
+  const nextHost = room.players.find(p => !p.isBot) || room.players[0] || null;
+  room.players.forEach(p => { p.isHost = !!nextHost && p.id === nextHost.id; });
+}
+
+function ptitBacDetachSocketFromRoom(socket, room, player) {
+  try { socket.leave(room.code); } catch {}
+  if (socket.data?.code === room.code) socket.data.code = "";
+  if (socket.data?.playerId === player?.id) socket.data.playerId = "";
+}
+
+function ptitBacCloseRoomSockets(room, payload = {}) {
+  room.players.forEach(player => {
+    if (!player.socketId) return;
+    const targetSocket = io.sockets.sockets.get(player.socketId);
+    if (!targetSocket) return;
+
+    targetSocket.emit("room:closed", payload);
+
+    try { targetSocket.leave(room.code); } catch {}
+    if (targetSocket.data?.code === room.code) targetSocket.data.code = "";
+    if (targetSocket.data?.playerId === player.id) targetSocket.data.playerId = "";
+  });
+}
+
+function ptitBacAwardForfeit(room, winner, quitterName) {
+  const reward = Math.max(0, Math.floor(Number(room.pot || 0)));
+  let balance = winner?.walletToken ? walletBalance(winner.walletToken) : 0;
+
+  if (winner && winner.walletToken && reward > 0 && !room.rewardsDistributed) {
+    const key =
+      "forfeit:" +
+      room.code +
+      ":" +
+      String(room.gameSessionId || room.createdAt || "") +
+      ":" +
+      winner.id;
+
+    walletTransaction(
+      winner.walletToken,
+      reward,
+      "GAME_FORFEIT_REWARD",
+      {
+        roomCode: room.code,
+        note: "Victoire par forfait contre " + String(quitterName || "un joueur")
+      },
+      key
+    );
+
+    room.rewardsDistributed = true;
+    room.rewardsByPlayerId = Object.fromEntries(
+      room.players.map(p => [p.id, p.id === winner.id ? reward : 0])
+    );
+    room.rewardsDistributedAt = Date.now();
+
+    balance = walletBalance(winner.walletToken);
+    emitWallet(winner);
+  }
+
+  return { reward, balance };
+}
+
+function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
+  const { room, player } = requireMember(socket, payload);
+  if (!room || !player) {
+    return cb({ ok: false, error: "Partie introuvable." });
+  }
+
+  const phaseBeforeLeave = room.phase;
+  const isActiveGame =
+    phaseBeforeLeave !== "lobby" &&
+    phaseBeforeLeave !== "finished";
+
+  const humanCountBefore = room.players.filter(p => !p.isBot).length;
+  const wasHost = !!player.isHost;
+  const quitterName = String(player.name || "Un joueur");
+
+  room.players = room.players.filter(p => p.id !== player.id);
+  ptitBacDetachSocketFromRoom(socket, room, player);
+
+  // Départ classique depuis le salon.
+  if (!isActiveGame) {
+    if (room.players.length === 0) {
+      rooms.delete(room.code);
+      return cb({ ok: true, outcome: "room_closed" });
+    }
+
+    if (wasHost) ptitBacTransferHost(room);
+    emitRoom(room);
+    return cb({ ok: true, outcome: "left_room" });
+  }
+
+  const remainingHumans = room.players.filter(p => !p.isBot);
+
+  // Aucun humain restant : la partie et les bots sont clôturés.
+  if (remainingHumans.length === 0) {
+    rooms.delete(room.code);
+
+    return cb({
+      ok: true,
+      outcome: "room_closed_bots_only",
+      message: "La partie est terminée."
+    });
+  }
+
+  // Duel : l'autre humain gagne immédiatement par forfait.
+  if (humanCountBefore === 2 && remainingHumans.length === 1) {
+    const winner = remainingHumans[0];
+    const payout = ptitBacAwardForfeit(room, winner, quitterName);
+
+    ptitBacCloseRoomSockets(room, {
+      reason: "forfeit_win",
+      message: quitterName + " a quitté la partie.",
+      quitterName,
+      winnerId: winner.id,
+      winnerName: winner.name,
+      reward: payout.reward,
+      balance: payout.balance
+    });
+
+    rooms.delete(room.code);
+
+    return cb({
+      ok: true,
+      outcome: "forfeit",
+      message: "Tu as quitté la partie."
+    });
+  }
+
+  // 3 humains ou plus : on retire uniquement le joueur.
+  if (wasHost) ptitBacTransferHost(room);
+
+  if (room.letterChooserPlayerId === player.id) {
+    const chooser = chooseLetterPlayer(room);
+    room.letterChooserPlayerId = chooser?.id || null;
+    room.pendingLetter = null;
+    room.letterSpinVersion = (room.letterSpinVersion || 0) + 1;
+  }
+
+  io.to(room.code).emit("toast", quitterName + " a quitté la partie");
+  emitRoom(room);
+
+  // Si le joueur parti bloquait la fin d'une manche,
+  // terminer immédiatement lorsque tous les restants ont validé.
+  if (
+    room.phase === "round" &&
+    room.players.length > 0 &&
+    room.players.every(p => p.submitted)
+  ) {
+    endRound(room);
+  }
+
+  cb({
+    ok: true,
+    outcome: "left_game",
+    message: "Tu as quitté la partie."
+  });
+}
+
 io.on("connection", socket => {
+
+    socket.on("economy:get", async (payload = {}, cb = () => {}) => {
+      try {
+        const token = String(payload.walletToken || socket.data.walletToken || "").trim();
+        if (!/^[a-f0-9]{48}$/i.test(token)) {
+          return cb({ok:false,error:"Session introuvable."});
+        }
+
+        socket.data.walletToken = token;
+        const state = await economyState(token);
+        cb({ok:true,...state});
+      } catch (err) {
+        console.error("economy:get:", err.message);
+        cb({ok:false,error:"Impossible de charger les vies."});
+      }
+    });
+
+    socket.on("economy:rewardedAdDev", async (payload = {}, cb = () => {}) => {
+      if (String(process.env.REWARDED_AD_DEV_MODE || "false").toLowerCase() !== "true") {
+        return cb({
+          ok:false,
+          error:"La pub recompensee sera activee avec l'application mobile."
+        });
+      }
+
+      const token = String(payload.walletToken || socket.data.walletToken || "").trim();
+      if (!/^[a-f0-9]{48}$/i.test(token) || !wallets.has(token)) {
+        return cb({ok:false,error:"Portefeuille introuvable."});
+      }
+
+      const eventId = "dev-ad:" + Date.now() + ":" + crypto.randomBytes(4).toString("hex");
+      const tx = walletTransaction(
+        token,
+        ECONOMY_AD_REWARD,
+        "REWARDED_AD",
+        {note:"Video recompensee (+80)"},
+        eventId
+      );
+
+      const balance = tx?.balance ?? walletBalance(token);
+      socket.emit("wallet:update",{balance});
+      cb({ok:true,reward:ECONOMY_AD_REWARD,balance});
+    });
+
+  socket.on("lobby:startCountdown", (payload = {}, cb = () => {}) => {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player) {
+      return cb({ ok: false, error: "Salon introuvable." });
+    }
+
+    if (!player.isHost) {
+      return cb({ ok: false, error: "Seul l’hôte peut lancer la partie." });
+    }
+
+    if (room.phase !== "lobby") {
+      return cb({ ok: false, error: "La partie a déjà commencé." });
+    }
+
+    if (room.players.length < 2) {
+      return cb({ ok: false, error: "Il faut au moins 2 joueurs." });
+    }
+
+    const now = Date.now();
+    if (room.ptbCountdownUntil && room.ptbCountdownUntil > now) {
+      return cb({ ok: false, error: "Le compte à rebours est déjà lancé." });
+    }
+
+    const durationMs = 3200;
+    room.ptbCountdownUntil = now + durationMs;
+
+    io.to(room.code).emit("lobby:countdown", {
+      code: room.code,
+      hostPlayerId: player.id,
+      startedAt: now,
+      durationMs
+    });
+
+    setTimeout(() => {
+      const current = rooms.get(room.code);
+      if (current) current.ptbCountdownUntil = 0;
+    }, durationMs + 1200);
+
+    cb({ ok: true, durationMs });
+  });
   socket.on("wallet:init", ({ token } = {}, cb = () => {}) => {
     const result = ensureWallet(token);
     socket.data.walletToken = result.token;
@@ -1922,7 +2593,7 @@ io.on("connection", socket => {
     if (!safeToken || safeToken !== socket.data.walletToken) return cb({ ok: false, error: "Portefeuille non autorisé." });
     cb({ ok: true, balance: walletBalance(safeToken), transactions: recentWalletTransactions(safeToken, limit) });
   });
-  socket.on("room:create", ({ name, rounds = 1, duration = 60, categoryCount = 6, categoryDifficulty = "beginner", avatar, walletToken }, cb = () => {}) => {
+  socket.on("room:create", ({ name, rounds = 1, duration = 60, categoryCount = 6, categoryDifficulty = "beginner", avatar, friendCode, walletToken }, cb = () => {}) => {
     const safeName = cleanName(name);
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
     const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : 60;
@@ -1943,7 +2614,8 @@ io.on("connection", socket => {
       isHost: true,
       isBot: false,
       walletToken: walletResult.token,
-      avatar: String(avatar || "").slice(0, 8),
+      avatar: (typeof avatar === "string" && avatar.startsWith("data:image/") && avatar.includes(";base64,") && avatar.length <= 450000) ? avatar : Array.from(String(avatar || "")).slice(0, 8).join(""),
+      friendCode: (() => { const c = String(friendCode || "").trim(); return c.length === 5 && Array.from(c).every(ch => ch >= "0" && ch <= "9") ? c : ""; })(),
       submitted: false,
       answers: {}
     };
@@ -2003,14 +2675,14 @@ io.on("connection", socket => {
     emitRoom(room);
   });
 
-  socket.on("room:join", ({ code, name, avatar, walletToken }, cb = () => {}) => {
+  socket.on("room:join", ({ code, name, avatar, friendCode, walletToken }, cb = () => {}) => {
     const room = getRoom(code);
     const safeName = cleanName(name);
 
     if (!room) return cb({ ok: false, error: "Partie introuvable." });
     if (room.phase !== "lobby") return cb({ ok: false, error: "La partie a déjà commencé." });
     if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
-    if (room.players.length >= 12) return cb({ ok: false, error: "Cette partie est pleine." });
+    if (room.players.length >= 6) return cb({ ok: false, error: "Cette partie est pleine (6 joueurs maximum)." });
     const walletResult = ensureWallet(walletToken || socket.data.walletToken);
     socket.data.walletToken = walletResult.token;
     if (walletResult.wallet.coins < GAME_COST) return cb({ ok: false, error: `Il te faut ${GAME_COST} pièces pour jouer.` });
@@ -2028,7 +2700,8 @@ io.on("connection", socket => {
       isHost: false,
       isBot: false,
       walletToken: walletResult.token,
-      avatar: String(avatar || "").slice(0, 8),
+      avatar: (typeof avatar === "string" && avatar.startsWith("data:image/") && avatar.includes(";base64,") && avatar.length <= 450000) ? avatar : Array.from(String(avatar || "")).slice(0, 8).join(""),
+      friendCode: (() => { const c = String(friendCode || "").trim(); return c.length === 5 && Array.from(c).every(ch => ch >= "0" && ch <= "9") ? c : ""; })(),
       submitted: false,
       answers: {}
     };
@@ -2042,7 +2715,7 @@ io.on("connection", socket => {
   socket.on("room:reconnect", ({ code, playerId, walletToken }, cb = () => {}) => {
     const room = getRoom(code);
     const player = getPlayer(room, playerId);
-    if (!room || !player) return cb({ ok: false });
+    if (!room || !player || player.isBot) return cb({ ok: false });
     if (!player.isBot && (!walletToken || player.walletToken !== walletToken)) return cb({ ok: false });
 
     setPlayerSocket(room, player, socket);
@@ -2051,24 +2724,12 @@ io.on("connection", socket => {
   });
 
 
-  socket.on("room:leave", payload => {
-    const { room, player } = requireMember(socket, payload);
-    if (!room || !player) return;
+  socket.on("room:leave", (payload, cb = () => {}) => {
+    ptitBacHandleExplicitLeave(socket, payload, cb);
+  });
 
-    const leavingWasHost = player.isHost;
-    room.players = room.players.filter(p => p.id !== player.id);
-    socket.leave(room.code);
-
-    if (room.players.length === 0) {
-      rooms.delete(room.code);
-      return;
-    }
-
-    if (leavingWasHost) {
-      const nextHost = room.players.find(p => !p.isBot) || room.players[0];
-      room.players.forEach(p => { p.isHost = p.id === nextHost.id; });
-    }
-    emitRoom(room);
+  socket.on("game:leave", (payload, cb = () => {}) => {
+    ptitBacHandleExplicitLeave(socket, payload, cb);
   });
 
   socket.on("room:kick", ({ code, playerId, targetPlayerId }) => {
@@ -2119,9 +2780,7 @@ io.on("connection", socket => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "lobby") return;
 
-    if (room.players.length >= 12) {
-      return socket.emit("toast", "Le salon est complet (12 joueurs maximum).");
-    }
+    if (room.players.length >= 6) { return socket.emit("toast", "Le salon est complet (6 joueurs maximum)."); }
 
     const identity = randomTestPlayerIdentity(room);
     const bot = {
@@ -2143,7 +2802,7 @@ io.on("connection", socket => {
     emitRoom(room);
   });
 
-  socket.on("game:start", payload => {
+  socket.on("game:start", async payload => {
     const { room, player } = requireMember(socket, payload);
     if (!room || !player?.isHost || room.phase !== "lobby") return;
     if (room.players.length < 2) {
@@ -2151,27 +2810,58 @@ io.on("connection", socket => {
     }
 
     if (!room.entryDebited) {
-      const humans = room.players.filter(p => !p.isBot);
-      const insufficient = humans.filter(p => !p.walletToken || walletBalance(p.walletToken) < GAME_COST);
-      if (insufficient.length) {
-        insufficient.forEach(p => {
-          if (p.socketId) io.to(p.socketId).emit("toast", `Tu n’as pas assez de pièces. Il en faut ${GAME_COST}.`);
-        });
-        return socket.emit("toast", `${insufficient.map(p => p.name).join(", ")} n’a pas assez de pièces.`);
+      if (room.economyStartPending) {
+        return socket.emit("toast", "Lancement deja en cours...");
       }
 
-      room.gameSessionId = id();
-      humans.forEach(p => walletTransaction(
-        p.walletToken,
-        -GAME_COST,
-        "GAME_ENTRY",
-        { roomCode: room.code, note: `Participation à la partie (-${GAME_COST})` },
-        `entry:${room.code}:${room.gameSessionId}:${p.id}`
-      ));
-      room.entryDebited = true;
-      room.paidPlayerIds = humans.map(p => p.id);
-      room.pot = humans.length * GAME_COST;
-      humans.forEach(emitWallet);
+      room.economyStartPending = true;
+      const humans = room.players.filter(p => !p.isBot);
+
+      try {
+        if (humans.some(p => !p.walletToken)) {
+          return socket.emit("toast", "Un joueur n'a pas encore de profil valide.");
+        }
+
+        const gameSessionId = room.gameSessionId || id();
+        room.gameSessionId = gameSessionId;
+
+        const lifeResult = await consumeLivesForRoom(
+          humans,
+          room.code,
+          gameSessionId
+        );
+
+        if (!lifeResult?.ok) {
+          room.gameSessionId = null;
+
+          if (lifeResult?.player?.socketId) {
+            io.to(lifeResult.player.socketId).emit(
+              "toast",
+              "Tu n'as plus de vie. +1 vie toutes les 30 min."
+            );
+          }
+
+          return socket.emit(
+            "toast",
+            lifeResult?.error || "Un joueur n'a plus de vie."
+          );
+        }
+
+        room.entryDebited = true;
+        room.paidPlayerIds = humans.map(p => p.id);
+        room.pot = 0;
+
+        for (const p of humans) {
+          const eco = await economyState(p.walletToken);
+          if (p.socketId) io.to(p.socketId).emit("economy:update", eco);
+        }
+      } catch (err) {
+        console.error("Prelevement des vies:", err.message);
+        room.gameSessionId = null;
+        return socket.emit("toast", "Impossible de verifier les vies pour le moment.");
+      } finally {
+        room.economyStartPending = false;
+      }
     }
 
     room.categories = pickCategories(room.categoryDifficulty || "beginner", room.categoryCount || 6);
@@ -2389,16 +3079,18 @@ io.on("connection", socket => {
   });
 });
 
-app.get("*", (req, res) => {
+app.get("/", (req, res) => {
+  res.setHeader("Cache-Control", "no-cache");
   res.sendFile(path.join(__dirname, "index.html"));
 });
+app.use((req, res) => res.sendStatus(404));
 
 initWalletPersistence()
   .then(() => initLearningPersistence())
   .catch(err => console.error("Initialisation stockage persistant:", err.message))
   .finally(() => {
     server.listen(PORT, "0.0.0.0", () => {
-      console.log(`Petit Bac V${BUILD_VERSION} lancé sur http://localhost:${PORT}`);
+      console.log(`Petit Bac V${BUILD_VERSION} lancé sur http://localhost:${server.address().port}`);
       console.log(`Validation IA: ${OPENAI_API_KEY ? `configurée (${OPENAI_VALIDATION_MODEL})` : "non configurée"}`);
       console.log(`IA joueurs test: ${BOT_AI_ENABLED && OPENAI_BOT_API_KEY ? `activée (${OPENAI_BOT_MODEL})` : "générateur local"}`);
       console.log(`Stockage portefeuille: ${walletStorageMode}`);

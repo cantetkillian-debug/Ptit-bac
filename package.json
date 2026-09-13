@@ -1,19 +1,23 @@
 {
   "name": "petit-bac-soiree",
-  "version": "1.43.1",
+  "version": "1.44.0",
   "private": true,
   "description": "P'tit Bac multijoueur mobile — profils persistants, amis, chat, vies rechargeables et économie serveur.",
   "main": "server.js",
   "scripts": {
-    "start": "node -r ./ai-runtime-fix.js -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js -r ./room-limit-hook.js -r ./player-report-hook.js -r ./admin-hook.js server.js",
-    "dev": "node -r ./ai-runtime-fix.js -r ./economy-hook.js -r ./friends-hook.js -r ./friend-code-v2-hook.js -r ./chat-hook.js -r ./room-limit-hook.js -r ./player-report-hook.js -r ./admin-hook.js --watch server.js"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test tests/*.test.cjs"
   },
   "engines": {
     "node": "22.x"
   },
   "dependencies": {
     "express": "^4.21.2",
-    "socket.io": "^4.8.1",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.3"
   }
 }

@@ -14,7 +14,6 @@
  */
 
 const { Pool } = require("pg");
-const socketIo = require("socket.io");
 
 const DATABASE_URL = String(process.env.DATABASE_URL || "").trim();
 const pool = DATABASE_URL
@@ -475,14 +474,5 @@ function installChat(io) {
   });
 }
 
-const OriginalServer = socketIo.Server;
+module.exports = installChat;
 
-class ChatPatchedServer extends OriginalServer {
-  constructor(...args) {
-    super(...args);
-    installChat(this);
-  }
-}
-
-socketIo.Server = ChatPatchedServer;
-module.exports = {};

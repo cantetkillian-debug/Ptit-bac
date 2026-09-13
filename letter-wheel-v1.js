@@ -105,38 +105,7 @@
     runtime.animationFrame = requestAnimationFrame(tick);
   }
 
-  function exitModal(state, user) {
-    const overlay = document.createElement("div");
-    overlay.className = "pbw1-modal-backdrop";
-    overlay.innerHTML = `
-      <section class="pbw1-modal" role="dialog" aria-modal="true">
-        <h2>Quitter la partie ?</h2>
-        <div class="pbw1-modal-actions">
-          <button type="button" data-action="cancel">Non</button>
-          ${user?.isHost ? '<button type="button" data-action="lobby">Revenir au salon</button>' : ""}
-          <button type="button" class="danger" data-action="home">Revenir à l’accueil</button>
-        </div>
-      </section>
-    `;
 
-    overlay.addEventListener("click", e => {
-      if (e.target === overlay || e.target.dataset.action === "cancel") overlay.remove();
-
-      if (e.target.dataset.action === "lobby") {
-        socket.emit("game:returnLobby", { code: state.code, playerId: session.playerId });
-        overlay.remove();
-      }
-
-      if (e.target.dataset.action === "home") {
-        socket.emit("room:leave", { code: state.code, playerId: session.playerId });
-        clearSession();
-        overlay.remove();
-        renderHome();
-      }
-    });
-
-    document.body.appendChild(overlay);
-  }
 
   function renderLetterWheelV1() {
     clearInterval(session.timerHandle);
@@ -238,7 +207,7 @@
 
     setRotation(runtime.rotation);
 
-    document.getElementById("pbw1Exit")?.addEventListener("click", () => exitModal(state, user));
+    document.getElementById("pbw1Exit")?.addEventListener("click", () => gameExitModal(state, user, "pbw1"));
 
     if (selectedLetter) {
       if (runtime.lastVersion !== version) {

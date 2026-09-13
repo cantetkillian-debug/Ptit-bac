@@ -1,4 +1,4 @@
-const CLIENT_BUILD = "1.42";
+const CLIENT_BUILD = "1.44.0";
 const socket = io();
 const app = document.getElementById("app");
 const toastEl = document.getElementById("toast");
@@ -14,8 +14,8 @@ const session = {
   adminCoinCode: ""
 };
 
-const GAME_COST = 5;
-const DEFAULT_COINS = 25;
+const GAME_COST = 0;
+const DEFAULT_COINS = 50;
 const PROFILE_ICONS = ["🐼","🦊","🐯","🐸","🦁","🐨","🐙","🦄","🤖","😎","🧠","⭐"];
 const LETTER_WHEEL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -47,7 +47,7 @@ function setWalletState(token, balance) {
 }
 
 function canAffordGame() {
-  return getCoins() >= GAME_COST;
+  return true; // Participation contrôlée en vies par le serveur.
 }
 
 function initWallet(cb = () => {}) {
@@ -107,6 +107,8 @@ function saveSession(code, playerId) {
 }
 
 function clearSession() {
+  clearInterval(session.timerHandle);
+  session.timerHandle = null;
   session.code = "";
   session.playerId = "";
   session.state = null;
@@ -144,13 +146,27 @@ function categoryIcon(category) {
   return CATEGORY_ICONS[category] || "✨";
 }
 
-function avatarMarkup(player, index = 0, extra = "") {
-  const initial = player.avatar
-    ? escapeHtml(player.avatar)
-    : escapeHtml(player.name.charAt(0).toUpperCase());
-  return `<div class="avatar avatar-${index % 6} ${player.avatar ? "avatar-emoji" : ""} ${extra}">${initial}</div>`;
+function isImageAvatar(value) {
+  return typeof value === "string" && /^data:image\/(?:png|jpeg|webp);base64,/i.test(value);
 }
 
+function avatarMarkup(player, index = 0, extra = "") {
+    const raw = String(player?.avatar || "");
+    const safeExtra = String(extra || "").replace(/[^a-zA-Z0-9 _-]/g, "");
+
+    if (isImageAvatar(raw)) {
+      return `
+        <div class="avatar avatar-${index % 6} ptb-avatar-photo ${safeExtra}">
+          <img src="${raw}" alt="" draggable="false">
+        </div>`;
+    }
+
+    const fallback = raw || String(player?.name || "?").charAt(0).toUpperCase();
+    return `
+      <div class="avatar avatar-${index % 6} ${raw ? "avatar-emoji" : ""} ${safeExtra}">
+        ${typeof escapeHtml === "function" ? escapeHtml(fallback) : fallback}
+      </div>`;
+  }
 
 function setScreen(html) {
   app.innerHTML = html;
@@ -1714,3 +1730,40 @@ function renderFinished() {
 window.addEventListener("beforeunload", () => {
   clearInterval(session.timerHandle);
 });
+
+// Shared by all six in-game exit buttons. Prefix keeps each screen’s CSS.
+function gameExitModal(state, user, prefix) {
+  document.querySelector(`.${prefix}-modal-backdrop`)?.remove();
+  const overlay = document.createElement("div");
+  overlay.className = `${prefix}-modal-backdrop`;
+  overlay.innerHTML = `
+    <section class="${prefix}-modal" role="dialog" aria-modal="true">
+      <h2>Quitter la partie ?</h2>
+      <div class="${prefix}-modal-actions">
+        <button type="button" data-action="cancel">Non</button>
+        ${user?.isHost ? '<button type="button" data-action="lobby">Revenir au salon</button>' : ""}
+        <button type="button" class="danger" data-action="home">Revenir à l’accueil</button>
+      </div>
+    </section>
+  `;
+
+  overlay.addEventListener("click", e => {
+    const action = e.target?.dataset?.action;
+    if (e.target === overlay || action === "cancel") {
+      overlay.remove();
+      return;
+    }
+    if (action === "lobby") {
+      socket.emit("game:returnLobby", { code: state.code, playerId: session.playerId });
+      overlay.remove();
+      return;
+    }
+    if (action === "home") {
+      socket.emit("room:leave", { code: state.code, playerId: session.playerId });
+      clearSession();
+      overlay.remove();
+      renderHome();
+    }
+  });
+  document.body.appendChild(overlay);
+}

@@ -1,200 +1,45 @@
-# P’tit Bac — V1.39 stabilité
+# P’tit Bac — version nettoyée 1.44.0
 
-Jeu P’tit Bac multijoueur mobile en Node.js / Socket.IO, pensé pour être déployé sur Render.
+Jeu multijoueur web, base pour une future application mobile.
 
-## Fonctionnalités principales
+## Démarrage
 
-- 1, 3 ou 5 manches.
-- 30, 60 ou 90 secondes par manche.
-- 6 à 10 catégories fixes pendant toute la partie.
-- 43 catégories réparties en trois difficultés : débutant, moyen et difficile.
-- Sélection pondérée des catégories selon la difficulté.
-- Roue A–Z avec un joueur humain choisi pour lancer la lettre.
-- Relance des catégories : 10 pièces.
-- Relance de la lettre : 10 pièces.
-- Participation à une partie : 5 pièces par joueur humain.
-- Validation automatique des réponses par OpenAI, avec contrôle local des réponses vides, mauvaises lettres et doublons.
-- 1 point uniquement pour une réponse valide et unique.
-- Résultats détaillés après chaque manche et classement final.
-- Portefeuille géré côté serveur avec historique de transactions.
-- PostgreSQL pris en charge si `DATABASE_URL` est configurée ; repli sur `wallets.json` pour le développement.
+Node.js 22, puis :
 
-## Validation IA
-
-La clé OpenAI ne doit jamais être placée dans GitHub ou dans `app.js`.
-
-Sur Render, ajoute :
-
-```text
-OPENAI_API_KEY=ta_clé_privée
-```
-
-Variables optionnelles :
-
-```text
-OPENAI_VALIDATION_MODEL=gpt-5-mini
-OPENAI_VALIDATION_REVIEW_MODEL=gpt-5-mini
-OPENAI_VALIDATION_WEB_SEARCH=false
-OPENAI_VALIDATION_BATCH_SIZE=20
-AUTO_VALIDATION_TIMEOUT_MS=30000
-```
-
-### Diagnostic
-
-Ouvre :
-
-```text
-/api/validation-health
-```
-
-Le champ `aiConfigured` indique si la variable `OPENAI_API_KEY` est présente. L’endpoint expose aussi le dernier succès et la dernière erreur OpenAI sans révéler la clé.
-
-Pour effectuer un vrai test API volontaire et très léger :
-
-```text
-/api/validation-health?live=1
-```
-
-Ce test consomme une petite quantité de crédit API.
-
-### Comportement en cas de panne
-
-Une panne OpenAI ne transforme plus toutes les réponses en réponses fausses. La manche reste sur l’écran de vérification avec l’état « vérification en pause ». L’hôte peut ensuite utiliser « Réessayer la vérification ». Aucun score n’est calculé tant que la validation n’a pas abouti.
-
-Les erreurs temporaires sont retentées automatiquement une fois avant de mettre la vérification en pause.
-
-## Portefeuille
-
-Un nouveau portefeuille commence avec 25 pièces.
-
-Transactions possibles :
-
-- `GAME_ENTRY` : -5 pièces au lancement réel de la partie.
-- `CATEGORY_REROLL` : -10 pièces.
-- `LETTER_REROLL` : -10 pièces.
-- `GAME_REWARD` : récompense de fin de partie.
-- `ADMIN_ADJUST` / `ADMIN_SET` : outil de test administrateur.
-
-Chaque portefeuille conserve les 100 dernières transactions. Les débits d’entrée et récompenses de fin utilisent aussi des clés d’idempotence afin de réduire le risque de double débit ou double récompense.
-
-### Récompenses
-
-La cagnotte contient exactement les mises des joueurs humains :
-
-```text
-nombre de joueurs humains × 5 pièces
-```
-
-Répartition de base :
-
-- 2 joueurs : 100 % au gagnant.
-- 3 joueurs : 67 % / 33 %.
-- 4 joueurs : 60 % / 40 %.
-- 5 joueurs et plus : 60 % / 25 % / 15 %.
-
-Une variation aléatoire de ±20 % est appliquée aux parts gagnantes puis renormalisée. La somme finale redistribuée reste exactement égale à la cagnotte. Les égalités partagent les places concernées.
-
-## Persistance des pièces
-
-### Recommandé : PostgreSQL
-
-Configure une variable Render :
-
-```text
-DATABASE_URL=postgresql://...
-```
-
-Le serveur crée automatiquement la table `ptitbac_wallets` au démarrage et recharge les portefeuilles existants.
-
-### Développement / secours : JSON
-
-Sans `DATABASE_URL`, le serveur utilise `wallets.json`. Ce mode convient aux tests mais n’est pas recommandé comme stockage définitif sur une instance Render éphémère.
-
-Un emplacement JSON spécifique peut être choisi avec :
-
-```text
-PTITBAC_WALLET_FILE=/chemin/wallets.json
-```
-
-## Outil administrateur de pièces
-
-Il n’existe plus de code administrateur par défaut dans le code source.
-
-Pour l’activer, configure sur Render :
-
-```text
-PTITBAC_ADMIN_CODE=un_code_privé
-```
-
-Sans cette variable, l’outil est désactivé côté serveur.
-
-## Sécurité réseau
-
-Socket.IO est en même origine par défaut. Pour autoriser explicitement un frontend séparé :
-
-```text
-SOCKET_CORS_ORIGIN=https://exemple.com
-```
-
-Plusieurs origines peuvent être séparées par des virgules.
-
-## Installation locale
-
-```bash
-npm install
+```sh
+npm ci
+npm test
 npm start
 ```
 
-Puis ouvre :
+En développement : `npm run dev`. Les tests nécessitent les dépendances de développement.
 
-```text
-http://localhost:3000
-```
+Sur Render : commande de build `npm ci`, commande de démarrage `npm start`, contrôle de santé `/health`. Le fichier render.yaml décrit ces valeurs ; pour un service existant configuré manuellement, modifier ses paramètres dans Render si nécessaire.
 
-## Déploiement Render
+## Configuration existante
 
-Le dépôt contient `render.yaml`. Le service utilise :
+- `DATABASE_URL` : PostgreSQL, nécessaire au lancement des parties avec vies, aux amis et au chat.
+- `OPENAI_API_KEY` : validation sémantique ; `OPENAI_BOT_API_KEY` facultative pour une clé distincte.
+- `OPENAI_VALIDATION_MODEL`, `OPENAI_VALIDATION_REVIEW_MODEL`, `OPENAI_BOT_MODEL` : modèles configurables.
+- `BOT_AI_ENABLED=false` : réponses locales des bots.
+- `PTITBAC_ADMIN_CODE` : accès administrateur selon le mécanisme existant.
+- `PTITBAC_WALLET_FILE` : chemin du repli JSON des portefeuilles.
+- `PORT` : 3000 par défaut.
+- `SOCKET_CORS_ORIGIN` : origines autorisées, séparées par des virgules, si nécessaire.
 
-```text
-Build Command: npm install
-Start Command: npm start
-```
+Sans PostgreSQL, l’accueil et les salons restent accessibles, mais le lancement des parties est refusé. Le JSON local ne remplace pas le stockage des vies.
 
-Variables importantes à mettre dans **Render → Environment** et jamais dans GitHub :
+Les secrets doivent rester dans les variables d’environnement. Les données existantes n’ont pas été migrées par cette livraison.
 
-```text
-OPENAI_API_KEY
-DATABASE_URL              # recommandé pour les pièces
-PTITBAC_ADMIN_CODE        # uniquement si l’outil admin est souhaité
-```
+## Organisation
 
-## Fichiers
+- `server.js` : démarrage, règles du jeu, économie et correction des réponses. Les anciens correctifs économie/salon y sont intégrés.
+- `friends-hook.js`, `chat-hook.js`, `player-report-hook.js`, `admin-hook.js` : modules enregistrés explicitement auprès de Socket.IO.
+- `friend-code-v2-hook.js` : migration PostgreSQL existante des codes amis.
+- `ai-runtime-fix.js` : réglages des délais IA, chargé explicitement par le serveur.
+- `app.js` : état client, fonctions partagées et rendu de base.
+- Scripts d’écrans : personnalisation des vues. Leur ordre dans index.html reste significatif.
+- `public-files.json` : liste des seuls fichiers téléchargeables. Ajouter à cette liste tout nouvel asset public.
+- `tests/server.test.cjs` : tests HTTP et Socket.IO, sans base réelle ni appels IA.
 
-```text
-index.html
-style.css
-app.js
-server.js
-package.json
-render.yaml
-petit-bac-logo.png
-README.md
-.gitignore
-```
-
-`petit-bac-logo.jpg` est un ancien fichier devenu inutile et peut être supprimé du dépôt.
-
-## V1.39 — corrections principales
-
-- Validation OpenAI plus résiliente : retry + état de panne sans donner 0 point à toute la manche.
-- Bouton de nouvelle tentative réservé à l’hôte.
-- Diagnostic OpenAI enrichi.
-- `VALIDATION_ENGINE_VERSION` centralisée.
-- Messages du cache corrigés.
-- Historique transactionnel du portefeuille.
-- Protection supplémentaire contre les doubles débits/récompenses.
-- Prise en charge optionnelle de PostgreSQL.
-- Suppression du code admin par défaut exposé côté client/serveur.
-- CORS Socket.IO limité par défaut à la même origine.
-- Ancien formulaire mis à jour avec l’option 90 secondes.
-- Documentation remise à jour.
+Les styles sont encore en plusieurs couches. Une suppression globale des anciennes classes sans tester les écrans dynamiques risquerait de casser des vues. Voir OPTIMISATION.md pour les travaux effectués et les priorités restantes.

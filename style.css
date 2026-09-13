@@ -2640,7 +2640,6 @@ body {
   box-shadow:0 0 0 5px rgba(255,224,118,.34),0 8px 20px rgba(222,151,24,.30)
 }
 .letter-pick-v135 .letter-wheel-pointer::after{top:32px;border-left-width:17px;border-right-width:17px;border-top:30px solid #ffbd20}
-.letter-pick-v135 .letter-wheel-pointer span{display:none}
 
 .v135-letter-result{width:min(100%,560px);margin:8px auto 14px;padding:14px 18px;justify-content:flex-start;gap:16px;text-align:left}
 .v135-result-letter{width:72px;height:72px;border-radius:22px;background:#eee8ff;color:#542bd1;display:grid;place-items:center;font-size:2.55rem;font-weight:950}
@@ -3455,10 +3454,6 @@ body {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-}
-.v141-lobby-player-main {
-  min-width: 0;
-  overflow: hidden;
 }
 .v141-lobby-player-name,
 .v141-lobby-player-sub {

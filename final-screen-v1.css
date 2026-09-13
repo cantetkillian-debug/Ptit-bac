@@ -707,9 +707,6 @@ body:has(.fsv1-screen) .economy-hud{display:none!important}
 }
 
 /* Retour accueil : texte seul. */
-.fsv1-home{
-  gap:0 !important;
-}
 
 .fsv1-home svg,
 .fsv1-home > img{
@@ -788,13 +785,6 @@ body:has(.fsv1-screen) .economy-hud{display:none!important}
 /* Retour accueil : aucun pictogramme résiduel */
 .fsv1-home{
   gap:0 !important;
-}
-.fsv1-home svg,
-.fsv1-home img,
-.fsv1-home::before,
-.fsv1-home::after{
-  display:none !important;
-  content:none !important;
 }
 
 /* Le bouton reste bien centré avec texte seul */

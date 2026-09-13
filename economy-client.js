@@ -154,7 +154,7 @@
   // que Socket.IO / le portefeuille met du temps à répondre.
   setTimeout(() => {
     const app = document.getElementById("app");
-    if (app && !app.children.length && typeof window.renderHome === "function") {
+    if (app && (!app.children.length || app.querySelector("[role=\"status\"]")) && typeof window.renderHome === "function") {
       try { window.renderHome(); } catch (err) {
         console.warn("Affichage accueil de secours:", err?.message || err);
       }

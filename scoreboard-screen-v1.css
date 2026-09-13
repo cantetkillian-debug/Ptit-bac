@@ -758,9 +758,6 @@ body:has(.ssv1-screen) .economy-hud{display:none!important}
 }
 
 /* Ancien bouton masqué défensivement si du vieux HTML réapparaît */
-.ssv1-lobby{
-  display:none !important;
-}
 
 @media(max-width:370px){
   .ssv1-player-title,
@@ -1014,9 +1011,6 @@ body:has(.ssv1-screen) .economy-hud{display:none!important}
 }
 
 /* plus de bouton retour salon */
-.ssv1-lobby{
-  display:none !important;
-}
 
 /* footer plus proche du proto */
 .ssv1-footer{

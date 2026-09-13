@@ -2,7 +2,6 @@
 
 const crypto = require("crypto");
 const { Pool } = require("pg");
-const socketIo = require("socket.io");
 
 const DATABASE_URL = String(process.env.DATABASE_URL || "").trim();
 const pool = DATABASE_URL
@@ -112,16 +111,7 @@ function installPlayerReports(io) {
   });
 }
 
-const OriginalServer = socketIo.Server;
-
-class PtitBacPlayerReportServer extends OriginalServer {
-  constructor(...args) {
-    super(...args);
-    installPlayerReports(this);
-  }
-}
-
-socketIo.Server = PtitBacPlayerReportServer;
+module.exports = installPlayerReports;
 
 process.on("SIGTERM", () => {
   pool?.end().catch(() => {});

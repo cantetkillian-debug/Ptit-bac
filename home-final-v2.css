@@ -864,12 +864,6 @@ body:has(.home-plaque-v1) {
   font-size:1rem !important;
 }
 
-.home-plaque-avatar-photo {
-  inset:3px !important;
-  width:calc(100% - 6px) !important;
-  height:calc(100% - 6px) !important;
-}
-
 .home-plaque-avatar > i {
   width:10px !important;
   height:10px !important;
