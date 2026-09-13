@@ -1,19 +1,24 @@
 /* Shared gameplay foundations, loaded after the screen-specific styles. */
 html.gameplay-flow,html.gameplay-flow body{
-  overflow-x:hidden!important;overflow-y:auto!important;height:auto!important;
+  overflow:hidden!important;height:100%!important;
   background:#08153f!important;
+}
+.gameplay-flow #app{
+  position:fixed!important;top:var(--game-top,0px)!important;left:0;right:0;
+  height:var(--game-height,100dvh)!important;min-height:0!important;overflow:hidden!important;
 }
 .gameplay-flow .flow-screen{
   --flow-muted:#bcb5df;
   box-sizing:border-box!important;
   width:min(100%,480px)!important;max-width:480px!important;
-  height:auto!important;min-height:100svh!important;max-height:none!important;
-  overflow:visible!important;margin:0 auto!important;
-  padding: max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))!important;
+  height:100%!important;min-height:0!important;max-height:100%!important;
+  overflow:hidden!important;margin:0 auto!important;display:flex!important;flex-direction:column!important;
+  padding: max(10px,env(safe-area-inset-top)) 14px max(10px,env(safe-area-inset-bottom))!important;
   background:radial-gradient(ellipse at 0 0,#502abe40,transparent 48%),#08153f!important;
   color:#fff;font-family:"DM Sans",system-ui,sans-serif;
 }
 .flow-screen *{box-sizing:border-box}
+.flow-screen>header,.flow-screen>button,.flow-screen>footer{flex-shrink:0!important}
 .flow-screen h1{font-size:clamp(25px,6.8vw,34px)!important;line-height:1.15!important;letter-spacing:-.6px!important}
 .flow-screen button{touch-action:manipulation}
 .flow-screen button:focus-visible,.flow-screen input:focus-visible{outline:3px solid #d6aeff!important;outline-offset:3px}
@@ -32,60 +37,79 @@ html.gameplay-flow,html.gameplay-flow body{
 }
 .gameplay-flow .flow-screen :is(.ptb-shared-footer,.fsv1-footer){
   position:relative!important;inset:auto!important;flex-shrink:0;
-  width:calc(100% + 32px)!important;height:auto!important;
-  margin:28px -16px -24px!important;z-index:0!important;
+  width:100%!important;height:36px!important;
+  margin:8px 0 0!important;z-index:0!important;display:flex!important;justify-content:center!important;
 }
 .gameplay-flow .flow-screen :is(.ptb-shared-footer,.fsv1-footer)>img{
-  width:100%!important;height:auto!important;max-width:100%!important;display:block!important;
+  width:44px!important;height:36px!important;max-width:44px!important;display:block!important;object-fit:contain!important;
 }
-.flow-screen.cat-v2{gap:20px!important}
+.flow-screen.cat-v2{gap:12px!important}
 .gameplay-flow .flow-screen .cat-v2-top{position:relative!important;inset:auto!important;width:100%!important;min-height:44px!important}
 .gameplay-flow .flow-screen .cat-v2-balance{position:static!important;transform:none!important;margin-left:auto!important}
 .gameplay-flow .flow-screen .cat-v2-copy{position:relative!important;inset:auto!important;transform:none!important;margin:6px 0 0!important;width:100%!important}
 .gameplay-flow .flow-screen .cat-v2-grid{
   position:relative!important;inset:auto!important;transform:none!important;
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  width:100%!important;gap:10px!important;margin:8px 0!important;flex:none!important;
+  width:100%!important;gap:10px!important;margin:0!important;flex:1 1 auto!important;min-height:0!important;
+  overflow-y:auto!important;align-content:start!important;overscroll-behavior:contain;
 }
 .gameplay-flow .flow-screen .cat-v2-card{
-  min-height:88px!important;height:auto!important;min-width:0!important;
+  min-height:64px!important;height:auto!important;min-width:0!important;
   padding:12px!important;gap:10px!important;border-radius:18px!important;
 }
 .flow-screen .cat-v2-card strong{font-size:13px!important;line-height:1.25!important;overflow-wrap:anywhere}
 .flow-screen .cat-v2-icon{width:36px!important;height:36px!important;font-size:24px!important;flex-shrink:0}
-.flow-screen .cat-v2-actions{position:relative!important;inset:auto!important;transform:none!important;margin-top:auto!important;width:100%!important}
+.flow-screen .cat-v2-actions{position:relative!important;inset:auto!important;transform:none!important;margin-top:0!important;width:100%!important;flex-shrink:0!important}
 .gameplay-flow .flow-screen .cat-v2-wait{position:relative!important;inset:auto!important;transform:none!important;width:100%!important;margin:18px 0!important}
-.flow-screen .pbw1-wheel-zone{width:min(100%,340px)!important;margin:20px auto!important}
-.flow-screen .pbw1-chooser{margin:18px auto 0!important}
-.flow-screen .pri-hero{margin:10px 0 16px!important}
-.flow-screen .pri-flag{width:56px!important;height:56px!important;margin:0 auto 8px!important}
+.flow-screen .pbw1-wheel-zone{width:min(82vw,326px,max(140px,calc(var(--game-height,100dvh) - 310px)))!important;margin:10px auto!important}
+.flow-screen .pbw1-chooser{margin:8px auto 0!important;flex-shrink:0!important}
+.flow-screen .pbw1-actions{margin:0 auto!important;gap:8px!important;flex-shrink:0!important}
+.flow-screen .pbw1-actions-spacer{height:0!important;flex:1!important}
+.flow-screen .pri-hero{margin:2px 0 8px!important;flex-shrink:0}
+.flow-screen .pri-flag{width:36px!important;height:36px!important;margin:0 auto 4px!important}
 .flow-screen .pri-stats{gap:8px!important}
-.flow-screen .pri-stat-card{min-height:100px!important;padding:12px 8px!important;border-radius:18px!important}
+.flow-screen .pri-stat-card{min-height:76px!important;padding:8px!important;border-radius:18px!important}
 .flow-screen .pri-categories{margin-top:14px!important}
 .flow-screen .pri-category{min-height:48px!important;border-radius:14px!important}
 .flow-screen .pri-countdown-ring{width:76px!important;height:76px!important}
 .flow-screen .pri-countdown-ring strong{font-size:34px!important}
 .flow-screen.asv1-screen{padding-top:max(12px,env(safe-area-inset-top))!important}
-.flow-screen .asv1-hero{grid-template-columns:90px 100px!important;justify-content:center!important;gap:20px!important;margin:8px 0 18px!important}
-.flow-screen .asv1-timer{width:100px!important;height:100px!important;flex-shrink:0}
-.flow-screen .asv1-timer strong{font-size:32px!important}
-.flow-screen .asv1-letter-card{min-height:80px!important;padding:8px!important}
+.flow-screen .asv1-hero{grid-template-columns:76px 76px!important;justify-content:center!important;gap:18px!important;margin:0 0 10px!important;flex-shrink:0}
+.flow-screen .asv1-timer{width:76px!important;height:76px!important;flex-shrink:0}
+.flow-screen .asv1-timer strong{font-size:27px!important}
+.flow-screen .asv1-letter-card{min-height:64px!important;height:64px!important;padding:6px!important}
 .flow-screen .asv1-tip{display:none!important}
-.flow-screen .asv1-list{gap:10px!important}
+.flow-screen .asv1-list{gap:8px!important;flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain;align-content:start;padding:3px!important}
 .flow-screen .asv1-row{padding:10px!important;border-radius:18px!important;gap:10px!important}
 .flow-screen .asv1-category strong{font-size:13px!important;line-height:1.25!important}
 .flow-screen .asv1-category>span{width:34px!important;height:34px!important;font-size:25px!important}
 .flow-screen .asv1-input{font-size:16px!important;min-width:0;scroll-margin:100px 0}
 .flow-screen .asv1-input-wrap{min-height:48px!important}
 .flow-screen .asv1-clear{min-width:40px!important}
-.flow-screen .asv1-rule{padding:12px!important;border-radius:18px!important}
+.flow-screen .asv1-rule{display:none!important}
+.gameplay-flow .flow-screen.asv1-screen footer{display:none!important}
+.flow-screen .asv1-submit{flex-shrink:0!important;margin:10px 0 0!important}
 .flow-screen .asv1-rule p{font-size:12px!important;line-height:1.5!important}
-.flow-screen .vsv1-card{margin:36px 0!important;padding:32px 18px!important;min-height:260px!important;border-radius:24px!important}
+.flow-screen .vsv1-card{margin:20px 0!important;padding:24px 16px!important;min-height:0!important;border-radius:24px!important;flex:1;overflow-y:auto}
 .flow-screen .vsv1-spinner{width:66px!important;height:66px!important;margin:0 auto 24px!important}
 .flow-screen .vsv1-card h1{font-size:25px!important}
 .flow-screen .vsv1-card p{font-size:14px!important;line-height:1.55!important}
 .flow-screen :is(.vsv1-info,.wsv1-round,.wsv1-letter,.wsv1-categories){border-radius:16px!important}
-.flow-screen .ssv1-heading{padding-top:40px!important}
+.flow-screen .ssv1-heading{padding-top:36px!important;flex-shrink:0}
+.flow-screen .flow-content{flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden;overscroll-behavior:contain;padding:8px 2px}
+.flow-screen .fsv1-heading{flex-shrink:0!important}
+.flow-screen .flow-content>.fsv1-podium{margin-top:28px!important}
+.flow-screen .wsv1-main{margin:8px 0 12px!important;flex-shrink:0!important}
+.flow-screen .wsv1-timer{width:96px!important;height:96px!important}
+.flow-screen .wsv1-main h1{font-size:23px!important;margin-top:12px!important}
+.flow-screen .wsv1-players{min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain;margin-bottom:auto!important}
+.flow-screen .wsv1-top{flex-shrink:0!important}
+.flow-screen .pri-categories-panel{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain;margin:10px 0!important}
+.flow-screen .pri-countdown-card{margin:0!important;flex-shrink:0!important}
+.flow-screen .pri-countdown-card p{margin:4px!important}
+.flow-screen .pri-countdown-card>small{display:none!important}
+.ptb-quick-game :is(.lobby-v5-host-card,.host-badge),
+.lobby-v5[data-mode="quick"] :is(.lobby-v5-host-card,.host-badge){display:none!important}
 .flow-screen .ssv1-board-scroll{overscroll-behavior-x:contain;scrollbar-width:thin}
 .flow-screen .ssv1-answer{font-size:13px!important;overflow-wrap:anywhere}
 .flow-screen .ssv1-winner{padding:16px!important;border-radius:22px!important;min-height:110px!important}
@@ -101,7 +125,25 @@ html.gameplay-flow,html.gameplay-flow body{
   .flow-screen .asv1-category{flex-direction:row!important}
   .flow-screen .fsv1-actions{grid-template-columns:1fr!important}
 }
+@media(max-height:540px){
+  .gameplay-flow .flow-screen footer{display:none!important}
+  .gameplay-flow .flow-screen{padding-top:6px!important;padding-bottom:6px!important}
+  .flow-screen .asv1-header{min-height:36px!important;height:36px!important}
+  .flow-screen .asv1-hero{grid-template-columns:60px 60px!important;margin:0 0 6px!important}
+  .flow-screen .asv1-timer{width:58px!important;height:58px!important}
+  .flow-screen .asv1-timer strong{font-size:22px!important}
+  .flow-screen .asv1-letter-card{min-height:52px!important;height:52px!important}
+  .flow-screen .asv1-letter-plain{font-size:26px!important}
+  .flow-screen .cat-v2-grid{align-content:start!important}
+  .flow-screen .pri-flag,.flow-screen .pri-hero p{display:none!important}
+  .flow-screen .wsv1-main h1{font-size:19px!important}
+}
 @media(prefers-reduced-motion:reduce){
   .flow-screen,.flow-screen .flow-enter{animation:none!important;scroll-behavior:auto!important}
   .flow-screen .fsv1-confetti{display:none!important}
+}
+/* Very short landscape windows keep an escape route instead of clipping controls. */
+@media(max-height:420px){
+  .gameplay-flow .flow-screen:not(.asv1-screen){overflow-y:auto!important}
+  .flow-screen:not(.asv1-screen)>.flow-content{flex:1 0 auto!important}
 }

@@ -101,7 +101,8 @@
 
   function playerRow(player, index, user) {
     const online = player.connected || player.isBot;
-    const canKick = user?.isHost && !player.isHost && String(player.id) !== String(session.playerId);
+    const privateLobby = session.state?.mode !== "quick";
+    const canKick = privateLobby && user?.isHost && !player.isHost && String(player.id) !== String(session.playerId);
     const code = friendCodeFor(player);
 
     return `
@@ -112,7 +113,7 @@
         <div class="lobby-v5-player-copy">
           <div class="lobby-v5-player-name-row">
             <strong>${escapeHtml(player.name || "Joueur")}</strong>
-            ${player.isHost
+            ${privateLobby && player.isHost
               ? `<span class="host-badge"><img src="/admin-crown.png" alt=""> Hôte</span>`
               : online
                 ? `<span class="ready-badge">✓ Prêt</span>`
@@ -327,7 +328,7 @@
         : "";
 
     setScreen(`
-      <main class="screen lobby-v5">
+      <main class="screen lobby-v5" data-mode="${state.mode === "quick" ? "quick" : "private"}">
         <header class="lobby-v5-header">
           <button id="lobbyV5Leave" class="lobby-v5-back" type="button" aria-label="Quitter le salon">
             <img src="/lobby-exit.png" alt="">
@@ -348,7 +349,7 @@
           </div>
         </header>
 
-        <section class="lobby-v5-host-card">
+        ${state.mode !== "quick" ? `<section class="lobby-v5-host-card">
           <div class="lobby-v5-host-crown"><img src="/admin-crown.png" alt=""></div>
           <div class="lobby-v5-host-avatar">${avatarMarkup(user || state.players[0])}</div>
           <div class="lobby-v5-host-copy">
@@ -363,6 +364,8 @@
             <span>Paramètres</span>
           </button>
         </section>
+
+        ` : ""}
 
         <section class="lobby-v5-settings-panel" id="lobbySettingsPanel">
           <h2>

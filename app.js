@@ -173,20 +173,67 @@ function avatarMarkup(player, index = 0, extra = "") {
       </div>`;
   }
 
+function updateGameViewport() {
+  const viewport = window.visualViewport;
+  if (viewport && viewport.scale !== 1) return; // Preserve pinch zoom.
+  document.documentElement.style.setProperty("--game-height", (viewport?.height || window.innerHeight) + "px");
+  document.documentElement.style.setProperty("--game-top", (viewport?.offsetTop || 0) + "px");
+  window.requestAnimationFrame(() => {
+    const input = document.activeElement;
+    if (!input?.matches(".asv1-input")) return;
+    const list = input.closest(".asv1-list");
+    if (!list) return;
+    const field = input.getBoundingClientRect(), area = list.getBoundingClientRect();
+    if (field.bottom > area.bottom - 8) list.scrollTop += field.bottom - area.bottom + 8;
+    else if (field.top < area.top + 8) list.scrollTop -= area.top - field.top + 8;
+  });
+}
+window.visualViewport?.addEventListener("resize", updateGameViewport);
+window.visualViewport?.addEventListener("scroll", updateGameViewport);
+window.addEventListener("resize", updateGameViewport);
+
 function setScreen(html) {
   const old = app.querySelector("main");
   const previousScreen = old?.className.replace(" flow-enter", "");
   const previousScroll = window.scrollY;
+  const scrollers = [...app.querySelectorAll(".flow-content,.asv1-list,.cat-v2-grid,.wsv1-players,.pri-categories-panel")].map(el => [el.className, el.scrollTop]);
   app.innerHTML = html;
   const screen = app.querySelector("main");
   const gameplay = !!screen?.matches(".cat-v2,.pbw1-screen,.pri-screen,.asv1-screen,.wsv1-screen,.vsv1-screen,.ssv1-screen,.fsv1-screen");
   document.documentElement.classList.toggle("gameplay-flow", gameplay);
+  updateGameViewport();
   if (gameplay) {
     screen.classList.add("flow-screen");
     screen.dataset.mode = session.state?.mode || "private";
+    const footerImage = screen.querySelector("footer > img");
+    if (footerImage) {
+      footerImage.src = "/ptitbac.logo.png";
+      footerImage.width = 44;
+      footerImage.height = 36;
+    }
+    const scrollSelectors = screen.matches(".ssv1-screen")
+      ? ".ssv1-board-shell,.ssv1-winner"
+      : screen.matches(".fsv1-screen") ? ".fsv1-podium,.fsv1-ranking,.fsv1-stats,.fsv1-gain" : null;
+    if (scrollSelectors) {
+      const children = [...screen.querySelectorAll(scrollSelectors)];
+      if (children.length) {
+        const content = document.createElement("div");
+        content.className = "flow-content";
+        content.tabIndex = 0;
+        content.setAttribute("aria-label", "Résultats de la partie");
+        children[0].before(content);
+        children.forEach(child => content.append(child));
+      }
+    }
     if (previousScreen !== screen.className) screen.classList.add("flow-enter");
   }
   window.scrollTo({ top: previousScreen === screen?.className.replace(" flow-enter", "") ? previousScroll : 0, behavior: "instant" });
+  if (previousScreen === screen?.className.replace(" flow-enter", "")) {
+    for (const [className, scrollTop] of scrollers) {
+      const node = [...screen.querySelectorAll(".flow-content,.asv1-list,.cat-v2-grid,.wsv1-players,.pri-categories-panel")].find(el => el.className === className);
+      if (node) node.scrollTop = scrollTop;
+    }
+  }
 }
 
 
