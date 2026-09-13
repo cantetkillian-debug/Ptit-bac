@@ -44,6 +44,9 @@ html.gameplay-flow,html.gameplay-flow body{
   width:44px!important;height:36px!important;max-width:44px!important;display:block!important;object-fit:contain!important;
 }
 .flow-screen.cat-v2{gap:12px!important}
+/* Legacy .category-pick-screen > * made the decorative halos flex items. */
+.gameplay-flow .flow-screen.cat-v2>.cat-v2-glow{display:none!important}
+.gameplay-flow .flow-screen.cat-v2{justify-content:flex-start!important}
 .gameplay-flow .flow-screen .cat-v2-top{position:relative!important;inset:auto!important;width:100%!important;min-height:44px!important}
 .gameplay-flow .flow-screen .cat-v2-balance{position:static!important;transform:none!important;margin-left:auto!important}
 .gameplay-flow .flow-screen .cat-v2-copy{position:relative!important;inset:auto!important;transform:none!important;margin:6px 0 0!important;width:100%!important}
@@ -65,19 +68,38 @@ html.gameplay-flow,html.gameplay-flow body{
 .flow-screen .pbw1-chooser{margin:8px auto 0!important;flex-shrink:0!important}
 .flow-screen .pbw1-actions{margin:0 auto!important;gap:8px!important;flex-shrink:0!important}
 .flow-screen .pbw1-actions-spacer{height:0!important;flex:1!important}
-.flow-screen .pri-hero{margin:2px 0 8px!important;flex-shrink:0}
+.gameplay-flow .flow-screen .pri-top{
+  position:absolute!important;top:max(10px,env(safe-area-inset-top))!important;left:14px!important;
+  height:44px!important;min-height:0!important;width:44px!important;
+}
+.gameplay-flow .flow-screen .pri-hero{
+  margin:0 48px 16px!important;flex-shrink:0;min-height:48px;
+  display:grid!important;grid-template-columns:34px auto;justify-content:center!important;
+  align-items:center!important;column-gap:8px;row-gap:4px;
+}
+.gameplay-flow .flow-screen .pri-hero h1{font-size:clamp(23px,6vw,30px)!important;margin:0!important}
+.gameplay-flow .flow-screen .pri-hero p{grid-column:1/-1;margin:0!important;font-size:13px!important}
 .flow-screen .pri-flag{width:36px!important;height:36px!important;margin:0 auto 4px!important}
 .flow-screen .pri-stats{gap:8px!important}
+.gameplay-flow .flow-screen .pri-stats{flex-shrink:0!important;margin-top:auto!important}
 .flow-screen .pri-stat-card{min-height:76px!important;padding:8px!important;border-radius:18px!important}
 .flow-screen .pri-categories{margin-top:14px!important}
 .flow-screen .pri-category{min-height:48px!important;border-radius:14px!important}
 .flow-screen .pri-countdown-ring{width:76px!important;height:76px!important}
 .flow-screen .pri-countdown-ring strong{font-size:34px!important}
 .flow-screen.asv1-screen{padding-top:max(12px,env(safe-area-inset-top))!important}
+.gameplay-flow .flow-screen .asv1-header{
+  position:absolute!important;left:14px!important;top:max(10px,env(safe-area-inset-top))!important;
+  width:44px!important;height:44px!important;min-height:0!important;margin:0!important;
+}
 .flow-screen .asv1-hero{grid-template-columns:76px 76px!important;justify-content:center!important;gap:18px!important;margin:0 0 10px!important;flex-shrink:0}
 .flow-screen .asv1-timer{width:76px!important;height:76px!important;flex-shrink:0}
 .flow-screen .asv1-timer strong{font-size:27px!important}
 .flow-screen .asv1-letter-card{min-height:64px!important;height:64px!important;padding:6px!important}
+.gameplay-flow .flow-screen .asv1-letter-card{display:flex!important;flex-direction:column!important;justify-content:center!important;gap:2px!important;overflow:visible!important}
+.gameplay-flow .flow-screen .asv1-letter-card small{font-size:10px!important;line-height:12px!important;margin:0!important}
+.gameplay-flow .flow-screen .asv1-letter-plain{font-size:28px!important;line-height:30px!important;margin:0!important}
+.gameplay-flow .flow-screen .asv1-hero{width:calc(100% - 96px)!important;margin:0 48px 12px!important}
 .flow-screen .asv1-tip{display:none!important}
 .flow-screen .asv1-list{gap:8px!important;flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain;align-content:start;padding:3px!important}
 .flow-screen .asv1-row{padding:10px!important;border-radius:18px!important;gap:10px!important}
@@ -104,8 +126,8 @@ html.gameplay-flow,html.gameplay-flow body{
 .flow-screen .wsv1-main h1{font-size:23px!important;margin-top:12px!important}
 .flow-screen .wsv1-players{min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain;margin-bottom:auto!important}
 .flow-screen .wsv1-top{flex-shrink:0!important}
-.flow-screen .pri-categories-panel{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain;margin:10px 0!important}
-.flow-screen .pri-countdown-card{margin:0!important;flex-shrink:0!important}
+.flow-screen .pri-categories-panel{flex:0 1 auto!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain;margin:14px 0!important}
+.gameplay-flow .flow-screen .pri-countdown-card{margin:0 0 auto!important;flex-shrink:0!important}
 .flow-screen .pri-countdown-card p{margin:4px!important}
 .flow-screen .pri-countdown-card>small{display:none!important}
 .ptb-quick-game :is(.lobby-v5-host-card,.host-badge),
@@ -135,7 +157,7 @@ html.gameplay-flow,html.gameplay-flow body{
   .flow-screen .asv1-letter-card{min-height:52px!important;height:52px!important}
   .flow-screen .asv1-letter-plain{font-size:26px!important}
   .flow-screen .cat-v2-grid{align-content:start!important}
-  .flow-screen .pri-flag,.flow-screen .pri-hero p{display:none!important}
+  .flow-screen .pri-hero p{display:none!important}
   .flow-screen .wsv1-main h1{font-size:19px!important}
 }
 @media(prefers-reduced-motion:reduce){
