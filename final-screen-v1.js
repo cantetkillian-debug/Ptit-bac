@@ -159,7 +159,7 @@
             ${coin()}${coin()}${coin()}
           </div>
           <div class="fsv1-gain-copy">
-            <small>Ton gain total</small>
+            <small>${state.mode === "quick" ? "Ton gain total" : "Salon privé — sans gain de pièces"}</small>
             <strong>+${myReward} pièces</strong>
             <span>Nouveau solde : ${typeof getCoins==="function" ? getCoins() : 0} pièces</span>
           </div>
@@ -170,9 +170,9 @@
         </section>
 
         <div class="fsv1-actions">
-          ${user?.isHost
+          ${user?.isHost && state.mode !== "quick"
             ? `<button class="fsv1-restart" id="fsv1Restart" type="button">↻ <span>Refaire une partie</span></button>`
-            : `<div class="fsv1-wait-host">L’hôte peut relancer une partie.</div>`
+            : `<div class="fsv1-wait-host">${state.mode === "quick" ? "Retourne à l’accueil pour chercher une nouvelle partie." : "L’hôte peut relancer une partie."}</div>`
           }
           <button class="fsv1-home" id="fsv1Home" type="button">
             ${typeof uiIcon==="function" ? uiIcon("home") : "⌂"}

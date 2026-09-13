@@ -38,9 +38,9 @@
     if (!token || refreshing) return;
 
     refreshing = true;
-    ecoSocket.emit("economy:get", {walletToken:token}, res => {
+    ecoSocket.timeout(8000).emit("economy:get", {walletToken:token}, (err,res) => {
       refreshing = false;
-      if (!res?.ok) return;
+      if (err || !res?.ok) return;
       Object.assign(eco, res);
       renderEconomyUI();
     });
@@ -98,7 +98,7 @@
 
     const info = document.querySelector(".shop-info");
     if (info) {
-      const infoText = `ⓘ Les parties multijoueur coûtent <strong>1 vie</strong>. Une vie revient toutes les <strong>30 minutes</strong>.`;
+      const infoText = `ⓘ Les parties rapides coûtent <strong>1 vie</strong>. Une vie revient toutes les <strong>30 minutes</strong>. Les salons privés sont gratuits, sans gain de pièces.`;
       if (info.innerHTML !== infoText) info.innerHTML = infoText;
     }
 

@@ -215,7 +215,12 @@ function ensureWallet(token) {
   let safeToken = typeof token === "string" && /^[a-f0-9]{48}$/i.test(token) ? token : "";
   if (!safeToken) safeToken = createWalletToken();
   if (!wallets.has(safeToken)) {
-    wallets.set(safeToken, { coins: DEFAULT_COINS, createdAt: Date.now(), updatedAt: Date.now(), history: [] });
+    const now = Date.now();
+    wallets.set(safeToken, { coins: DEFAULT_COINS, createdAt: now, updatedAt: now, history: [{
+      id: crypto.randomBytes(8).toString("hex"), type: "WELCOME", delta: DEFAULT_COINS,
+      before: 0, after: DEFAULT_COINS, at: now, roomCode: "",
+      note: "Bienvenue dans P’tit Bac", idempotencyKey: "welcome:" + safeToken
+    }] });
     persistWallet(safeToken);
   }
   return { token: safeToken, wallet: wallets.get(safeToken) };
@@ -291,7 +296,7 @@ function emitWallet(player) {
 const ECONOMY_MAX_LIVES = 5;
 const ECONOMY_LIFE_MS = 30 * 60 * 1000;
 const ECONOMY_AD_REWARD = 80;
-const ECONOMY_REWARD_VARIANCE = 0.20;
+const { calculateRewards } = require("./game-economy.js");
 let economySchemaReady = false;
 let economySchemaPromise = null;
 
@@ -434,16 +439,6 @@ async function economyState(walletToken) {
   const life = computedLives(user);
   const coins = walletBalance(walletToken);
 
-  await pgPool.query(
-    `UPDATE public.users
-        SET lives=$2,
-            life_updated_at=to_timestamp($3/1000.0),
-            coins=$4,
-            last_seen=now(),
-            updated_at=now()
-      WHERE id=$1`,
-    [user.id, life.lives, life.updated, coins]
-  );
 
   return {
     userId:user.id,
@@ -460,7 +455,7 @@ async function economyState(walletToken) {
 async function consumeLivesForRoom(players, roomCode, sessionId) {
   if (!pgPool) return {ok:false,error:"Base de donnees indisponible."};
 
-  const humans = players.filter(p => !p.isBot && p.walletToken);
+  const humans = players.filter(p => !p.isBot && p.walletToken).sort((a,b) => a.walletToken.localeCompare(b.walletToken));
   for (const p of humans) await ensureEconomyUser(p.walletToken, p.name, p.avatar || "🐼");
 
   const client = await pgPool.connect();
@@ -472,11 +467,6 @@ async function consumeLivesForRoom(players, roomCode, sessionId) {
     for (const p of humans) {
       const key = "life-entry:" + roomCode + ":" + sessionId + ":" + p.id;
 
-      const already = await client.query(
-        "SELECT 1 FROM public.economy_transactions WHERE idempotency_key=$1 LIMIT 1",
-        [key]
-      );
-      if (already.rowCount) continue;
 
       const q = await client.query(
         "SELECT id,wallet_token,lives,life_updated_at FROM public.users WHERE wallet_token=$1 FOR UPDATE",
@@ -487,6 +477,12 @@ async function consumeLivesForRoom(players, roomCode, sessionId) {
         await client.query("ROLLBACK");
         return {ok:false,player:p,error:"Profil joueur introuvable."};
       }
+
+      const already = await client.query(
+        "SELECT 1 FROM public.economy_transactions WHERE idempotency_key=$1 LIMIT 1",
+        [key]
+      );
+      if (already.rowCount) continue;
 
       const row = q.rows[0];
       const life = computedLives(row);
@@ -551,6 +547,15 @@ async function refundLivesSnapshot(snapshot) {
     try {
       await client.query("BEGIN");
 
+      const locked = await client.query(
+        "SELECT lives,life_updated_at FROM public.users WHERE id=$1 FOR UPDATE",
+        [user.id]
+      );
+      if (!locked.rowCount) {
+        await client.query("ROLLBACK");
+        continue;
+      }
+
       const charged = await client.query(
         "SELECT 1 FROM public.economy_transactions WHERE idempotency_key=$1 LIMIT 1",
         [chargeKey]
@@ -569,14 +574,6 @@ async function refundLivesSnapshot(snapshot) {
         continue;
       }
 
-      const locked = await client.query(
-        "SELECT lives,life_updated_at FROM public.users WHERE id=$1 FOR UPDATE",
-        [user.id]
-      );
-      if (!locked.rowCount) {
-        await client.query("ROLLBACK");
-        continue;
-      }
 
       const life = computedLives(locked.rows[0]);
       const nextLives = Math.min(ECONOMY_MAX_LIVES, life.lives + 1);
@@ -606,12 +603,6 @@ async function refundLivesSnapshot(snapshot) {
       client.release();
     }
   }
-}
-
-function variedReward(base) {
-  const min = Math.round(base * (1 - ECONOMY_REWARD_VARIANCE));
-  const max = Math.round(base * (1 + ECONOMY_REWARD_VARIANCE));
-  return crypto.randomInt(min, max + 1);
 }
 
 async function syncEconomyCoins(walletToken, coins, kind, delta, details, idempotencyKey) {
@@ -927,6 +918,7 @@ function publicPlayer(p) {
 function publicRoom(room, viewerPlayerId = null) {
   return {
     code: room.code,
+    mode: room.mode || "private",
     phase: room.phase,
     players: room.players.map(publicPlayer),
     categories: room.categories,
@@ -1885,42 +1877,6 @@ function shuffled(arr) {
   return copy;
 }
 
-function calculateRewards(room) {
-  const humans = room.players
-    .filter(p => !p.isBot && p.walletToken)
-    .sort((a,b) => b.score - a.score || a.name.localeCompare(b.name));
-
-  const rewards = Object.fromEntries(room.players.map(p => [p.id,0]));
-  if (!humans.length) return rewards;
-
-  let start = 0;
-  let rank = 1;
-
-  while (start < humans.length) {
-    let end = start + 1;
-    while (end < humans.length && humans[end].score === humans[start].score) {
-      end += 1;
-    }
-
-    const base =
-      rank === 1 ? 60 :
-      rank === 2 ? 40 :
-      rank === 3 ? 25 :
-      10;
-
-    const reward = variedReward(base);
-
-    for (let i = start; i < end; i++) {
-      rewards[humans[i].id] = reward;
-    }
-
-    rank += (end - start);
-    start = end;
-  }
-
-  return rewards;
-}
-
 function distributeRewards(room) {
   if (room.rewardsDistributed) return;
   room.rewardsDistributed = true;
@@ -2352,41 +2308,8 @@ function ptitBacCloseRoomSockets(room, payload = {}) {
   });
 }
 
-function ptitBacAwardForfeit(room, winner, quitterName) {
-  const reward = Math.max(0, Math.floor(Number(room.pot || 0)));
-  let balance = winner?.walletToken ? walletBalance(winner.walletToken) : 0;
-
-  if (winner && winner.walletToken && reward > 0 && !room.rewardsDistributed) {
-    const key =
-      "forfeit:" +
-      room.code +
-      ":" +
-      String(room.gameSessionId || room.createdAt || "") +
-      ":" +
-      winner.id;
-
-    walletTransaction(
-      winner.walletToken,
-      reward,
-      "GAME_FORFEIT_REWARD",
-      {
-        roomCode: room.code,
-        note: "Victoire par forfait contre " + String(quitterName || "un joueur")
-      },
-      key
-    );
-
-    room.rewardsDistributed = true;
-    room.rewardsByPlayerId = Object.fromEntries(
-      room.players.map(p => [p.id, p.id === winner.id ? reward : 0])
-    );
-    room.rewardsDistributedAt = Date.now();
-
-    balance = walletBalance(winner.walletToken);
-    emitWallet(winner);
-  }
-
-  return { reward, balance };
+function ptitBacAwardForfeit(room, winner) {
+  return { reward: 0, balance: winner?.walletToken ? walletBalance(winner.walletToken) : 0 };
 }
 
 function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
@@ -2395,6 +2318,7 @@ function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
     return cb({ ok: false, error: "Partie introuvable." });
   }
 
+  if (room.economyStartPending) return cb({ok:false,error:"Lancement en cours, réessaie dans un instant."});
   const phaseBeforeLeave = room.phase;
   const isActiveGame =
     phaseBeforeLeave !== "lobby" &&
@@ -2485,6 +2409,233 @@ function ptitBacHandleExplicitLeave(socket, payload = {}, cb = () => {}) {
     message: "Tu as quitté la partie."
   });
 }
+
+function hasActiveRoom(token) {
+  return [...rooms.values()].some(room => room.phase !== "finished" && room.players.some(p => p.walletToken === token));
+}
+
+function createGameRoom(socket, { name, rounds = 1, duration = 60, categoryCount = 6, categoryDifficulty = "beginner", avatar, friendCode, walletToken }, cb = () => {}, mode = "private") {
+    const safeName = cleanName(name);
+    const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
+    const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : 60;
+    const safeCategoryCount = [5, 6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : 6;
+    const safeCategoryDifficulty = ["beginner", "medium", "hard"].includes(categoryDifficulty) ? categoryDifficulty : "beginner";
+    if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
+    const walletResult = ensureWallet(walletToken || socket.data.walletToken);
+    socket.data.walletToken = walletResult.token;
+    if (walletResult.wallet.coins < GAME_COST) return cb({ ok: false, error: `Il te faut ${GAME_COST} pièces pour jouer.` });
+
+    if (hasActiveRoom(walletResult.token)) return cb({ok:false,error:"Quitte ta partie actuelle avant d’en créer une autre."});
+    const code = roomCode();
+    const player = {
+      id: id(),
+      name: safeName,
+      connected: true,
+      socketId: socket.id,
+      score: 0,
+      isHost: true,
+      isBot: false,
+      walletToken: walletResult.token,
+      avatar: (typeof avatar === "string" && avatar.startsWith("data:image/") && avatar.includes(";base64,") && avatar.length <= 450000) ? avatar : Array.from(String(avatar || "")).slice(0, 8).join(""),
+      friendCode: (() => { const c = String(friendCode || "").trim(); return c.length === 5 && Array.from(c).every(ch => ch >= "0" && ch <= "9") ? c : ""; })(),
+      submitted: false,
+      answers: {}
+    };
+
+    const room = {
+      code,
+      mode,
+      phase: "lobby",
+      players: [player],
+      categoryCount: safeCategoryCount,
+      categoryDifficulty: safeCategoryDifficulty,
+      categories: pickCategories(safeCategoryDifficulty, safeCategoryCount),
+      rounds: safeRounds,
+      duration: safeDuration,
+      letters: [],
+      letterChooserPlayerId: null,
+      pendingLetter: null,
+      letterSpinVersion: 0,
+      roundIndex: -1,
+      roundEndsAt: null,
+      validation: null,
+      lastRoundScores: {},
+      lastRoundResults: null,
+      entryDebited: false,
+      paidPlayerIds: [],
+      pot: 0,
+      rewardsDistributed: false,
+      rewardsByPlayerId: {},
+      rewardsDistributedAt: null,
+      gameSessionId: null,
+      createdAt: Date.now()
+    };
+
+    rooms.set(code, room);
+    setPlayerSocket(room, player, socket);
+    cb({ ok: true, code, playerId: player.id, walletToken: walletResult.token, balance: walletResult.wallet.coins, state: publicRoom(room, player.id) });
+    emitRoom(room);
+  }
+
+function joinGameRoom(socket, { code, name, avatar, friendCode, walletToken }, cb = () => {}, matchmaking = false) {
+    const room = getRoom(code);
+    const safeName = cleanName(name);
+
+    if (room?.mode === "quick" && !matchmaking) return cb({ok:false,error:"Accès réservé à la recherche de partie rapide."});
+    if (!room) return cb({ ok: false, error: "Partie introuvable." });
+    if (room.phase !== "lobby") return cb({ ok: false, error: "La partie a déjà commencé." });
+    if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
+    if (room.players.length >= 6) return cb({ ok: false, error: "Cette partie est pleine (6 joueurs maximum)." });
+    const walletResult = ensureWallet(walletToken || socket.data.walletToken);
+    if (hasActiveRoom(walletResult.token)) return cb({ok:false,error:"Quitte ta partie actuelle avant d’en rejoindre une autre."});
+    socket.data.walletToken = walletResult.token;
+    if (walletResult.wallet.coins < GAME_COST) return cb({ ok: false, error: `Il te faut ${GAME_COST} pièces pour jouer.` });
+    if (room.players.some(p => !p.isBot && p.walletToken === walletResult.token)) return cb({ ok: false, error: "Ce profil est déjà dans le salon." });
+
+    const duplicateName = room.players.some(p => p.name.toLowerCase() === safeName.toLowerCase());
+    if (duplicateName) return cb({ ok: false, error: "Ce prénom est déjà utilisé." });
+
+    const player = {
+      id: id(),
+      name: safeName,
+      connected: true,
+      socketId: socket.id,
+      score: 0,
+      isHost: false,
+      isBot: false,
+      walletToken: walletResult.token,
+      avatar: (typeof avatar === "string" && avatar.startsWith("data:image/") && avatar.includes(";base64,") && avatar.length <= 450000) ? avatar : Array.from(String(avatar || "")).slice(0, 8).join(""),
+      friendCode: (() => { const c = String(friendCode || "").trim(); return c.length === 5 && Array.from(c).every(ch => ch >= "0" && ch <= "9") ? c : ""; })(),
+      submitted: false,
+      answers: {}
+    };
+
+    room.players.push(player);
+    setPlayerSocket(room, player, socket);
+    cb({ ok: true, code: room.code, playerId: player.id, walletToken: walletResult.token, balance: walletResult.wallet.coins, state: publicRoom(room, player.id) });
+    emitRoom(room);
+  }
+
+async function startGame(socket, payload, automatic = false) {
+    const { room, player } = requireMember(socket, payload);
+    if (!room || !player?.isHost || room.phase !== "lobby" || room.economyStartPending) return;
+    if (room.mode === "quick" && !automatic) return false;
+    if (room.players.length < 2) {
+      return socket.emit("toast", "Il faut au moins 2 joueurs.");
+    }
+
+    if (room.mode === "quick" && !room.entryDebited) {
+      if (room.economyStartPending) {
+        return socket.emit("toast", "Lancement deja en cours...");
+      }
+
+      room.economyStartPending = true;
+      const humans = room.players.filter(p => !p.isBot);
+
+      try {
+        if (humans.some(p => !p.walletToken)) {
+          return socket.emit("toast", "Un joueur n'a pas encore de profil valide.");
+        }
+
+        const gameSessionId = room.gameSessionId || id();
+        room.gameSessionId = gameSessionId;
+
+        const lifeResult = await consumeLivesForRoom(
+          humans,
+          room.code,
+          gameSessionId
+        );
+
+        if (!lifeResult?.ok) {
+          room.gameSessionId = null;
+
+          if (lifeResult?.player?.socketId) {
+            io.to(lifeResult.player.socketId).emit(
+              "toast",
+              "Tu n'as plus de vie. +1 vie toutes les 30 min."
+            );
+          }
+
+          return socket.emit(
+            "toast",
+            lifeResult?.error || "Un joueur n'a plus de vie."
+          );
+        }
+
+        if (rooms.get(room.code) !== room || humans.some(p => !p.connected || !room.players.includes(p))) {
+          await refundLivesSnapshot({roomCode:room.code,sessionId:gameSessionId,players:humans});
+          return false;
+        }
+        room.entryDebited = true;
+        room.paidPlayerIds = humans.map(p => p.id);
+        room.pot = 0;
+
+        for (const p of humans) {
+          const eco = await economyState(p.walletToken).catch(() => null);
+          if (p.socketId) io.to(p.socketId).emit("economy:update", eco);
+        }
+      } catch (err) {
+        console.error("Prelevement des vies:", err.message);
+        room.gameSessionId = null;
+        return socket.emit("toast", "Impossible de verifier les vies pour le moment.");
+      } finally {
+        room.economyStartPending = false;
+      }
+    }
+
+    room.gameSessionId ||= id();
+    room.categories = pickCategories(room.categoryDifficulty || "beginner", room.categoryCount || 6);
+    room.letters = [];
+    room.letterChooserPlayerId = null;
+    room.pendingLetter = null;
+    room.letterSpinVersion = 0;
+    room.roundIndex = -1;
+    room.roundEndsAt = null;
+    room.validation = null;
+    room.lastRoundScores = {};
+    room.phase = "category_selection";
+    emitRoom(room);
+    return true;
+  }
+
+const quickMatch = require("./quick-match.js")({
+  io,
+  async eligible(socket, profile) {
+    if (!cleanName(profile.name)) throw new Error("Choisis d’abord ton pseudo.");
+    const result = ensureWallet(profile.walletToken || socket.data.walletToken);
+    socket.data.walletToken = result.token;
+    if (hasActiveRoom(result.token)) throw new Error("Quitte ta partie actuelle avant de chercher.");
+    const state = await economyState(result.token);
+    if (!state) throw new Error("Les parties rapides nécessitent la base de données.");
+    if (state.lives < 1) throw new Error("Tu n’as plus de vie pour une partie rapide.");
+    return {...profile,walletToken:result.token};
+  },
+  async match(entries) {
+    let room;
+    try {
+      for (const [index, entry] of entries.entries()) {
+        if (!entry.socket.connected) throw new Error("Un joueur s’est déconnecté avant le lancement.");
+        let result;
+        const reply = value => {result=value;};
+        if (index === 0) createGameRoom(entry.socket, {...entry.profile,rounds:5,duration:60,categoryCount:6,categoryDifficulty:"beginner"}, reply, "quick");
+        else joinGameRoom(entry.socket, {...entry.profile,code:room.code}, reply, true);
+        if (!result?.ok) throw new Error(result?.error || "Recherche interrompue.");
+        room = getRoom(result.code);
+        entry.socket.emit("quick:matched", result);
+      }
+      const host = room.players[0];
+      if (!await startGame(entries[0].socket,{code:room.code,playerId:host.id},true)) {
+        throw new Error("La partie n’a pas pu démarrer. Aucune vie consommée si le lancement a été annulé.");
+      }
+    } catch (err) {
+      if (room) {
+        ptitBacCloseRoomSockets(room,{reason:"match_cancelled",message:err.message});
+        rooms.delete(room.code);
+      }
+      throw err;
+    }
+  }
+});
 
 io.on("connection", socket => {
 
@@ -2593,65 +2744,9 @@ io.on("connection", socket => {
     if (!safeToken || safeToken !== socket.data.walletToken) return cb({ ok: false, error: "Portefeuille non autorisé." });
     cb({ ok: true, balance: walletBalance(safeToken), transactions: recentWalletTransactions(safeToken, limit) });
   });
-  socket.on("room:create", ({ name, rounds = 1, duration = 60, categoryCount = 6, categoryDifficulty = "beginner", avatar, friendCode, walletToken }, cb = () => {}) => {
-    const safeName = cleanName(name);
-    const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
-    const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : 60;
-    const safeCategoryCount = [5, 6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : 6;
-    const safeCategoryDifficulty = ["beginner", "medium", "hard"].includes(categoryDifficulty) ? categoryDifficulty : "beginner";
-    if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
-    const walletResult = ensureWallet(walletToken || socket.data.walletToken);
-    socket.data.walletToken = walletResult.token;
-    if (walletResult.wallet.coins < GAME_COST) return cb({ ok: false, error: `Il te faut ${GAME_COST} pièces pour jouer.` });
-
-    const code = roomCode();
-    const player = {
-      id: id(),
-      name: safeName,
-      connected: true,
-      socketId: socket.id,
-      score: 0,
-      isHost: true,
-      isBot: false,
-      walletToken: walletResult.token,
-      avatar: (typeof avatar === "string" && avatar.startsWith("data:image/") && avatar.includes(";base64,") && avatar.length <= 450000) ? avatar : Array.from(String(avatar || "")).slice(0, 8).join(""),
-      friendCode: (() => { const c = String(friendCode || "").trim(); return c.length === 5 && Array.from(c).every(ch => ch >= "0" && ch <= "9") ? c : ""; })(),
-      submitted: false,
-      answers: {}
-    };
-
-    const room = {
-      code,
-      phase: "lobby",
-      players: [player],
-      categoryCount: safeCategoryCount,
-      categoryDifficulty: safeCategoryDifficulty,
-      categories: pickCategories(safeCategoryDifficulty, safeCategoryCount),
-      rounds: safeRounds,
-      duration: safeDuration,
-      letters: [],
-      letterChooserPlayerId: null,
-      pendingLetter: null,
-      letterSpinVersion: 0,
-      roundIndex: -1,
-      roundEndsAt: null,
-      validation: null,
-      lastRoundScores: {},
-      lastRoundResults: null,
-      entryDebited: false,
-      paidPlayerIds: [],
-      pot: 0,
-      rewardsDistributed: false,
-      rewardsByPlayerId: {},
-      rewardsDistributedAt: null,
-      gameSessionId: null,
-      createdAt: Date.now()
-    };
-
-    rooms.set(code, room);
-    setPlayerSocket(room, player, socket);
-    cb({ ok: true, code, playerId: player.id, walletToken: walletResult.token, balance: walletResult.wallet.coins, state: publicRoom(room, player.id) });
-    emitRoom(room);
+  socket.on("room:create", (payload, cb) => {
+    if (!quickMatch.cancel(socket)) return cb?.({ok:false,error:"Une partie rapide se prépare."});
+    createGameRoom(socket, payload, cb);
   });
 
   socket.on("room:updateSettings", ({ code, playerId, rounds, duration, categoryCount, categoryDifficulty }, cb = () => {}) => {
@@ -2659,6 +2754,7 @@ io.on("connection", socket => {
     if (!room || !player?.isHost) return cb({ ok: false, error: "Seul l’hôte peut modifier les paramètres." });
     if (room.phase !== "lobby") return cb({ ok: false, error: "Les paramètres ne peuvent être modifiés que dans le salon." });
 
+    if (room.mode === "quick") return cb({ok:false,error:"Le format rapide est fixe."});
     const safeRounds = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : room.rounds;
     const safeDuration = [30, 60, 90].includes(Number(duration)) ? Number(duration) : room.duration;
     const safeCategoryCount = [5, 6, 7, 8, 9, 10].includes(Number(categoryCount)) ? Number(categoryCount) : (room.categoryCount || room.categories.length || 6);
@@ -2675,41 +2771,9 @@ io.on("connection", socket => {
     emitRoom(room);
   });
 
-  socket.on("room:join", ({ code, name, avatar, friendCode, walletToken }, cb = () => {}) => {
-    const room = getRoom(code);
-    const safeName = cleanName(name);
-
-    if (!room) return cb({ ok: false, error: "Partie introuvable." });
-    if (room.phase !== "lobby") return cb({ ok: false, error: "La partie a déjà commencé." });
-    if (!safeName) return cb({ ok: false, error: "Choisis un prénom." });
-    if (room.players.length >= 6) return cb({ ok: false, error: "Cette partie est pleine (6 joueurs maximum)." });
-    const walletResult = ensureWallet(walletToken || socket.data.walletToken);
-    socket.data.walletToken = walletResult.token;
-    if (walletResult.wallet.coins < GAME_COST) return cb({ ok: false, error: `Il te faut ${GAME_COST} pièces pour jouer.` });
-    if (room.players.some(p => !p.isBot && p.walletToken === walletResult.token)) return cb({ ok: false, error: "Ce profil est déjà dans le salon." });
-
-    const duplicateName = room.players.some(p => p.name.toLowerCase() === safeName.toLowerCase());
-    if (duplicateName) return cb({ ok: false, error: "Ce prénom est déjà utilisé." });
-
-    const player = {
-      id: id(),
-      name: safeName,
-      connected: true,
-      socketId: socket.id,
-      score: 0,
-      isHost: false,
-      isBot: false,
-      walletToken: walletResult.token,
-      avatar: (typeof avatar === "string" && avatar.startsWith("data:image/") && avatar.includes(";base64,") && avatar.length <= 450000) ? avatar : Array.from(String(avatar || "")).slice(0, 8).join(""),
-      friendCode: (() => { const c = String(friendCode || "").trim(); return c.length === 5 && Array.from(c).every(ch => ch >= "0" && ch <= "9") ? c : ""; })(),
-      submitted: false,
-      answers: {}
-    };
-
-    room.players.push(player);
-    setPlayerSocket(room, player, socket);
-    cb({ ok: true, code: room.code, playerId: player.id, walletToken: walletResult.token, balance: walletResult.wallet.coins, state: publicRoom(room, player.id) });
-    emitRoom(room);
+  socket.on("room:join", (payload, cb) => {
+    if (!quickMatch.cancel(socket)) return cb?.({ok:false,error:"Une partie rapide se prépare."});
+    joinGameRoom(socket, payload, cb);
   });
 
   socket.on("room:reconnect", ({ code, playerId, walletToken }, cb = () => {}) => {
@@ -2734,7 +2798,7 @@ io.on("connection", socket => {
 
   socket.on("room:kick", ({ code, playerId, targetPlayerId }) => {
     const { room, player } = requireMember(socket, { code, playerId });
-    if (!room || !player?.isHost || room.phase !== "lobby") return;
+    if (!room || !player?.isHost || room.phase !== "lobby" || room.mode === "quick" || room.economyStartPending) return;
 
     const target = getPlayer(room, targetPlayerId);
     if (!target || target.isHost || target.id === player.id) return;
@@ -2778,7 +2842,7 @@ io.on("connection", socket => {
 
   socket.on("room:addBot", payload => {
     const { room, player } = requireMember(socket, payload);
-    if (!room || !player?.isHost || room.phase !== "lobby") return;
+    if (!room || !player?.isHost || room.phase !== "lobby" || room.mode === "quick" || room.economyStartPending) return;
 
     if (room.players.length >= 6) { return socket.emit("toast", "Le salon est complet (6 joueurs maximum)."); }
 
@@ -2802,83 +2866,16 @@ io.on("connection", socket => {
     emitRoom(room);
   });
 
-  socket.on("game:start", async payload => {
-    const { room, player } = requireMember(socket, payload);
-    if (!room || !player?.isHost || room.phase !== "lobby") return;
-    if (room.players.length < 2) {
-      return socket.emit("toast", "Il faut au moins 2 joueurs.");
-    }
-
-    if (!room.entryDebited) {
-      if (room.economyStartPending) {
-        return socket.emit("toast", "Lancement deja en cours...");
-      }
-
-      room.economyStartPending = true;
-      const humans = room.players.filter(p => !p.isBot);
-
-      try {
-        if (humans.some(p => !p.walletToken)) {
-          return socket.emit("toast", "Un joueur n'a pas encore de profil valide.");
-        }
-
-        const gameSessionId = room.gameSessionId || id();
-        room.gameSessionId = gameSessionId;
-
-        const lifeResult = await consumeLivesForRoom(
-          humans,
-          room.code,
-          gameSessionId
-        );
-
-        if (!lifeResult?.ok) {
-          room.gameSessionId = null;
-
-          if (lifeResult?.player?.socketId) {
-            io.to(lifeResult.player.socketId).emit(
-              "toast",
-              "Tu n'as plus de vie. +1 vie toutes les 30 min."
-            );
-          }
-
-          return socket.emit(
-            "toast",
-            lifeResult?.error || "Un joueur n'a plus de vie."
-          );
-        }
-
-        room.entryDebited = true;
-        room.paidPlayerIds = humans.map(p => p.id);
-        room.pot = 0;
-
-        for (const p of humans) {
-          const eco = await economyState(p.walletToken);
-          if (p.socketId) io.to(p.socketId).emit("economy:update", eco);
-        }
-      } catch (err) {
-        console.error("Prelevement des vies:", err.message);
-        room.gameSessionId = null;
-        return socket.emit("toast", "Impossible de verifier les vies pour le moment.");
-      } finally {
-        room.economyStartPending = false;
-      }
-    }
-
-    room.categories = pickCategories(room.categoryDifficulty || "beginner", room.categoryCount || 6);
-    room.letters = [];
-    room.letterChooserPlayerId = null;
-    room.pendingLetter = null;
-    room.letterSpinVersion = 0;
-    room.roundIndex = -1;
-    room.roundEndsAt = null;
-    room.validation = null;
-    room.lastRoundScores = {};
-    room.phase = "category_selection";
-    emitRoom(room);
+  socket.on("game:start", payload => {
+    startGame(socket, payload).catch(err => {
+      console.error("Lancement:", err.message);
+      socket.emit("toast", "Le lancement a échoué. Réessaie.");
+    });
   });
 
   socket.on("game:rerollCategories", payload => {
     const { room, player } = requireMember(socket, payload);
+    if (room?.mode === "quick") return socket.emit("toast", "Les relances sont désactivées en partie rapide.");
     if (!room || !player?.isHost || room.phase !== "category_selection") return;
     if (player.isBot || !player.walletToken) return;
 
@@ -2915,6 +2912,7 @@ io.on("connection", socket => {
 
   socket.on("game:rerollLetter", payload => {
     const { room, player } = requireMember(socket, payload);
+    if (room?.mode === "quick") return socket.emit("toast", "Les relances sont désactivées en partie rapide.");
     if (!room || !player || room.phase !== "letter_selection") return;
     if (player.id !== room.letterChooserPlayerId || !room.pendingLetter) return;
     if (player.isBot || !player.walletToken) return;
@@ -2967,6 +2965,7 @@ io.on("connection", socket => {
 
   socket.on("game:returnLobby", payload => {
     const { room, player } = requireMember(socket, payload);
+    if (room?.mode === "quick") return socket.emit("toast", "Pour rejouer, lance une nouvelle recherche depuis l’accueil.");
     if (!room || !player?.isHost) return;
     if (!["category_selection", "letter_selection"].includes(room.phase) || room.roundIndex >= 0) return;
     refundPreGameEntry(room);
@@ -3024,6 +3023,7 @@ io.on("connection", socket => {
 
   socket.on("game:restart", payload => {
     const { room, player } = requireMember(socket, payload);
+    if (room?.mode === "quick") return socket.emit("toast", "Pour rejouer, lance une nouvelle recherche depuis l’accueil.");
     if (!room || !player?.isHost) return;
 
     room.phase = "lobby";

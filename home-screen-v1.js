@@ -55,7 +55,7 @@
       return `
         <div class="home-resource-popup-card" role="dialog" aria-label="Mes pièces">
           <strong class="home-resource-popup-value home-resource-popup-coins"><img src="/coin.png" alt="">${coins} pièce${coins > 1 ? "s" : ""}</strong>
-          <button id="homeResourceShop" type="button">Ajouter des pièces</button>
+          <button id="homeResourceShop" type="button">Ajouter des pièces</button><button id="homeResourceHistory" type="button">Historique</button>
         </div>`;
     }
 
@@ -100,6 +100,7 @@
       if (event.target === layer) closeResourcePopup();
     });
 
+    document.getElementById("homeResourceHistory")?.addEventListener("click",()=>{closeResourcePopup();window.openWalletHistory();});
     document.getElementById("homeResourceShop")?.addEventListener("click", () => {
       closeResourcePopup();
       renderShop();
@@ -118,6 +119,7 @@
     const newCard = wrapper.firstElementChild;
     oldCard.replaceWith(newCard);
 
+    document.getElementById("homeResourceHistory")?.addEventListener("click",()=>{closeResourcePopup();window.openWalletHistory();});
     document.getElementById("homeResourceShop")?.addEventListener("click", () => {
       closeResourcePopup();
       renderShop();
@@ -166,7 +168,7 @@
         return toast(`Plus de vie. Recharge dans ${formatRecharge(eco.secondsToNext)}.`);
       }
 
-      toast("La partie rapide en ligne arrive bientôt !");
+      window.startQuickPlay(p);
     });
 
     document.getElementById("homePlaqueCreate")?.addEventListener("click", async () => {

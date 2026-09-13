@@ -71,5 +71,7 @@
   "/validation-screen-v1.css",
   "/validation-screen-v1.js",
   "/waiting-screen-v1.css",
-  "/waiting-screen-v1.js"
+  "/waiting-screen-v1.js",
+  "/wallet-client.js",
+  "/wallet.css"
 ]
